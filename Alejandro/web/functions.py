@@ -49,13 +49,3 @@ def make_back_control() -> Control:
         keyphrases=["back", "go back", "return"],
         action=lambda s=None: go_back(s) if s else {}
     )
-
-def make_nav_control(id: str, text: str, target_screen: Type[Screen], 
-                    keyphrases: Optional[List[str]] = None) -> Control:
-    """Create a navigation control to target screen"""
-    return Control(
-        id=id,
-        text=text,
-        keyphrases=keyphrases or [text.lower()],
-        action=lambda s=None: navigate(s, target_screen) if s else {}
-    )

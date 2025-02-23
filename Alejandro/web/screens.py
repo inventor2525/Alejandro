@@ -8,11 +8,11 @@ class WelcomeScreen(Screen):
         super().__init__(
             title="Welcome",
             controls=[
-                make_nav_control(
+                Control(
                     id="activate",
                     text="Hey Alejandro",
-                    target_screen=MainScreen,
-                    keyphrases=["hey alejandro", "hello alejandro"]
+                    keyphrases=["hey alejandro", "hello alejandro"],
+                    action=lambda s=None: navigate(s, MainScreen) if s else {}
                 )
             ]
         )
@@ -23,17 +23,17 @@ class MainScreen(Screen):
         super().__init__(
             title="Main Menu",
             controls=[
-                make_nav_control(
+                Control(
                     id="conversations",
-                    text="Conversations", 
-                    target_screen=ConversationsScreen,
-                    keyphrases=["conversations", "show conversations"]
+                    text="Conversations",
+                    keyphrases=["conversations", "show conversations"],
+                    action=lambda s=None: navigate(s, ConversationsScreen) if s else {}
                 ),
-                make_nav_control(
-                    id="terminal",
+                Control(
+                    id="terminal", 
                     text="Terminal",
-                    target_screen=TerminalScreen,
-                    keyphrases=["terminal", "open terminal"]
+                    keyphrases=["terminal", "open terminal"],
+                    action=lambda s=None: navigate(s, TerminalScreen) if s else {}
                 ),
                 make_back_control()
             ]

@@ -24,7 +24,8 @@ def init_app(welcome_screen: Screen) -> None:
     """Initialize the core application"""
     global core_app, word_stream
     if core_app is None:
-        word_stream = StringWordStream()
+        from Alejandro.Core.test_word_stream import TestWordStream
+        word_stream = TestWordStream()
         core_app = Application(word_stream, welcome_screen)
 
 @app.route('/')
