@@ -6,8 +6,10 @@ import nltk
 # Download required NLTK data
 try:
     nltk.data.find('tokenizers/punkt')
+    nltk.data.find('tokenizers/punkt_tab/english')
 except LookupError:
     nltk.download('punkt')
+    nltk.download('punkt_tab')
 
 from Alejandro.Models.word_node import WordNode
 
