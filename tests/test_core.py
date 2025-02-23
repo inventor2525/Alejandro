@@ -2,12 +2,17 @@ from datetime import datetime
 from typing import List
 import pytest
 from Alejandro.Models.control import Control, ControlResult
-from Alejandro.Models.modal_control import ModalControl, ModalState
 from Alejandro.Models.screen import Screen
 from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.application import Application
 from Alejandro.Models.word_node import WordNode
 from Alejandro.Core.string_word_stream import StringWordStream
+from Alejandro.Models.modal_control import ModalControl, ModalState
+
+class TestScreen(Screen):
+    """Test screen implementation"""
+    def __init__(self, title: str, controls: List[Control] = None):
+        super().__init__(title=title, controls=controls or [])
 
 def test_control():
     """Test Control validation and action"""
@@ -15,8 +20,7 @@ def test_control():
     def test_action():
         nonlocal action_called
         action_called = True
-        
-    # Create control with multiple keyphrases
+    
     control = Control(
         text="Test Button",
         keyphrases=["run test", "execute test"],
@@ -32,23 +36,16 @@ def test_control():
     assert result == ControlResult.UNUSED
     assert not action_called
     
-    # Create linked words "run test"
-    words = StringWordStream().process_text("run test")
-    
     # Test matching phrase
+    words = StringWordStream.process_text("run test")
     result = control.validate_word(words[1])  # "test"
     assert result == ControlResult.USED
     assert action_called
 
 def test_screen_stack():
     """Test ScreenStack navigation"""
-    class TestScreen(Screen):
-        """Test screen implementation"""
-        def __init__(self, title: str, controls: List[Control] = None):
-            super().__init__(title=title, controls=controls or [])
-            
-    welcome = TestScreen(title="Welcome")
-    main = TestScreen("Main") 
+    welcome = TestScreen("Welcome")
+    main = TestScreen("Main")
     settings = TestScreen("Settings")
     
     stack = ScreenStack(welcome)
@@ -101,12 +98,7 @@ def test_application():
     controls = [
         Control(text="Test Button", keyphrases=["click"], action=test_action)
     ]
-    class TestScreen(Screen):
-        """Test screen implementation"""
-        def __init__(self, title: str, controls: List[Control] = None):
-            super().__init__(title=title, controls=controls or [])
-            
-    screen = TestScreen(title="Test", controls=controls)
+    screen = TestScreen("Test", controls)
     
     # Create and run application
     app = Application(stream, screen)
@@ -119,19 +111,8 @@ def test_application():
     # Run app
     app.run()
     
-    # Verify global handler got all words
-    assert received_words == [
-        "click", "the", "button",
-        "more", "words"
-    ]
-    
-    # Verify action was called
+    assert received_words == ["click", "the", "button", "more", "words"]
     assert action_called
-
-class TestScreen(Screen):
-    """Test screen implementation"""
-    def __init__(self, title: str, controls: List[Control] = None):
-        super().__init__(title=title, controls=controls or [])
 
 def test_modal_control():
     """Test ModalControl state management and word collection"""
@@ -197,8 +178,7 @@ def test_modal_control_application():
         action=on_complete
     )
     
-    # Create screen with modal control
-    screen = TestScreen(title="Test", controls=[control])
+    screen = TestScreen("Test", [control])
     app = Application(stream, screen)
     
     # Test full dictation sequence
