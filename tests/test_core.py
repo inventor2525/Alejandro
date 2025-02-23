@@ -92,14 +92,13 @@ def test_application():
         received_words.append(word)
         
     # Create test screen with controls
-    modal_active = False
-    def activate_modal():
-        nonlocal modal_active
-        modal_active = True
+    action_called = False
+    def test_action():
+        nonlocal action_called
+        action_called = True
         
     controls = [
-        Control(text="Normal Button", keyphrases=["click"], action=lambda: None),
-        Control(text="Modal Button", keyphrases=["start modal"], action=activate_modal)
+        Control(text="Test Button", keyphrases=["click"], action=test_action)
     ]
     class TestScreen(Screen):
         """Test screen implementation"""
@@ -113,8 +112,7 @@ def test_application():
     app.add_global_word_handler(global_handler)
     
     # Add test words
-    stream.add_words("click the button")  # Should trigger normal control
-    stream.add_words("start modal test")  # Should trigger and hold modal
+    stream.add_words("click the button")  # Should trigger control
     stream.add_words("more words")        # Should be received by global handler
     
     # Run app
@@ -123,9 +121,48 @@ def test_application():
     # Verify global handler got all words
     assert received_words == [
         "click", "the", "button",
-        "start", "modal", "test",
         "more", "words"
     ]
     
-    # Verify modal was activated
-    assert modal_active
+    # Verify action was called
+    assert action_called
+
+def test_modal_control():
+    """Test ModalControl state management"""
+    stream = StringWordStream()
+    
+    # Track modal state
+    modal_entered = False
+    modal_exited = False
+    
+    def on_enter():
+        nonlocal modal_entered
+        modal_entered = True
+        
+    def on_exit():
+        nonlocal modal_exited
+        modal_exited = True
+    
+    # Create modal control
+    control = ModalControl(
+        text="Start Dictation",
+        keyphrases=["begin dictation", "start speaking"],
+        deactivate_phrases=["end dictation", "stop speaking"],
+        action=on_enter
+    )
+    
+    # Create screen with modal control
+    screen = TestScreen(title="Test", controls=[control])
+    
+    # Create and run application
+    app = Application(stream, screen)
+    
+    # Test modal activation and deactivation
+    stream.add_words("start speaking now")  # Should activate modal
+    stream.add_words("some dictated text")  # Should pass through
+    stream.add_words("end dictation")       # Should deactivate modal
+    
+    app.run()
+    
+    assert modal_entered
+    assert not modal_exited  # Modal exit doesn't call action
