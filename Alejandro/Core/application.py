@@ -37,6 +37,8 @@ class Application:
                             break
                         elif result == ControlResult.HOLD:
                             self._modal_control = control
+                            if control.action:
+                                control.action()
                             break
                             
         finally:
