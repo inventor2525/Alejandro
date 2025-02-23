@@ -46,30 +46,3 @@ class ModalControl(Control):
             return ControlResult.HOLD
             
         return ControlResult.UNUSED
-    
-    def validate_word(self, word_node: WordNode) -> ControlResult:
-        """
-        Check if this word completes any of our key phrases by looking backwards.
-        Returns ControlResult indicating if/how the word was used.
-        """
-        def check_phrase(phrase: str) -> bool:
-            words = phrase.lower().split()
-            current = word_node
-            
-            # Walk backwards through phrase words
-            for target in reversed(words):
-                if not current or current.word.lower() != target:
-                    return False
-                current = current.prev
-            return True
-            
-        # Check if word completes the button text or any keyphrase
-        if check_phrase(self.text) or any(check_phrase(phrase) for phrase in self.keyphrases):
-            if self.action:
-                self.action()
-            # For modal controls, return HOLD instead of USED
-            if any("modal" in phrase.lower() for phrase in [self.text] + self.keyphrases):
-                return ControlResult.HOLD
-            return ControlResult.USED
-            
-        return ControlResult.UNUSED

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 import pytest
-from Alejandro.Models.control import Control, ControlResult
+from Alejandro.Models.control import Control, ControlResult, ModalControl
 from Alejandro.Models.screen import Screen
 from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.application import Application
@@ -126,6 +126,11 @@ def test_application():
     
     # Verify action was called
     assert action_called
+
+class TestScreen(Screen):
+    """Test screen implementation"""
+    def __init__(self, title: str, controls: List[Control] = None):
+        super().__init__(title=title, controls=controls or [])
 
 def test_modal_control():
     """Test ModalControl state management"""
