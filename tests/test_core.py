@@ -8,11 +8,6 @@ from Alejandro.Core.application import Application
 from Alejandro.Models.word_node import WordNode
 from Alejandro.Core.string_word_stream import StringWordStream
 
-class TestScreen(Screen):
-    """Test screen implementation"""
-    title: str = ""
-    controls: List[Control] = []
-
 def test_control():
     """Test Control validation and action"""
     action_called = False
@@ -46,7 +41,12 @@ def test_control():
 
 def test_screen_stack():
     """Test ScreenStack navigation"""
-    welcome = TestScreen("Welcome")
+    class TestScreen(Screen):
+        """Test screen implementation"""
+        def __init__(self, title: str, controls: List[Control] = None):
+            super().__init__(title=title, controls=controls or [])
+            
+    welcome = TestScreen(title="Welcome")
     main = TestScreen("Main") 
     settings = TestScreen("Settings")
     
@@ -101,7 +101,12 @@ def test_application():
         Control(text="Normal Button", keyphrases=["click"], action=lambda: None),
         Control(text="Modal Button", keyphrases=["start modal"], action=activate_modal)
     ]
-    screen = TestScreen("Test", controls)
+    class TestScreen(Screen):
+        """Test screen implementation"""
+        def __init__(self, title: str, controls: List[Control] = None):
+            super().__init__(title=title, controls=controls or [])
+            
+    screen = TestScreen(title="Test", controls=controls)
     
     # Create and run application
     app = Application(stream, screen)
