@@ -38,12 +38,12 @@ class Control(BaseModel):
             if not current:
                 return False
                 
-            # Get equivalent forms for both target and current word
-            target_forms = WORD_MAP.get(target.lower(), [target.lower()])
-            current_forms = WORD_MAP.get(current.word.lower(), [current.word.lower()])
-            
-            # Check if any forms match
-            if not any(t == c for t in target_forms for c in current_forms):
+            # Get equivalent forms for current word if it's in the map
+            current_word = current.word.lower()
+            if current_word in WORD_MAP:
+                if not any(target.lower() == form for form in WORD_MAP[current_word]):
+                    return False
+            elif current_word != target.lower():
                 return False
                 
             current = current.prev
