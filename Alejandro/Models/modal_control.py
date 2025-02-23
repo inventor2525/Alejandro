@@ -30,27 +30,27 @@ class ModalControl(Control):
         
     def validate_word(self, word_node: WordNode) -> ControlResult:
         """Handle state transitions and word collection based on phrases"""
-        # Check for complete deactivation phrase when in HOLDING state
-        if self._state == ModalState.HOLDING:
-            # Check if this word completes a deactivation phrase
-            for phrase in self.deactivate_phrases:
+        if self._state == ModalState.INACTIVE:
+            # Check activation phrases when inactive
+            if self._check_phrase(self.text, word_node) or any(self._check_phrase(phrase, word_node) for phrase in self.keyphrases):
+                self._state = ModalState.HOLDING
+                self._collected_words = []  # Reset collection
+                return ControlResult.HOLD
+            return ControlResult.UNUSED
+            
+        # Must be in HOLDING state
+        # Check for deactivation phrases first
+        for phrase in self.deactivate_phrases:
+            # Don't collect word if it might be part of deactivation phrase
+            if any(self._check_phrase(p[:i+1], word_node) for i, _ in enumerate(self._processed_phrases[phrase])):
+                # If it completes the phrase, deactivate
                 if self._check_phrase(phrase, word_node):
-                    # Remove the deactivation phrase words from collection
-                    phrase_len = len(self._processed_phrases[phrase])
-                    self._collected_words = self._collected_words[:-phrase_len+1]
                     self._state = ModalState.INACTIVE
                     if self.action:
-                        self.action()  # Call action with final collected words
+                        self.action()  # Call action on deactivation
                     return ControlResult.USED
-            
-            # Not part of deactivation phrase, collect it
-            self._collected_words.append(word_node)
-            return ControlResult.HOLD
-            
-        # Check activation phrases when inactive
-        if self._check_phrase(self.text, word_node) or any(self._check_phrase(phrase, word_node) for phrase in self.keyphrases):
-            self._state = ModalState.HOLDING
-            self._collected_words = []  # Reset collection
-            return ControlResult.HOLD
-            
-        return ControlResult.UNUSED
+                return ControlResult.HOLD
+                
+        # If not part of any deactivation phrase, collect the word
+        self._collected_words.append(word_node)
+        return ControlResult.HOLD
