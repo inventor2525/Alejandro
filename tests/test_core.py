@@ -6,7 +6,7 @@ from Alejandro.Models.screen import Screen
 from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.application import Application
 from Alejandro.Models.word_node import WordNode
-from tests.test_word_stream import TestWordStream
+from Alejandro.Core.string_word_stream import StringWordStream
 
 class TestScreen(Screen):
     """Test screen implementation"""
@@ -45,7 +45,7 @@ def test_control():
     assert not action_called
     
     # Create linked words "run test"
-    words = TestWordStream().process_text("run test")
+    words = StringWordStream().process_text("run test")
     
     # Test matching phrase
     result = control.validate_word(words[1])  # "test"
@@ -92,7 +92,7 @@ def test_screen_stack():
 
 def test_application():
     """Test Application word processing"""
-    stream = TestWordStream()
+    stream = StringWordStream()
     
     # Track words received by global handler
     received_words = []
