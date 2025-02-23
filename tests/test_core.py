@@ -10,8 +10,8 @@ from Alejandro.Core.string_word_stream import StringWordStream
 
 class TestScreen(Screen):
     """Test screen implementation"""
-    def __init__(self, title: str, controls: List[Control] = None):
-        super().__init__(title=title, controls=controls or [])
+    title: str = ""
+    controls: List[Control] = []
 
 def test_control():
     """Test Control validation and action"""
