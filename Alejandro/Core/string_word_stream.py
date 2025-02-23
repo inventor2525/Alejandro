@@ -10,6 +10,7 @@ class StringWordStream(WordStream):
         self.words_to_stream: List[str] = []
         self.is_listening = False
         self.current_time = datetime.now()
+        self.prev_word:WordNode = None
         
     def start_listening(self) -> None:
         self.is_listening = True
@@ -33,4 +34,8 @@ class StringWordStream(WordStream):
                 start_time=start_time,
                 end_time=self.current_time
             )
+            node.prev = self.prev_word
+            if self.prev_word:
+                self.prev_word.next = node
+            self.prev_word = node
             yield node
