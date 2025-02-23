@@ -38,12 +38,14 @@ class Control(BaseModel):
             if not current:
                 return False
                 
-            # Get equivalent forms for current word if it's in the map
+            target_lower = target.lower()
             current_word = current.word.lower()
+            
+            # Get equivalent forms for current word if it's in the map
             if current_word in WORD_MAP:
-                if not any(target.lower() == form for form in WORD_MAP[current_word]):
+                if not any(target_lower == form for form in WORD_MAP[current_word]):
                     return False
-            elif current_word != target.lower():
+            elif current_word != target_lower:
                 return False
                 
             current = current.prev
