@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ screen.title }} - Alejandro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <div class="content-area">
+            <h1>{{ screen.title }}</h1>
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div class="footer">
+            <div class="menu-bar">
+                {% for control in screen.controls %}
+                <button class="button" 
+                        id="{{ control.id }}"
+                        onclick="triggerControl('{{ control.id }}')">
+                    {{ control.text }}
+                </button>
+                {% endfor %}
+            </div>
+            
+            <div id="transcription">
+                Last transcription: <span id="transcription-text"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
