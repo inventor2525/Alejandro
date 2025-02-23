@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Iterator, List
-from Alejandro.word_stream import WordStream, WordNode
+from Alejandro.Models.word_node import WordNode
+from Alejandro.Interfaces.word_stream import WordStream
 
 class TestWordStream(WordStream):
     """A simple WordStream implementation for testing"""
