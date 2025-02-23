@@ -53,7 +53,7 @@ def trigger_control(control_id: str) -> Response:
     for control in current_screen.controls:
         if control.id == control_id:
             if control.action:
-                result = control.action()
+                result = control.action(core_app.screen_stack)
                 return jsonify({"result": result})
             break
             

@@ -1,7 +1,6 @@
 from typing import Dict, Any
 from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
-from Alejandro.web.functions import navigate, go_back
+from Alejandro.web.functions import make_back_control, make_nav_control
 
 class WelcomeScreen(Screen):
     """Initial welcome screen"""
@@ -9,11 +8,11 @@ class WelcomeScreen(Screen):
         super().__init__(
             title="Welcome",
             controls=[
-                Control(
+                make_nav_control(
                     id="activate",
                     text="Hey Alejandro",
-                    keyphrases=["hey alejandro", "hello alejandro"],
-                    action=lambda: navigate(MainScreen)
+                    target_screen=MainScreen,
+                    keyphrases=["hey alejandro", "hello alejandro"]
                 )
             ]
         )
@@ -24,24 +23,19 @@ class MainScreen(Screen):
         super().__init__(
             title="Main Menu",
             controls=[
-                Control(
+                make_nav_control(
                     id="conversations",
-                    text="Conversations",
-                    keyphrases=["conversations", "show conversations"],
-                    action=lambda: navigate(ConversationsScreen)
+                    text="Conversations", 
+                    target_screen=ConversationsScreen,
+                    keyphrases=["conversations", "show conversations"]
                 ),
-                Control(
+                make_nav_control(
                     id="terminal",
                     text="Terminal",
-                    keyphrases=["terminal", "open terminal"],
-                    action=lambda: navigate(TerminalScreen)
+                    target_screen=TerminalScreen,
+                    keyphrases=["terminal", "open terminal"]
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back"],
-                    action=go_back
-                )
+                make_back_control()
             ]
         )
 
@@ -50,14 +44,7 @@ class ConversationsScreen(Screen):
     def __init__(self):
         super().__init__(
             title="Conversations",
-            controls=[
-                Control(
-                    id="back",
-                    text="Back", 
-                    keyphrases=["back", "go back"],
-                    action=go_back
-                )
-            ]
+            controls=[make_back_control()]
         )
         
     def get_template_data(self) -> Dict[str, Any]:
@@ -70,12 +57,5 @@ class TerminalScreen(Screen):
     def __init__(self):
         super().__init__(
             title="Terminal",
-            controls=[
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back"],
-                    action=go_back
-                )
-            ]
+            controls=[make_back_control()]
         )
