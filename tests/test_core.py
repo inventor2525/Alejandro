@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 import pytest
 from Alejandro.Models.control import Control, ControlResult
-from Alejandro.Models.modal_control import ModalControl
+from Alejandro.Models.modal_control import ModalControl, ModalState
 from Alejandro.Models.screen import Screen
 from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.application import Application
