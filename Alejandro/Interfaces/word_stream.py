@@ -2,6 +2,13 @@ from abc import ABC, abstractmethod
 from typing import Iterator, List
 from datetime import datetime
 import nltk
+
+# Download required NLTK data
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
 from Alejandro.Models.word_node import WordNode
 
 class WordStream(ABC):
