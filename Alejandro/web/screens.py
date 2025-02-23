@@ -1,6 +1,7 @@
 from typing import Dict, Any
 from Alejandro.Models.screen import Screen
-from Alejandro.web.functions import make_back_control, make_nav_control
+from Alejandro.Models.control import Control
+from Alejandro.web.functions import make_back_control, navigate
 
 class WelcomeScreen(Screen):
     """Initial welcome screen"""
