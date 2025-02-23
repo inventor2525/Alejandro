@@ -1,0 +1,15 @@
+/drop
+/add       Alejandro/Core/application.py
+/add       Alejandro/Core/screen_stack.py
+/add       Alejandro/Core/string_word_stream.py
+/add       Alejandro/Interfaces/word_stream.py
+/add       Alejandro/Models/control.py
+/add       Alejandro/Models/modal_control.py
+/add       Alejandro/Models/screen.py
+/add       Alejandro/Models/word_mapping.py
+/add       Alejandro/Models/word_node.py
+/add       Alejandro/__init__.py
+/add       tests/test_core.py
+/add       tests/test_word_stream.py
+/read-only ExampleCode.md
+/read-only Instructions.md
