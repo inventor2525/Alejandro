@@ -37,6 +37,9 @@ class Control(BaseModel):
         if check_phrase(self.text) or any(check_phrase(phrase) for phrase in self.keyphrases):
             if self.action:
                 self.action()
+            # For modal controls, return HOLD instead of USED
+            if any("modal" in phrase.lower() for phrase in [self.text] + self.keyphrases):
+                return ControlResult.HOLD
             return ControlResult.USED
             
         return ControlResult.UNUSED
