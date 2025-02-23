@@ -42,7 +42,8 @@ class WordStream(ABC):
         """
         pass
 
-    def process_text(self, text: str) -> List[WordNode]:
+    @staticmethod
+    def process_text(text: str) -> List[WordNode]:
         """
         Convert a text string into a linked list of WordNodes.
         

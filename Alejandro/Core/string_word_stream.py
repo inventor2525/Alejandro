@@ -19,7 +19,9 @@ class StringWordStream(WordStream):
         
     def add_words(self, text: str) -> None:
         """Add words to be streamed"""
-        self.words_to_stream.extend(text.split())
+        # Use process_text to properly handle word processing
+        nodes = WordStream.process_text(text)
+        self.words_to_stream.extend(n.word for n in nodes)
         
     def words(self) -> Iterator[WordNode]:
         """Yield words that were added via add_words()"""

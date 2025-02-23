@@ -31,17 +31,18 @@ class ModalControl(Control):
     def validate_word(self, word_node: WordNode) -> ControlResult:
         """Check if word matches deactivation phrase when in modal state"""
         if self._state == ModalState.HOLDING:
-            # Check for deactivation phrases
+            # Collect word first
+            self._collected_words.append(word_node)
+            
+            # Then check for deactivation phrases
             for phrase in self.deactivate_phrases:
                 if self._check_phrase(phrase, word_node):
                     # Remove deactivation phrase words from collected words
                     phrase_words = len(self._processed_phrases[phrase])
-                    self._collected_words = self._collected_words[:-phrase_words+1]
+                    self._collected_words = self._collected_words[:-phrase_words]
                     self._state = ModalState.INACTIVE
                     return ControlResult.USED
                     
-            # Collect word if not part of deactivation phrase
-            self._collected_words.append(word_node)
             return ControlResult.HOLD
             
         # Check activation phrases when inactive

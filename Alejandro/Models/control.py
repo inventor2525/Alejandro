@@ -26,9 +26,8 @@ class Control(BaseModel):
         """Check if word_node completes the given phrase by looking backwards"""
         # Get or create processed word list
         if phrase not in self._processed_phrases:
-            from Alejandro.Core.string_word_stream import StringWordStream
-            stream = StringWordStream()
-            nodes = stream.process_text(phrase)
+            from Alejandro.Interfaces.word_stream import WordStream
+            nodes = WordStream.process_text(phrase)
             self._processed_phrases[phrase] = [n.word for n in nodes]
             
         words = self._processed_phrases[phrase]
