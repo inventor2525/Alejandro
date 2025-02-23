@@ -63,7 +63,7 @@ class WordStream(ABC):
         current_time = datetime.now()
         for token in tokens:
             start_time = current_time
-            current_time = start_time.replace(microsecond=start_time.microsecond + 500000)
+            current_time = current_time + timedelta(microseconds=500000)
             node = WordNode(
                 word=token,
                 start_time=start_time,
