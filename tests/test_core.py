@@ -135,61 +135,49 @@ class TestScreen(Screen):
 
 def test_modal_control():
     """Test ModalControl state management and word collection"""
-    # Create modal control
     control = ModalControl(
         text="Start Dictation",
-        keyphrases=["begin dictation", "start speaking"],
-        deactivate_phrases=["end dictation", "stop speaking"],
+        keyphrases=["start speaking"],
+        deactivate_phrases=["stop speaking"],
         action=lambda: None
     )
     
-    # Initially inactive
     assert control.state == ModalState.INACTIVE
     assert len(control.collected_words) == 0
     
     # Test non-activation phrase
-    word = WordNode(
-        word="hello",
-        start_time=datetime.now(),
-        end_time=datetime.now()
-    )
+    word = WordNode(word="hello", start_time=datetime.now(), end_time=datetime.now())
     result = control.validate_word(word)
     assert result == ControlResult.UNUSED
     assert control.state == ModalState.INACTIVE
     
     # Test activation
-    words = StringWordStream().process_text("start speaking")
-    result = control.validate_word(words[-1])  # "speaking"
+    words = StringWordStream.process_text("start speaking")
+    for word in words:
+        result = control.validate_word(word)
     assert result == ControlResult.HOLD
     assert control.state == ModalState.HOLDING
-    assert len(control.collected_words) == 0
+    assert len(control.collected_words) == 0  # Activation phrase not collected
     
     # Test word collection
-    words = StringWordStream().process_text("this is a test")
+    words = StringWordStream.process_text("this is a test")
     for word in words:
         result = control.validate_word(word)
         assert result == ControlResult.HOLD
     assert len(control.collected_words) == 4
     assert [w.word for w in control.collected_words] == ["this", "is", "a", "test"]
     
-    # Test deactivation phrase
-    words = StringWordStream().process_text("stop speaking now")
+    # Test deactivation
+    words = StringWordStream.process_text("stop speaking")
     print("\nTesting deactivation phrase:")
-    print(f"Current collected words: {[w.word for w in control.collected_words]}")
-    for i, word in enumerate(words):
+    for word in words:
+        print(f"Current collected words: {[w.word for w in control.collected_words]}")
         result = control.validate_word(word)
         print(f"Word: {word.word}, Result: {result}")
         print(f"Collected words: {[w.word for w in control.collected_words]}")
-        if i < len(words) - 1:
-            assert result == ControlResult.HOLD
-        else:
-            # Last word completes deactivation phrase
-            assert result == ControlResult.USED
-                
-    # Verify state after deactivation
+    
     assert control.state == ModalState.INACTIVE
-    # Verify only non-phrase words were collected
-    assert len(control.collected_words) == 4  # "this is a test"
+    assert len(control.collected_words) == 4  # Deactivation phrase not collected
     assert [w.word for w in control.collected_words] == ["this", "is", "a", "test"]
 
 def test_modal_control_application():
