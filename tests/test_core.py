@@ -12,14 +12,6 @@ class TestScreen(Screen):
     """Test screen implementation"""
     def __init__(self, title: str, controls: List[Control] = None):
         super().__init__(title=title, controls=controls or [])
-        self.enter_count = 0
-        self.exit_count = 0
-        
-    def on_enter(self) -> None:
-        self.enter_count += 1
-        
-    def on_exit(self) -> None:
-        self.exit_count += 1
 
 def test_control():
     """Test Control validation and action"""
