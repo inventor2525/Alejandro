@@ -33,30 +33,6 @@ class TestWordStream(WordStream):
             )
             yield node
             
-    def process_text(self, text: str) -> List[WordNode]:
-        """Convert text into linked WordNodes"""
-        words = text.split()
-        if not words:
-            return []
-            
-        # Create nodes
-        nodes = []
-        for word in words:
-            start_time = self.current_time
-            self.current_time += timedelta(milliseconds=500)
-            node = WordNode(
-                word=word.lower(),
-                start_time=start_time,
-                end_time=self.current_time
-            )
-            nodes.append(node)
-            
-        # Link nodes
-        for i in range(len(nodes)-1):
-            nodes[i].next = nodes[i+1]
-            nodes[i+1].prev = nodes[i]
-            
-        return nodes
 
 def test_word_stream():
     """Test the TestWordStream implementation"""
