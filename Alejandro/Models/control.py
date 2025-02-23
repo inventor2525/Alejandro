@@ -2,6 +2,7 @@ from typing import List, Callable, Optional
 from enum import Enum
 from pydantic import BaseModel
 from Alejandro.Models.word_node import WordNode
+from Alejandro.Models.word_mapping import WORD_MAP
 
 class ControlResult(Enum):
     """Result of a control's validate_word() call"""
@@ -34,8 +35,17 @@ class Control(BaseModel):
         
         # Walk backwards through phrase words
         for target in reversed(words):
-            if not current or current.word.lower() != target:
+            if not current:
                 return False
+                
+            # Get equivalent forms for both target and current word
+            target_forms = WORD_MAP.get(target.lower(), [target.lower()])
+            current_forms = WORD_MAP.get(current.word.lower(), [current.word.lower()])
+            
+            # Check if any forms match
+            if not any(t == c for t in target_forms for c in current_forms):
+                return False
+                
             current = current.prev
         return True
         
