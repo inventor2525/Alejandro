@@ -30,23 +30,24 @@ class ModalControl(Control):
         
     def validate_word(self, word_node: WordNode) -> ControlResult:
         """Handle state transitions and word collection based on phrases"""
-        if self._state == ModalState.HOLDING:
-            # Check for deactivation phrases first
-            for phrase in self.deactivate_phrases:
-                if self._check_phrase(phrase, word_node):
-                    self._state = ModalState.INACTIVE
-                    if self.action:
-                        self.action()  # Call action on deactivation
-                    return ControlResult.USED
+        if self._state == ModalState.INACTIVE:
+            # Check activation phrases when inactive
+            if self._check_phrase(self.text, word_node) or any(self._check_phrase(phrase, word_node) for phrase in self.keyphrases):
+                self._state = ModalState.HOLDING
+                self._collected_words = []  # Reset collection
+                return ControlResult.HOLD
+            return ControlResult.UNUSED
             
-            # If not part of a deactivation phrase, collect the word
-            self._collected_words.append(word_node)
-            return ControlResult.HOLD
-        
-        # Check activation phrases when inactive
-        if self._check_phrase(self.text, word_node) or any(self._check_phrase(phrase, word_node) for phrase in self.keyphrases):
-            self._state = ModalState.HOLDING
-            self._collected_words = []  # Reset collection
-            return ControlResult.HOLD
-        
-        return ControlResult.UNUSED
+        # Must be in HOLDING state
+        # Check for deactivation phrases first
+        for phrase in self.deactivate_phrases:
+            if self._check_phrase(phrase, word_node):
+                # Don't collect deactivation phrase words
+                self._state = ModalState.INACTIVE
+                if self.action:
+                    self.action()  # Call action on deactivation
+                return ControlResult.USED
+                
+        # If not part of a deactivation phrase, collect the word
+        self._collected_words.append(word_node)
+        return ControlResult.HOLD
