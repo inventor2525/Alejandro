@@ -134,41 +134,89 @@ class TestScreen(Screen):
         super().__init__(title=title, controls=controls or [])
 
 def test_modal_control():
-    """Test ModalControl state management"""
-    stream = StringWordStream()
-    
-    # Track modal state
-    modal_entered = False
-    modal_exited = False
-    
-    def on_enter():
-        nonlocal modal_entered
-        modal_entered = True
-        
-    def on_exit():
-        nonlocal modal_exited
-        modal_exited = True
-    
+    """Test ModalControl state management and word collection"""
     # Create modal control
     control = ModalControl(
         text="Start Dictation",
         keyphrases=["begin dictation", "start speaking"],
         deactivate_phrases=["end dictation", "stop speaking"],
-        action=on_enter
+        action=lambda: None
+    )
+    
+    # Initially inactive
+    assert control.state == ModalState.INACTIVE
+    assert len(control.collected_words) == 0
+    
+    # Test non-activation phrase
+    word = WordNode(
+        word="hello",
+        start_time=datetime.now(),
+        end_time=datetime.now()
+    )
+    result = control.validate_word(word)
+    assert result == ControlResult.UNUSED
+    assert control.state == ModalState.INACTIVE
+    
+    # Test activation
+    words = StringWordStream().process_text("start speaking")
+    result = control.validate_word(words[-1])  # "speaking"
+    assert result == ControlResult.HOLD
+    assert control.state == ModalState.HOLDING
+    assert len(control.collected_words) == 0
+    
+    # Test word collection
+    words = StringWordStream().process_text("this is a test")
+    for word in words:
+        result = control.validate_word(word)
+        assert result == ControlResult.HOLD
+    assert len(control.collected_words) == 4
+    assert [w.word for w in control.collected_words] == ["this", "is", "a", "test"]
+    
+    # Test deactivation phrase
+    words = StringWordStream().process_text("stop speaking now")
+    for i, word in enumerate(words):
+        result = control.validate_word(word)
+        if i < len(words) - 1:
+            assert result == ControlResult.HOLD
+        else:
+            # Last word completes deactivation phrase
+            assert result == ControlResult.USED
+            
+    # Verify state after deactivation
+    assert control.state == ModalState.INACTIVE
+    # Verify deactivation phrase was removed from collected words
+    assert len(control.collected_words) == 5  # "this is a test now"
+    assert [w.word for w in control.collected_words] == ["this", "is", "a", "test", "now"]
+
+def test_modal_control_application():
+    """Test ModalControl integration with Application"""
+    stream = StringWordStream()
+    
+    # Create modal control
+    collected = []
+    def on_complete():
+        nonlocal collected
+        collected = [w.word for w in control.collected_words]
+        
+    control = ModalControl(
+        text="Start Dictation",
+        keyphrases=["begin dictation"],
+        deactivate_phrases=["end dictation"],
+        action=on_complete
     )
     
     # Create screen with modal control
     screen = TestScreen(title="Test", controls=[control])
-    
-    # Create and run application
     app = Application(stream, screen)
     
-    # Test modal activation and deactivation
-    stream.add_words("start speaking now")  # Should activate modal
-    stream.add_words("some dictated text")  # Should pass through
-    stream.add_words("end dictation")       # Should deactivate modal
+    # Test full dictation sequence
+    stream.add_words("begin dictation")        # Activate
+    stream.add_words("this is some text")      # Collect
+    stream.add_words("that should be saved")   # Collect
+    stream.add_words("end dictation")          # Deactivate
     
     app.run()
     
-    assert modal_entered
-    assert not modal_exited  # Modal exit doesn't call action
+    # Verify collected words
+    expected = ["this", "is", "some", "text", "that", "should", "be", "saved"]
+    assert collected == expected
