@@ -41,6 +41,8 @@ class ModalControl(Control):
                     phrase_words = len(self._processed_phrases[phrase])
                     self._collected_words = self._collected_words[:-phrase_words]
                     self._state = ModalState.INACTIVE
+                    if self.action:
+                        self.action()  # Call action on deactivation
                     return ControlResult.USED
                     
             return ControlResult.HOLD
