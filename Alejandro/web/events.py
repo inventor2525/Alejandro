@@ -7,7 +7,7 @@ from Alejandro.Models.screen import Screen
 # Global event queue
 event_queue = queue.Queue()
 
-@dataclass
+@dataclass(kw_only=True)
 class Event:
     """Base event class"""
     timestamp: datetime = datetime.now()
@@ -19,17 +19,17 @@ class Event:
             "timestamp": self.timestamp.isoformat()
         }
 
-@dataclass 
+@dataclass(kw_only=True)
 class TranscriptionEvent(Event):
     """Event for new transcription text"""
-    text: str = ""
+    text: str
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
         data["text"] = self.text
         return data
 
-@dataclass
+@dataclass(kw_only=True)
 class NavigationEvent(Event):
     """Event for screen navigation"""
     screen_type: Type[Screen]
@@ -43,7 +43,7 @@ class NavigationEvent(Event):
         })
         return data
 
-@dataclass
+@dataclass(kw_only=True)
 class ButtonClickEvent(Event):
     """Event for button/control activation"""
     control_id: str
