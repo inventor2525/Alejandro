@@ -22,8 +22,8 @@ class Event:
 @dataclass
 class TranscriptionEvent(Event):
     """Event for new transcription text"""
-    text: str
     timestamp: datetime = datetime.now()
+    text: str
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
@@ -33,8 +33,8 @@ class TranscriptionEvent(Event):
 @dataclass
 class NavigationEvent(Event):
     """Event for screen navigation"""
-    screen_type: Type[Screen]
     timestamp: datetime = datetime.now()
+    screen_type: Type[Screen]
     force: bool = True
     
     def to_json(self) -> Dict[str, Any]:
@@ -48,8 +48,8 @@ class NavigationEvent(Event):
 @dataclass
 class ButtonClickEvent(Event):
     """Event for button/control activation"""
-    control_id: str
     timestamp: datetime = datetime.now()
+    control_id: str
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
