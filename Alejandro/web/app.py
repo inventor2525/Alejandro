@@ -17,9 +17,10 @@ app = Flask(__name__)
 for bp in blueprints:
     app.register_blueprint(bp)
 
-# Global queues for communication
-transcription_queue = queue.Queue()
-action_queue = queue.Queue()
+from Alejandro.web.events import Event, TranscriptionEvent, NavigationEvent, ButtonClickEvent
+
+# Global event queue
+event_queue = queue.Queue()
 
 # Global app instance 
 core_app = None
