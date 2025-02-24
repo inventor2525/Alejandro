@@ -17,7 +17,7 @@ def navigate(target_screen: Union[Type[Screen], Screen], session_id: Optional[st
     session.core_app.screen_stack.push(screen)
     push_event(NavigationEvent(
         screen_type=type(screen),
-        session_id=session_id
+        session_id=session.id  # Use the session's ID instead of the passed parameter
     ))
 
 def go_back() -> None:
