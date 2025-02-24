@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
+import queue
+
+# Global event queue
+event_queue = queue.Queue()
 
 @dataclass
 class Event:
@@ -22,3 +26,7 @@ class NavigationEvent(Event):
 class ButtonClickEvent(Event):
     """Event for button/control activation"""
     control_id: str
+
+def push_event(event: Event) -> None:
+    """Add event to queue"""
+    event_queue.get_event(event)

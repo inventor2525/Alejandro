@@ -5,7 +5,8 @@ from Alejandro.Core.screen_stack import ScreenStack
 
 def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
     """Navigate to a screen"""
-    from Alejandro.web.app import core_app, action_queue
+    from Alejandro.web.voice import core_app
+    from Alejandro.web.events import NavigationEvent, push_event
     
     if isinstance(target_screen, type):
         screen = target_screen()
@@ -13,32 +14,31 @@ def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
         screen = target_screen
         
     core_app.screen_stack.push(screen)
-    action_queue.put({
-        "navigate": screen.__class__.__name__.lower(),
-        "force": True
-    })
+    push_event(NavigationEvent(
+        screen_name=screen.__class__.__name__.lower()
+    ))
 
 def go_back() -> None:
     """Pop current screen and return to previous"""
-    from Alejandro.web.app import core_app, action_queue
+    from Alejandro.web.voice import core_app
+    from Alejandro.web.events import NavigationEvent, push_event
     
     if core_app.screen_stack.pop():
         current = core_app.screen_stack.current
-        action_queue.put({
-            "navigate": current.__class__.__name__.lower(),
-            "force": True
-        })
+        push_event(NavigationEvent(
+            screen_name=current.__class__.__name__.lower()
+        ))
 
 def go_forward() -> None:
     """Navigate forward in history if possible"""
-    from Alejandro.web.app import core_app, action_queue
+    from Alejandro.web.voice import core_app
+    from Alejandro.web.events import NavigationEvent, push_event
     
     if core_app.screen_stack.forward():
         current = core_app.screen_stack.current
-        action_queue.put({
-            "navigate": current.__class__.__name__.lower(),
-            "force": True
-        })
+        push_event(NavigationEvent(
+            screen_name=current.__class__.__name__.lower()
+        ))
 
 # Control Factories
 def make_back_control() -> Control:

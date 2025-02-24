@@ -13,8 +13,7 @@ app = Flask(__name__)
 for bp in blueprints:
     app.register_blueprint(bp)
 
-# Global event queue
-event_queue = queue.Queue()
+from Alejandro.web.events import event_queue
 
 
 def event_stream() -> str:
