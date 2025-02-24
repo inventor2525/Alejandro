@@ -1,16 +1,5 @@
-// Debounce helper
-let lastClick = 0;
-const DEBOUNCE_MS = 500;
-
 // Handle control clicks
 function triggerControl(controlId) {
-    const now = Date.now();
-    if (now - lastClick < DEBOUNCE_MS) {
-        console.log('Debouncing rapid click');
-        return;
-    }
-    lastClick = now;
-
     const button = document.getElementById(controlId);
     simulateButtonClick(button);
     
