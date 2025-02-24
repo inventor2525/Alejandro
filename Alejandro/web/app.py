@@ -17,12 +17,12 @@ for bp in blueprints:
 from Alejandro.web.events import event_queue
 
 
-def event_stream() -> str:
+def event_stream(session_id: str) -> str:
     """Server-sent events stream"""
     while True:
         try:
             event = event_queue.get_nowait()
-            if isinstance(event, Event):
+            if isinstance(event, Event) and event.session_id == session_id:
                 yield f"data: {json.dumps(event.to_json())}\n\n"
         except queue.Empty:
             pass
@@ -40,7 +40,7 @@ def stream() -> Response:
     get_or_create_session(session_id)  # Validate session exists
     
     return Response(
-        event_stream(),
+        event_stream(session_id),
         mimetype='text/event-stream'
     )
 

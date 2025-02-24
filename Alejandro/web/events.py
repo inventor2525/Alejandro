@@ -11,12 +11,14 @@ event_queue = queue.Queue()
 class Event:
     """Base event class"""
     timestamp: datetime = datetime.now()
+    session_id: str = field(kw_only=True)
     
     def to_json(self) -> Dict[str, Any]:
         """Convert event to JSON-serializable dict"""
         return {
             "type": self.__class__.__name__,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
+            "session_id": self.session_id
         }
 
 @dataclass
