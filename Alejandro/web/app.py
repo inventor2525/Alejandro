@@ -17,13 +17,21 @@ for bp in blueprints:
 
 def event_stream(session_id: str) -> Iterator[str]:
     """Server-sent events stream"""
+    print(f"Starting event stream for session: {session_id}")
     while True:
         try:
             event = event_queue.get_nowait()
-            if isinstance(event, Event) and event.session_id == session_id:
-                event_json = json.dumps(event.to_json())
-                print(f"Sending event to client: {event_json}")
-                yield f"data: {event_json}\n\n"
+            print(f"Got event from queue: {event.__class__.__name__}")
+            if isinstance(event, Event):
+                print(f"Event session: {event.session_id}, Current session: {session_id}")
+                if event.session_id == session_id:
+                    event_json = json.dumps(event.to_json())
+                    print(f"Sending event to client: {event_json}")
+                    yield f"data: {event_json}\n\n"
+                else:
+                    print("Event session ID mismatch - skipping")
+            else:
+                print(f"Non-Event object in queue: {type(event)}")
         except queue.Empty:
             pass
         
