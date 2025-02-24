@@ -13,19 +13,7 @@
         </div>
         
         <div class="footer">
-            <div class="menu-bar">
-                {% for control in screen.controls %}
-                <button class="button" 
-                        id="{{ control.id }}"
-                        onclick="triggerControl('{{ control.id }}')">
-                    {{ control.text }}
-                </button>
-                {% endfor %}
-            </div>
-            
-            <div id="transcription">
-                Last transcription: <span id="transcription-text"></span>
-            </div>
+            {% include 'menu.html' %}
         </div>
     </div>
 
