@@ -5,20 +5,15 @@ from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.test_word_stream import TestWordStream
 from Alejandro.Models.screen import Screen
 
-# For now, just one core app instance
-core_app = None
-
 class Session:
     """Manages application state for a browser session"""
     def __init__(self, welcome_screen: Screen):
         self.id = str(uuid.uuid4())
         self.screen_stack = ScreenStack(welcome_screen)
         
-        # Initialize core app if needed
-        global core_app
-        if core_app is None:
-            word_stream = TestWordStream()
-            core_app = Application(word_stream, welcome_screen)
+        # Create session-specific word stream and app
+        self.word_stream = TestWordStream()
+        self.core_app = Application(self.word_stream, welcome_screen)
 
 # Global session store
 sessions: Dict[str, Session] = {}

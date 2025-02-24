@@ -5,7 +5,7 @@ from Alejandro.Core.screen_stack import ScreenStack
 
 def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
     """Navigate to a screen"""
-    from Alejandro.web.session import core_app
+    from Alejandro.web.session import get_or_create_session
     from Alejandro.web.events import NavigationEvent, push_event
     
     if isinstance(target_screen, type):
@@ -13,7 +13,8 @@ def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
     else:
         screen = target_screen
         
-    core_app.screen_stack.push(screen)
+    session = get_or_create_session()
+    session.core_app.screen_stack.push(screen)
     push_event(NavigationEvent(
         screen_name=screen.__class__.__name__.lower()
     ))
