@@ -30,7 +30,7 @@ function simulateButtonClick(button) {
 }
 
 // Setup SSE for transcriptions and actions
-const eventSource = new EventSource('/stream');
+const eventSource = new EventSource('/stream?session=' + window.sessionId);
 
 eventSource.onmessage = function(event) {
     if (!event.data) return; // Skip keepalive

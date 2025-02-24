@@ -21,22 +21,24 @@ def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
 
 def go_back() -> None:
     """Pop current screen and return to previous"""
-    from Alejandro.web.session import core_app
+    from Alejandro.web.session import get_or_create_session
     from Alejandro.web.events import NavigationEvent, push_event
     
-    if core_app.screen_stack.pop():
-        current = core_app.screen_stack.current
+    session = get_or_create_session()
+    if session.screen_stack.pop():
+        current = session.screen_stack.current
         push_event(NavigationEvent(
             screen_name=current.__class__.__name__.lower()
         ))
 
 def go_forward() -> None:
     """Navigate forward in history if possible"""
-    from Alejandro.web.session import core_app
+    from Alejandro.web.session import get_or_create_session
     from Alejandro.web.events import NavigationEvent, push_event
     
-    if core_app.screen_stack.forward():
-        current = core_app.screen_stack.current
+    session = get_or_create_session()
+    if session.screen_stack.forward():
+        current = session.screen_stack.current
         push_event(NavigationEvent(
             screen_name=current.__class__.__name__.lower()
         ))

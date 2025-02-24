@@ -1,4 +1,5 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, request
+from Alejandro.web.session import get_or_create_session
 from Alejandro.web.blueprints import blueprints
 import json
 import queue
@@ -32,6 +33,12 @@ def event_stream() -> str:
 @app.route('/stream')
 def stream() -> Response:
     """SSE endpoint"""
+    session_id = request.args.get('session')
+    if not session_id:
+        return Response("No session ID provided", status=400)
+        
+    get_or_create_session(session_id)  # Validate session exists
+    
     return Response(
         event_stream(),
         mimetype='text/event-stream'

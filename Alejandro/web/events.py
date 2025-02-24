@@ -29,4 +29,4 @@ class ButtonClickEvent(Event):
 
 def push_event(event: Event) -> None:
     """Add event to queue"""
-    event_queue.get_event(event)
+    event_queue.put(event)
