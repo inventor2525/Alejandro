@@ -13,11 +13,18 @@ function triggerControl(controlId) {
             session_id: window.sessionId
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Control response:', response);
+        return response.json();
+    })
     .then(data => {
-        if (data.navigate) {
-            window.location.href = '/' + data.navigate + '?session=' + window.sessionId;
+        console.log('Control data:', data);
+        if (data.screen) {
+            window.location.href = '/' + data.screen + '?session=' + window.sessionId;
         }
+    })
+    .catch(error => {
+        console.error('Control error:', error);
     });
 }
 
