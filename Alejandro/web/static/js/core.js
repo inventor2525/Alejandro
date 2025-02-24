@@ -1,3 +1,9 @@
+// Initialize session ID
+if (!localStorage.getItem('sessionId')) {
+    localStorage.setItem('sessionId', window.initialSessionId);
+}
+window.sessionId = localStorage.getItem('sessionId');
+
 // Handle control clicks
 function triggerControl(controlId) {
     const button = document.getElementById(controlId);

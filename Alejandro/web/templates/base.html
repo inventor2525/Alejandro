@@ -17,13 +17,7 @@
         </div>
     </div>
 
-    <script>
-        // Store session ID in localStorage for persistence
-        if (!localStorage.getItem('sessionId')) {
-            localStorage.setItem('sessionId', "{{ session_id }}");
-        }
-        window.sessionId = localStorage.getItem('sessionId');
-    </script>
+    <script>window.initialSessionId = "{{ session_id }}";</script>
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
