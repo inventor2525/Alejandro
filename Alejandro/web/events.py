@@ -22,7 +22,7 @@ class Event:
 @dataclass 
 class TranscriptionEvent(Event):
     """Event for new transcription text"""
-    text: str
+    text: str = ""
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
