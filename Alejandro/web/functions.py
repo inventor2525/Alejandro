@@ -2,11 +2,11 @@ from typing import Dict, Any, Optional, Type, Union, Callable, List
 from Alejandro.Models.screen import Screen
 from Alejandro.Models.control import Control
 from Alejandro.Core.screen_stack import ScreenStack
+from Alejandro.web.session import get_or_create_session
+from Alejandro.web.events import NavigationEvent, push_event
 
 def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
     """Navigate to a screen"""
-    from Alejandro.web.session import get_or_create_session
-    from Alejandro.web.events import NavigationEvent, push_event
     
     if isinstance(target_screen, type):
         screen = target_screen()
@@ -21,8 +21,6 @@ def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
 
 def go_back() -> None:
     """Pop current screen and return to previous"""
-    from Alejandro.web.session import get_or_create_session
-    from Alejandro.web.events import NavigationEvent, push_event
     
     session = get_or_create_session()
     if session.screen_stack.pop():
@@ -33,8 +31,6 @@ def go_back() -> None:
 
 def go_forward() -> None:
     """Navigate forward in history if possible"""
-    from Alejandro.web.session import get_or_create_session
-    from Alejandro.web.events import NavigationEvent, push_event
     
     session = get_or_create_session()
     if session.screen_stack.forward():
