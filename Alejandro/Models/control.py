@@ -3,6 +3,7 @@ from enum import Enum
 from pydantic import BaseModel
 from Alejandro.Models.word_node import WordNode
 from Alejandro.Models.word_mapping import WORD_MAP
+import uuid
 
 class ControlResult(Enum):
     """Result of a control's validate_word() call"""
@@ -12,10 +13,10 @@ class ControlResult(Enum):
 
 class Control(BaseModel):
     """A control that can be activated by voice commands"""
-    
     text: str  # Text shown on button/UI
     keyphrases: List[str]  # Alternative phrases that trigger this control
     action: Optional[Callable[[], None]] = None
+    id: str = str(uuid.uuid4())
     
     def __init__(self, **data):
         super().__init__(**data)
