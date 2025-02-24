@@ -1,5 +1,6 @@
 import uuid
-from typing import Dict, Optional, Type, Union
+from typing import Dict, Optional, Type, Union, TypeVar
+from weakref import ref, ReferenceType
 from Alejandro.Models.control import Control
 from Alejandro.Core.application import Application 
 from Alejandro.Core.screen_stack import ScreenStack
@@ -9,14 +10,24 @@ from Alejandro.Models.screen import Screen
 
 class Session:
     """Manages application state for a browser session"""
-    def __init__(self, welcome_screen: Screen):
+    def __init__(self, welcome_screen_type: Type[Screen]):
         self.id = str(uuid.uuid4())
-        self.screen_stack = ScreenStack(welcome_screen)
         self.last_active = datetime.now()
+        self._screens: Dict[Type[Screen], Screen] = {}
         
         # Create session-specific word stream and app
         self.word_stream = StringWordStream()
+        welcome_screen = self.get_screen(welcome_screen_type)
+        self.screen_stack = ScreenStack(welcome_screen)
         self.core_app = Application(self.word_stream, welcome_screen)
+        
+    def get_screen(self, screen_type: Type[Screen]) -> Screen:
+        """Get existing screen instance or create new one"""
+        if screen_type not in self._screens:
+            screen = screen_type()
+            screen.session = ref(self)  # Weak reference back to session
+            self._screens[screen_type] = screen
+        return self._screens[screen_type]
         
     def navigate(self, target_screen: Union[Type[Screen], Screen]) -> None:
         """Navigate to a screen"""
@@ -76,7 +87,7 @@ def cleanup_sessions() -> None:
         stop_voice_control(session_id)
         del sessions[session_id]
 
-def get_or_create_session(session_id: Optional[str] = None, welcome_screen: Optional[Screen] = None) -> Session:
+def get_or_create_session(session_id: Optional[str] = None) -> Session:
     """Get existing session or create new one"""
     cleanup_sessions()
     
@@ -84,11 +95,8 @@ def get_or_create_session(session_id: Optional[str] = None, welcome_screen: Opti
         sessions[session_id].last_active = datetime.now()
         return sessions[session_id]
         
-    if not welcome_screen:
-        from Alejandro.web.screens import WelcomeScreen
-        welcome_screen = WelcomeScreen()
-        
-    session = Session(welcome_screen)
+    from Alejandro.web.screens import WelcomeScreen
+    session = Session(WelcomeScreen)
     sessions[session.id] = session
     
     # Start voice control for new session
