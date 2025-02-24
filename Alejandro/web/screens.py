@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from Alejandro.Models.screen import Screen
 from Alejandro.Models.control import Control
-from Alejandro.Models.control import Control
+from Alejandro.web.session import Session
 
 class WelcomeScreen(Screen):
     """Initial welcome screen"""
@@ -36,7 +36,12 @@ class MainScreen(Screen):
                     keyphrases=["terminal", "open terminal"],
                     action=lambda s=None: s.navigate(TerminalScreen) if s else None
                 ),
-                session.make_back_control() if session else None
+                Control(
+                    id="back",
+                    text="Back",
+                    keyphrases=["back", "go back", "return"],
+                    action=lambda s=None: s.go_back() if s else None
+                )
             ]
         )
 
@@ -45,7 +50,12 @@ class ConversationsScreen(Screen):
     def __init__(self):
         super().__init__(
             title="Conversations",
-            controls=[make_back_control()]
+            controls=[Control(
+                id="back",
+                text="Back",
+                keyphrases=["back", "go back", "return"],
+                action=lambda s=None: s.go_back() if s else None
+            )]
         )
         
     def get_template_data(self) -> Dict[str, Any]:
@@ -58,5 +68,10 @@ class TerminalScreen(Screen):
     def __init__(self):
         super().__init__(
             title="Terminal",
-            controls=[make_back_control()]
+            controls=[Control(
+                id="back",
+                text="Back",
+                keyphrases=["back", "go back", "return"],
+                action=lambda s=None: s.go_back() if s else None
+            )]
         )

@@ -1,5 +1,6 @@
 import uuid
 from typing import Dict, Optional, Type, Union
+from Alejandro.Models.control import Control
 from Alejandro.Core.application import Application 
 from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.string_word_stream import StringWordStream
