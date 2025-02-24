@@ -46,11 +46,17 @@ function simulateButtonClick(button) {
 const eventSource = new EventSource('/stream?session=' + window.sessionId);
 
 eventSource.onmessage = function(event) {
-    if (!event.data) return; // Skip keepalive
+    if (!event.data) {
+        console.log('Skipping keepalive');
+        return;
+    }
+    
+    console.log('Raw SSE event:', event);
+    console.log('Event data:', event.data);
     
     const data = JSON.parse(event.data);
+    console.log('Parsed event data:', data);
     
-    console.log('Received event:', data);
     switch(data.type) {
         case 'TranscriptionEvent':
             document.getElementById('transcription-text').textContent = data.text;
