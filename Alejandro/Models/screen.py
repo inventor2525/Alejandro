@@ -22,6 +22,10 @@ class Screen(BaseModel):
     exit_count: int = Field(default=0)
     session: Optional[ReferenceType['Session']] = Field(default=None, exclude=True)
     
+    def get_session(self) -> Optional['Session']:
+        """Get session safely from weak reference"""
+        return self.session() if self.session is not None else None
+    
     def on_enter(self) -> None:
         """Called when this screen becomes active"""
         self.enter_count += 1

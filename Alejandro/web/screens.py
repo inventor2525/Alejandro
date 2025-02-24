@@ -13,7 +13,7 @@ class WelcomeScreen(Screen):
                     id="activate",
                     text="Hey Alejandro",
                     keyphrases=["hey alejandro", "hello alejandro"],
-                    action=lambda: self.session().navigate(MainScreen)
+                    action=lambda s=self: s.get_session().navigate(MainScreen)
                 )
             ]
         )
@@ -28,19 +28,19 @@ class MainScreen(Screen):
                     id="conversations",
                     text="Conversations",
                     keyphrases=["conversations", "show conversations"],
-                    action=lambda: self.session().navigate(ConversationsScreen)
+                    action=lambda s=self: s.get_session().navigate(ConversationsScreen)
                 ),
                 Control(
                     id="terminal", 
                     text="Terminal",
                     keyphrases=["terminal", "open terminal"],
-                    action=lambda: self.session().navigate(TerminalScreen)
+                    action=lambda s=self: s.get_session().navigate(TerminalScreen)
                 ),
                 Control(
                     id="back",
                     text="Back",
                     keyphrases=["back", "go back", "return"],
-                    action=lambda: self.session().go_back()
+                    action=lambda s=self: s.get_session().go_back()
                 )
             ]
         )
@@ -54,7 +54,7 @@ class ConversationsScreen(Screen):
                 id="back",
                 text="Back",
                 keyphrases=["back", "go back", "return"],
-                action=lambda s=None: s.go_back() if s else None
+                action=lambda s=self: s.get_session().go_back()
             )]
         )
         
@@ -72,6 +72,6 @@ class TerminalScreen(Screen):
                 id="back",
                 text="Back",
                 keyphrases=["back", "go back", "return"],
-                action=lambda s=None: s.go_back() if s else None
+                action=lambda s=self: s.get_session().go_back()
             )]
         )
