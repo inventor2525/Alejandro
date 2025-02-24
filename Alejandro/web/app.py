@@ -3,9 +3,9 @@ from Alejandro.web.session import get_or_create_session
 from Alejandro.web.blueprints import blueprints
 import json
 import queue
+import time
 
-from Alejandro.web.voice import start_voice_control
-from Alejandro.web.events import Event
+from Alejandro.web.events import Event, event_queue
 
 # Create Flask app
 app = Flask(__name__)
@@ -13,9 +13,6 @@ app = Flask(__name__)
 # Register blueprints
 for bp in blueprints:
     app.register_blueprint(bp)
-
-from Alejandro.web.events import event_queue
-
 
 def event_stream(session_id: str) -> str:
     """Server-sent events stream"""
@@ -26,8 +23,9 @@ def event_stream(session_id: str) -> str:
                 yield f"data: {json.dumps(event.to_json())}\n\n"
         except queue.Empty:
             pass
-            
+        
         # Keep-alive
+        time.sleep(0.01)
         yield ": keepalive\n\n"
 
 @app.route('/stream')
