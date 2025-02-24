@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, Response
+from Alejandro.web.blueprints import blueprints
 from typing import Dict, Any
 import json
 import queue
@@ -11,6 +12,10 @@ from Alejandro.Models.control import ControlResult
 
 # Create Flask app
 app = Flask(__name__)
+
+# Register blueprints
+for bp in blueprints:
+    app.register_blueprint(bp)
 
 # Global queues for communication
 transcription_queue = queue.Queue()
