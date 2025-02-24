@@ -3,7 +3,7 @@ from Alejandro.web.blueprints import blueprints
 import json
 import queue
 
-from Alejandro.web.voice import core_app, init_app, start_voice_control
+from Alejandro.web.voice import start_voice_control
 from Alejandro.web.events import Event
 
 # Create Flask app

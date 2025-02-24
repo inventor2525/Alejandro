@@ -5,7 +5,7 @@ from Alejandro.Core.screen_stack import ScreenStack
 
 def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
     """Navigate to a screen"""
-    from Alejandro.web.voice import core_app
+    from Alejandro.web.session import core_app
     from Alejandro.web.events import NavigationEvent, push_event
     
     if isinstance(target_screen, type):
@@ -20,7 +20,7 @@ def navigate(target_screen: Union[Type[Screen], Screen]) -> None:
 
 def go_back() -> None:
     """Pop current screen and return to previous"""
-    from Alejandro.web.voice import core_app
+    from Alejandro.web.session import core_app
     from Alejandro.web.events import NavigationEvent, push_event
     
     if core_app.screen_stack.pop():
@@ -31,7 +31,7 @@ def go_back() -> None:
 
 def go_forward() -> None:
     """Navigate forward in history if possible"""
-    from Alejandro.web.voice import core_app
+    from Alejandro.web.session import core_app
     from Alejandro.web.events import NavigationEvent, push_event
     
     if core_app.screen_stack.forward():
