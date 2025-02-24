@@ -16,23 +16,6 @@ for bp in blueprints:
 # Global event queue
 event_queue = queue.Queue()
 
-@app.route('/')
-@app.route('/<path:screen_id>')
-def index(screen_id: str = None) -> str:
-    """Render the current screen"""
-    if screen_id == 'favicon.ico':
-        return '', 204
-        
-    # Initialize if needed
-    if core_app is None:
-        from Alejandro.web.screens import WelcomeScreen
-        init_app(WelcomeScreen())
-    
-    return render_template(
-        'base.html',
-        screen=core_app.screen_stack.current,
-        **core_app.screen_stack.current.get_template_data()
-    )
 
 def event_stream() -> str:
     """Server-sent events stream"""

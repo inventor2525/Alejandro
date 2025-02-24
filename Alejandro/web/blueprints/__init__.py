@@ -1,6 +1,7 @@
-from . import welcome, main, conversations, terminal, controls
+from . import default_screen, welcome, main, conversations, terminal, controls
 
 blueprints = [
+    default_screen.bp,
     welcome.bp,
     main.bp, 
     conversations.bp,
