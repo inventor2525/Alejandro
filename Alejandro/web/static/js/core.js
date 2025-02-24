@@ -16,7 +16,7 @@ function triggerControl(controlId) {
     .then(response => response.json())
     .then(data => {
         if (data.navigate) {
-            window.location.href = '/' + data.navigate;
+            window.location.href = '/' + data.navigate + '?session=' + window.sessionId;
         }
     });
 }
@@ -42,7 +42,7 @@ eventSource.onmessage = function(event) {
     }
     
     if (data.navigate) {
-        window.location.href = '/' + data.navigate;
+        window.location.href = '/' + data.navigate + '?session=' + window.sessionId;
     }
 };
 
