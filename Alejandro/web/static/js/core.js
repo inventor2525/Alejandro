@@ -9,7 +9,8 @@ function triggerControl(controlId) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            control_id: controlId
+            control_id: controlId,
+            session_id: window.sessionId
         })
     })
     .then(response => response.json())

@@ -17,6 +17,9 @@
         </div>
     </div>
 
+    <script>
+        window.sessionId = "{{ session_id }}";
+    </script>
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
