@@ -15,7 +15,6 @@ class Session:
         # Create session-specific word stream and app
         self.word_stream = StringWordStream()
         self.core_app = Application(self.word_stream, welcome_screen)
-        # Don't run the app - we'll handle events directly
 
 # Global session store
 sessions: Dict[str, Session] = {}
