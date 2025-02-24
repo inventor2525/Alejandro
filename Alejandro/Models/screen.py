@@ -11,6 +11,11 @@ class Screen(BaseModel):
     Base screen class representing a distinct view in the application.
     Each screen has its own template, title, and set of controls.
     """
+    model_config = {
+        'arbitrary_types_allowed': True,
+        'from_attributes': True
+    }
+    
     title: str
     controls: List[Control] = []
     enter_count: int = Field(default=0)
