@@ -16,7 +16,8 @@ def navigate(target_screen: Union[Type[Screen], Screen], session_id: Optional[st
     session = get_or_create_session(session_id)
     session.core_app.screen_stack.push(screen)
     push_event(NavigationEvent(
-        screen_type=type(screen)
+        screen_type=type(screen),
+        session_id=session_id
     ))
 
 def go_back() -> None:
@@ -26,7 +27,8 @@ def go_back() -> None:
     if session.screen_stack.pop():
         current = session.screen_stack.current
         push_event(NavigationEvent(
-            screen_type=type(current)
+            screen_type=type(current),
+            session_id=session.id
         ))
 
 def go_forward() -> None:
@@ -36,7 +38,8 @@ def go_forward() -> None:
     if session.screen_stack.forward():
         current = session.screen_stack.current
         push_event(NavigationEvent(
-            screen_type=type(current)
+            screen_type=type(current),
+            session_id=session.id
         ))
 
 # Control Factories
