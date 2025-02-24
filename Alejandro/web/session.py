@@ -2,7 +2,7 @@ import uuid
 from typing import Dict, Optional
 from Alejandro.Core.application import Application 
 from Alejandro.Core.screen_stack import ScreenStack
-from Alejandro.Core.test_word_stream import TestWordStream
+from Alejandro.Core.string_word_stream import StringWordStream
 from Alejandro.Models.screen import Screen
 
 class Session:
@@ -13,7 +13,7 @@ class Session:
         self.last_active = datetime.now()
         
         # Create session-specific word stream and app
-        self.word_stream = TestWordStream()
+        self.word_stream = StringWordStream()  # Use non-blocking StringWordStream
         self.core_app = Application(self.word_stream, welcome_screen)
 
 # Global session store
