@@ -32,7 +32,7 @@ class Session:
     def navigate(self, target_screen: Union[Type[Screen], Screen]) -> None:
         """Navigate to a screen"""
         if isinstance(target_screen, type):
-            screen = target_screen()
+            screen = self.get_screen(target_screen)
         else:
             screen = target_screen
             
