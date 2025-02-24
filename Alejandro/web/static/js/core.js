@@ -50,11 +50,13 @@ eventSource.onmessage = function(event) {
     
     const data = JSON.parse(event.data);
     
+    console.log('Received event:', data);
     switch(data.type) {
         case 'TranscriptionEvent':
             document.getElementById('transcription-text').textContent = data.text;
             break;
         case 'NavigationEvent':
+            console.log('Navigating to:', data.screen);
             window.location.href = '/' + data.screen + '?session=' + window.sessionId;
             break;
     }

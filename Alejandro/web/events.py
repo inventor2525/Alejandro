@@ -57,4 +57,6 @@ class ButtonClickEvent(Event):
 
 def push_event(event: Event) -> None:
     """Add event to queue"""
+    print(f"Pushing event: {event.__class__.__name__} for session {event.session_id}")
+    print(f"Event data: {event.to_json()}")
     event_queue.put(event)

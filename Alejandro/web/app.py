@@ -21,7 +21,9 @@ def event_stream(session_id: str) -> Iterator[str]:
         try:
             event = event_queue.get_nowait()
             if isinstance(event, Event) and event.session_id == session_id:
-                yield f"data: {json.dumps(event.to_json())}\n\n"
+                event_json = json.dumps(event.to_json())
+                print(f"Sending event to client: {event_json}")
+                yield f"data: {event_json}\n\n"
         except queue.Empty:
             pass
         
