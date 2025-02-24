@@ -3,8 +3,14 @@ function triggerControl(controlId) {
     const button = document.getElementById(controlId);
     simulateButtonClick(button);
     
-    fetch(`/control/${controlId}`, {
-        method: 'POST'
+    fetch('/control', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            control_id: controlId
+        })
     })
     .then(response => response.json())
     .then(data => {

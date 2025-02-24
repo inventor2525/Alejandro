@@ -51,17 +51,23 @@ def index(screen_id: str = None) -> str:
         **core_app.screen_stack.current.get_template_data()
     )
 
-@app.route('/control/<control_id>', methods=['POST'])
-def trigger_control(control_id: str) -> Response:
+@app.route('/control', methods=['POST'])
+def trigger_control() -> Response:
     """Handle control activation"""
+    data = request.get_json()
+    control_id = data.get('control_id')
+    
+    if not control_id:
+        return jsonify({"error": "No control ID provided"}), 400
+        
     current_screen = core_app.screen_stack.current
     
     for control in current_screen.controls:
         if control.id == control_id:
             if control.action:
                 result = control.action(core_app.screen_stack)
-                return jsonify({"result": result})
-            break
+                return jsonify(result if result else {})
+            return jsonify({})
             
     return jsonify({"error": "Control not found"}), 404
 
