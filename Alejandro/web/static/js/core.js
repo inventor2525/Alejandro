@@ -37,12 +37,13 @@ eventSource.onmessage = function(event) {
     
     const data = JSON.parse(event.data);
     
-    if (data.text) {
-        document.getElementById('transcription-text').textContent = data.text;
-    }
-    
-    if (data.navigate) {
-        window.location.href = '/' + data.navigate + '?session=' + window.sessionId;
+    switch(data.type) {
+        case 'TranscriptionEvent':
+            document.getElementById('transcription-text').textContent = data.text;
+            break;
+        case 'NavigationEvent':
+            window.location.href = '/' + data.screen + '?session=' + window.sessionId;
+            break;
     }
 };
 
