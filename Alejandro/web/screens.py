@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from Alejandro.Models.screen import Screen
 from Alejandro.Models.control import Control
-from Alejandro.web.functions import make_back_control, navigate
+from Alejandro.Models.control import Control
 
 class WelcomeScreen(Screen):
     """Initial welcome screen"""
@@ -13,7 +13,7 @@ class WelcomeScreen(Screen):
                     id="activate",
                     text="Hey Alejandro",
                     keyphrases=["hey alejandro", "hello alejandro"],
-                    action=lambda: navigate(MainScreen)
+                    action=lambda s=None: s.navigate(MainScreen) if s else None
                 )
             ]
         )
@@ -28,15 +28,15 @@ class MainScreen(Screen):
                     id="conversations",
                     text="Conversations",
                     keyphrases=["conversations", "show conversations"],
-                    action=lambda: navigate(ConversationsScreen)
+                    action=lambda s=None: s.navigate(ConversationsScreen) if s else None
                 ),
                 Control(
                     id="terminal", 
                     text="Terminal",
                     keyphrases=["terminal", "open terminal"],
-                    action=lambda: navigate(TerminalScreen)
+                    action=lambda s=None: s.navigate(TerminalScreen) if s else None
                 ),
-                make_back_control()
+                session.make_back_control() if session else None
             ]
         )
 

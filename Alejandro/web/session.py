@@ -1,8 +1,9 @@
 import uuid
-from typing import Dict, Optional
+from typing import Dict, Optional, Type, Union
 from Alejandro.Core.application import Application 
 from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.string_word_stream import StringWordStream
+from Alejandro.web.events import NavigationEvent, push_event
 from Alejandro.Models.screen import Screen
 
 class Session:
@@ -15,6 +16,53 @@ class Session:
         # Create session-specific word stream and app
         self.word_stream = StringWordStream()
         self.core_app = Application(self.word_stream, welcome_screen)
+        
+    def navigate(self, target_screen: Union[Type[Screen], Screen]) -> None:
+        """Navigate to a screen"""
+        if isinstance(target_screen, type):
+            screen = target_screen()
+        else:
+            screen = target_screen
+            
+        self.core_app.screen_stack.push(screen)
+        push_event(NavigationEvent(
+            screen_type=type(screen),
+            session_id=self.id
+        ))
+        
+    def go_back(self) -> None:
+        """Pop current screen and return to previous"""
+        if self.screen_stack.pop():
+            current = self.screen_stack.current
+            push_event(NavigationEvent(
+                screen_type=type(current),
+                session_id=self.id
+            ))
+            
+    def go_forward(self) -> None:
+        """Navigate forward in history if possible"""
+        if self.screen_stack.forward():
+            current = self.screen_stack.current
+            push_event(NavigationEvent(
+                screen_type=type(current),
+                session_id=self.id
+            ))
+            
+    def make_back_control(self) -> Control:
+        """Create a back navigation control"""
+        return Control(
+            id="back",
+            text="Back",
+            keyphrases=["back", "go back", "return"],
+            action=lambda s=self: s.go_back() if s else None
+        )
+        """Navigate forward in history if possible"""
+        if self.screen_stack.forward():
+            current = self.screen_stack.current
+            push_event(NavigationEvent(
+                screen_type=type(current),
+                session_id=self.id
+            ))
 
 # Global session store
 sessions: Dict[str, Session] = {}
