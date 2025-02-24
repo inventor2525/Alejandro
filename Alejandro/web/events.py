@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Type, Dict, Any
 import queue
@@ -22,8 +22,7 @@ class Event:
 @dataclass
 class TranscriptionEvent(Event):
     """Event for new transcription text"""
-    timestamp: datetime = datetime.now()
-    text: str
+    text: str = field(kw_only=True)
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
@@ -33,8 +32,7 @@ class TranscriptionEvent(Event):
 @dataclass
 class NavigationEvent(Event):
     """Event for screen navigation"""
-    timestamp: datetime = datetime.now()
-    screen_type: Type[Screen]
+    screen_type: Type[Screen] = field(kw_only=True)
     force: bool = True
     
     def to_json(self) -> Dict[str, Any]:
@@ -48,8 +46,7 @@ class NavigationEvent(Event):
 @dataclass
 class ButtonClickEvent(Event):
     """Event for button/control activation"""
-    timestamp: datetime = datetime.now()
-    control_id: str
+    control_id: str = field(kw_only=True)
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
