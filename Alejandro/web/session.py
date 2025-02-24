@@ -57,13 +57,6 @@ class Session:
             keyphrases=["back", "go back", "return"],
             action=lambda s=self: s.go_back() if s else None
         )
-        """Navigate forward in history if possible"""
-        if self.screen_stack.forward():
-            current = self.screen_stack.current
-            push_event(NavigationEvent(
-                screen_type=type(current),
-                session_id=self.id
-            ))
 
 # Global session store
 sessions: Dict[str, Session] = {}

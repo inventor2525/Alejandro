@@ -15,7 +15,7 @@ app = Flask(__name__)
 for bp in blueprints:
     app.register_blueprint(bp)
 
-def event_stream(session_id: str) -> Iterator[str]:
+def event_stream(session_id: str) -> Iterator[bytes]:
     """Server-sent events stream"""
     while True:
         try:
