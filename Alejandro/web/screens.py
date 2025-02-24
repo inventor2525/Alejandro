@@ -13,7 +13,7 @@ class WelcomeScreen(Screen):
                     id="activate",
                     text="Hey Alejandro",
                     keyphrases=["hey alejandro", "hello alejandro"],
-                    action=lambda s=None: navigate(s, MainScreen) if s else {}
+                    action=lambda: navigate(MainScreen)
                 )
             ]
         )
@@ -28,13 +28,13 @@ class MainScreen(Screen):
                     id="conversations",
                     text="Conversations",
                     keyphrases=["conversations", "show conversations"],
-                    action=lambda s=None: navigate(s, ConversationsScreen) if s else {}
+                    action=lambda: navigate(ConversationsScreen)
                 ),
                 Control(
                     id="terminal", 
                     text="Terminal",
                     keyphrases=["terminal", "open terminal"],
-                    action=lambda s=None: navigate(s, TerminalScreen) if s else {}
+                    action=lambda: navigate(TerminalScreen)
                 ),
                 make_back_control()
             ]

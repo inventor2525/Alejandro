@@ -65,8 +65,7 @@ def trigger_control() -> Response:
     for control in current_screen.controls:
         if control.id == control_id:
             if control.action:
-                result = control.action(core_app.screen_stack)
-                return jsonify(result if result else {})
+                control.action()
             return jsonify({})
             
     return jsonify({"error": "Control not found"}), 404
