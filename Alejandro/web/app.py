@@ -23,7 +23,7 @@ def event_stream() -> str:
         try:
             event = event_queue.get_nowait()
             if isinstance(event, Event):
-                yield f"data: {json.dumps(event.__dict__)}\n\n"
+                yield f"data: {json.dumps(event.to_json())}\n\n"
         except queue.Empty:
             pass
             
