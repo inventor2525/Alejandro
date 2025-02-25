@@ -1,7 +1,39 @@
 from flask import Blueprint, render_template, request
 from Alejandro.web.session import get_or_create_session
+from Alejandro.Models.screen import Screen
+from Alejandro.Models.control import Control
 
 bp = Blueprint('main', __name__)
+
+class MainScreen(Screen):
+    """Main menu screen"""
+    def __init__(self, session: 'Session'):
+        from Alejandro.web.blueprints.conversations import ConversationsScreen
+        from Alejandro.web.blueprints.terminal import TerminalScreen
+        super().__init__(
+            session=session,
+            title="Main Menu",
+            controls=[
+                Control(
+                    id="conversations",
+                    text="Conversations",
+                    keyphrases=["conversations", "show conversations"],
+                    action=lambda s=self: s.session().navigate(ConversationsScreen)
+                ),
+                Control(
+                    id="terminal", 
+                    text="Terminal",
+                    keyphrases=["terminal", "open terminal"],
+                    action=lambda s=self: s.session().navigate(TerminalScreen)
+                ),
+                Control(
+                    id="back",
+                    text="Back",
+                    keyphrases=["back", "go back", "return"],
+                    action=lambda s=self: s.session().go_back()
+                )
+            ]
+        )
 
 @bp.route('/<screen_name>')
 def show_screen(screen_name: str) -> str:

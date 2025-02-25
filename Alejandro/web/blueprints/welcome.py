@@ -1,7 +1,26 @@
 from flask import Blueprint, render_template, request
 from Alejandro.web.session import get_or_create_session
+from Alejandro.Models.screen import Screen
+from Alejandro.Models.control import Control
 
 bp = Blueprint('welcome', __name__)
+
+class WelcomeScreen(Screen):
+    """Initial welcome screen"""
+    def __init__(self, session: 'Session'):
+        from Alejandro.web.blueprints.main import MainScreen
+        super().__init__(
+            session=session,
+            title="Welcome",
+            controls=[
+                Control(
+                    id="activate",
+                    text="Hey Alejandro",
+                    keyphrases=["hey alejandro", "hello alejandro"],
+                    action=lambda s=self: s.session().navigate(MainScreen)
+                )
+            ]
+        )
 
 @bp.route('/')
 def welcome() -> str:

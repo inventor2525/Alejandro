@@ -99,7 +99,7 @@ def get_or_create_session(session_id: Optional[str] = None) -> Session:
         sessions[session_id].last_active = datetime.now()
         return sessions[session_id]
         
-    from Alejandro.web.screens import WelcomeScreen
+    from Alejandro.web.blueprints.welcome import WelcomeScreen
     if session_id:
         print(f"Creating new session with provided ID: {session_id}")
         session = Session(WelcomeScreen)
