@@ -68,3 +68,51 @@
     font-size: 14px;
     color: #666;
 }
+
+/* Conversation list styles */
+.conversation-list {
+    margin: 20px;
+    padding: 20px;
+}
+
+.conversation-item {
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.conversation-item:hover {
+    background-color: #f0f0f0;
+    transform: translateX(5px);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+.conversation-description {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+.no-conversations {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+.error-message {
+    padding: 15px;
+    margin: 10px 0;
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    text-align: center;
+}

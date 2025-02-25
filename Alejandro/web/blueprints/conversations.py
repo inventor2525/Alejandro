@@ -73,7 +73,7 @@ def conversations() -> str:
     screen = session.screen_stack.current
     
     return render_template(
-        'base.html',
+        'conversation_list.html',
         screen=screen,
         session_id=session.id,
         **screen.get_template_data()
