@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ screen.title }} - Alejandro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/conversation.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <div class="content-area">
+            <h1>{{ screen.title }}</h1>
+            <div class="conversation-view">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="message message-{{ message.role.lower() }}">
+                        <div class="message-meta">
+                            <div class="message-role">{{ message.role }}</div>
+                            {% if message.is_model %}
+                            <div class="message-model-info">
+                                {% if message.model_name %}
+                                <div class="model-name">{{ message.model_name }}</div>
+                                {% endif %}
+                                {% if message.date %}
+                                <div class="message-date">{{ message.date }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="message-content">{{ message.content }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-messages">
+                        <p>No messages in this conversation yet.</p>
+                    </div>
+                {% endif %}
+                
+                <div class="message-input-container">
+                    <form id="messageForm">
+                        <textarea id="messageInput" name="messageInput" 
+                                class="message-input" 
+                                placeholder="Type your message..."></textarea>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            {% include 'menu.html' %}
+        </div>
+    </div>
+
+    <script>window.initialSessionId = "{{ session_id }}";</script>
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+</body>
+</html>
