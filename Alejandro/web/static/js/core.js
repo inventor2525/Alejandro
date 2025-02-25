@@ -1,8 +1,5 @@
-// Initialize or clear session ID based on path
-if (window.location.pathname === '/') {
-    localStorage.removeItem('sessionId');
-    localStorage.setItem('sessionId', window.initialSessionId);
-} else if (!localStorage.getItem('sessionId')) {
+// Initialize session ID
+if (!localStorage.getItem('sessionId') || window.location.pathname === '/') {
     localStorage.setItem('sessionId', window.initialSessionId);
 }
 window.sessionId = localStorage.getItem('sessionId');
@@ -32,7 +29,6 @@ function triggerControl(controlId) {
         console.log('Control data:', data);
         if (data.screen) {
             window.location.href = '/' + data.screen + 'screen?session=' + window.sessionId;
-            window.location.reload();
         }
     })
     .catch(error => {
@@ -72,9 +68,8 @@ eventSource.onmessage = function(event) {
             break;
         case 'NavigationEvent':
             console.log('Navigating to:', data.screen);
-            if (data.force || window.location.pathname.substring(1) !== data.screen) {
-                window.location.href = '/' + data.screen + '?session=' + data.session_id;
-                window.location.reload();
+            if (data.force || window.location.pathname.substring(1) !== data.screen + 'screen') {
+                window.location.href = '/' + data.screen + 'screen?session=' + data.session_id;
             }
             break;
     }
