@@ -17,6 +17,7 @@ def trigger_control() -> Response:
         return jsonify({"error": "Missing control_id or session_id"}), 400
         
     session = get_or_create_session(session_id)
+    print(f"Got/created session for control with id: {session.id}")
     current_screen = session.screen_stack.current
     print(f"Current screen: {current_screen.__class__.__name__}")
     print(f"Available controls: {[c.id for c in current_screen.controls]}")

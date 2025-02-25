@@ -43,10 +43,12 @@ def event_stream(session_id: str) -> Iterator[str]:
 def stream() -> Response:
     """SSE endpoint"""
     session_id = request.args.get('session')
+    print(f"\nStream request with session_id: {session_id}")
     if not session_id:
         return Response("No session ID provided", status=400)
         
-    get_or_create_session(session_id)  # Validate session exists
+    session = get_or_create_session(session_id)  # Validate session exists
+    print(f"Got/created session with id: {session.id}")
     
     return Response(
         event_stream(session_id),

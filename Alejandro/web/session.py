@@ -36,7 +36,7 @@ class Session:
             screen = target_screen
             
         self.core_app.screen_stack.push(screen)
-        print(f"Pushing navigation event for screen: {type(screen).__name__}")
+        print(f"Pushing navigation event for screen: {type(screen).__name__} with session: {self.id}")
         push_event(NavigationEvent(
             screen_type=type(screen),
             session_id=self.id
