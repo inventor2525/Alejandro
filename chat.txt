@@ -1,11 +1,12 @@
 /drop
+/add       Alejandro/Models/screen.py
 /add       Alejandro/web/app.py
+/add       Alejandro/web/blueprints/__init__.py
 /add       Alejandro/web/blueprints/controls.py
+/add       Alejandro/web/blueprints/screens.py
 /add       Alejandro/web/events.py
-/add       Alejandro/web/functions.py
 /add       Alejandro/web/screens.py
 /add       Alejandro/web/session.py
-/add       Alejandro/web/voice.py
 /add       Alejandro/web/static/css/core.css
 /add       Alejandro/web/static/js/core.js
 /add       Alejandro/web/templates/base.html
@@ -17,7 +18,6 @@
 /read-only Alejandro/Interfaces/word_stream.py
 /read-only Alejandro/Models/control.py
 /read-only Alejandro/Models/modal_control.py
-/read-only Alejandro/Models/screen.py
 /read-only Alejandro/Models/word_mapping.py
 /read-only Alejandro/Models/word_node.py
 /read-only Alejandro/__init__.py
