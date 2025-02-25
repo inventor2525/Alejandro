@@ -43,7 +43,9 @@ function simulateButtonClick(button) {
 }
 
 // Setup SSE for transcriptions and actions
-const eventSource = new EventSource('/stream?session=' + window.sessionId);
+// Use same host as page for EventSource
+const host = window.location.hostname;
+const eventSource = new EventSource(`http://${host}:5000/stream?session=${window.sessionId}`);
 
 eventSource.onmessage = function(event) {
     if (!event.data) {

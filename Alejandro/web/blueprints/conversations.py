@@ -3,7 +3,7 @@ from Alejandro.web.session import get_or_create_session
 
 bp = Blueprint('conversations', __name__)
 
-@bp.route('/conversations')
+@bp.route('/conversationsscreen')
 def conversations() -> str:
     """Conversations screen route"""
     session_id = request.args.get('session')
