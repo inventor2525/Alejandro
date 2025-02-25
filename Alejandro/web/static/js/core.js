@@ -9,7 +9,9 @@ function triggerControl(controlId) {
     const button = document.getElementById(controlId);
     simulateButtonClick(button);
     
-    fetch('/control', {
+    const host = window.location.hostname;
+    const port = window.location.port;
+    fetch(`http://${host}:${port}/control`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -45,7 +47,8 @@ function simulateButtonClick(button) {
 // Setup SSE for transcriptions and actions
 // Use same host as page for EventSource
 const host = window.location.hostname;
-const eventSource = new EventSource(`http://${host}:5000/stream?session=${window.sessionId}`);
+const port = window.location.port;
+const eventSource = new EventSource(`http://${host}:${port}/stream?session=${window.sessionId}`);
 
 eventSource.onmessage = function(event) {
     if (!event.data) {
