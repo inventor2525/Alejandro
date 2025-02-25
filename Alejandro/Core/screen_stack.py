@@ -9,23 +9,17 @@ class ScreenStack:
     def __init__(self, welcome_screen: Screen):
         self._stack: List[Screen] = [welcome_screen]
         self._forward_stack: List[Screen] = []
-        welcome_screen.on_enter()
         
     def push(self, screen: Screen) -> None:
         """Push a new screen onto the stack"""
-        if self._stack:
-            self._stack[-1].on_exit()
         self._stack.append(screen)
-        screen.on_enter()
         self._forward_stack.clear()
         
     def pop(self) -> Optional[Screen]:
         """Pop current screen and return to previous"""
         if len(self._stack) > 1:
             popped = self._stack.pop()
-            popped.on_exit()
             self._forward_stack.append(popped)
-            self._stack[-1].on_enter()
             return popped
         return None
         
@@ -39,10 +33,7 @@ class ScreenStack:
         
     def _internal_push(self, screen: Screen) -> None:
         """Push without clearing forward stack"""
-        if self._stack:
-            self._stack[-1].on_exit()
         self._stack.append(screen)
-        screen.on_enter()
         
     @property
     def current(self) -> Screen:

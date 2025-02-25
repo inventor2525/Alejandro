@@ -23,17 +23,7 @@ class Screen(BaseModel):
         super().__init__(session=session_ref, **data)
     title: str
     controls: List[Control] = []
-    enter_count: int = Field(default=0)
-    exit_count: int = Field(default=0)
     
-    def on_enter(self) -> None:
-        """Called when this screen becomes active"""
-        self.enter_count += 1
-        
-    def on_exit(self) -> None:
-        """Called when navigating away from this screen"""
-        self.exit_count += 1
-        
     def get_template_data(self) -> Dict[str, Any]:
         """Get any additional template data needed for rendering"""
         return {}
