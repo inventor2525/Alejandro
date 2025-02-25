@@ -62,7 +62,7 @@ class ConversationsScreen(Screen):
             "conversations": self.get_conversations()
         }
 
-@bp.route('/conversationsscreen')
+@bp.route('/conversations')
 def conversations() -> str:
     """Conversations screen route"""
     session_id = request.args.get('session')
@@ -76,7 +76,7 @@ def conversations() -> str:
     print(f"Rendering conversations with data: {template_data}")
     
     return render_template(
-        'base.html',
+        'conversation_list.html',
         screen=screen,
         session_id=session.id,
         **template_data

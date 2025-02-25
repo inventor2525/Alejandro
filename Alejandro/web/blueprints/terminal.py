@@ -19,7 +19,7 @@ class TerminalScreen(Screen):
             )]
         )
 
-@bp.route('/terminalscreen')
+@bp.route('/terminal')
 def terminal() -> str:
     """Terminal screen route"""
     session_id = request.args.get('session')

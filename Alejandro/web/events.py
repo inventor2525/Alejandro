@@ -39,8 +39,12 @@ class NavigationEvent(Event):
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
+        screen_name = self.screen_type.__name__.lower()
+        if screen_name.endswith('screen'):
+            #remove screen from the end of the name:
+            screen_name = screen_name[:-len("screen")]
         data.update({
-            "screen": self.screen_type.__name__.lower(),
+            "screen": screen_name,
             "force": self.force
         })
         return data
