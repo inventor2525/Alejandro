@@ -10,8 +10,9 @@ bp = Blueprint('conversation', __name__)
 
 class ConversationScreen(Screen):
     """Single conversation view"""
+    conversation_id: str
+    
     def __init__(self, session: 'Session', conversation_id: str):
-        self.conversation_id = conversation_id
         super().__init__(
             session=session,
             title=f"Conversation {conversation_id}",
@@ -35,7 +36,8 @@ class ConversationScreen(Screen):
                     keyphrases=["back", "go back", "return"],
                     action=lambda s=self: s.session().go_back()
                 )
-            ]
+            ],
+            conversation_id = conversation_id
         )
         
     def _handle_speech(self) -> None:
