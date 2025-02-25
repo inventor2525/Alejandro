@@ -31,7 +31,8 @@ function triggerControl(controlId) {
     .then(data => {
         console.log('Control data:', data);
         if (data.screen) {
-            window.location.href = '/' + data.screen + '?session=' + window.sessionId;
+            window.location.href = '/' + data.screen + 'screen?session=' + window.sessionId;
+            window.location.reload();
         }
     })
     .catch(error => {
