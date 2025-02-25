@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from Alejandro.web.session import get_or_create_session
+from Alejandro.web.session import get_or_create_session, Session
 from Alejandro.Models.screen import Screen
 from Alejandro.Models.control import Control
 
