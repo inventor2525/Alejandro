@@ -79,5 +79,5 @@ def conversations() -> str:
         'conversation_list.html',
         screen=screen,
         session_id=session.id,
-        **template_data
+        conversations=template_data.get('conversations', [])
     )
