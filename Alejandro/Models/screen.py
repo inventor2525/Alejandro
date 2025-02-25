@@ -16,7 +16,11 @@ class Screen(BaseModel):
         'from_attributes': True
     }
     
-    session: ReferenceType['Session']
+    session: ReferenceType['Session'] = Field(exclude=True)
+    
+    def __init__(self, session: 'Session', **data):
+        session_ref = ref(session)
+        super().__init__(session=session_ref, **data)
     title: str
     controls: List[Control] = []
     enter_count: int = Field(default=0)

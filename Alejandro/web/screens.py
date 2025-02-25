@@ -5,7 +5,7 @@ from Alejandro.web.session import Session
 
 class WelcomeScreen(Screen):
     """Initial welcome screen"""
-    def __init__(self, session: ReferenceType['Session']):
+    def __init__(self, session: 'Session'):
         super().__init__(
             session=session,
             title="Welcome",
@@ -21,7 +21,7 @@ class WelcomeScreen(Screen):
 
 class MainScreen(Screen):
     """Main menu screen"""
-    def __init__(self, session: ReferenceType['Session']):
+    def __init__(self, session: 'Session'):
         super().__init__(
             session=session,
             title="Main Menu",
@@ -49,7 +49,7 @@ class MainScreen(Screen):
 
 class ConversationsScreen(Screen):
     """List of conversations"""
-    def __init__(self, session: ReferenceType['Session']):
+    def __init__(self, session: 'Session'):
         super().__init__(
             session=session,
             title="Conversations",
@@ -68,7 +68,7 @@ class ConversationsScreen(Screen):
 
 class TerminalScreen(Screen):
     """Terminal emulator screen"""
-    def __init__(self, session: ReferenceType['Session']):
+    def __init__(self, session: 'Session'):
         super().__init__(
             session=session,
             title="Terminal",
