@@ -21,6 +21,9 @@ class Session:
         self.screen_stack = ScreenStack(welcome_screen)
         self.core_app = Application(self.word_stream, welcome_screen)
         
+        # Share screen stack between app and session
+        self.core_app.screen_stack = self.screen_stack
+        
     def get_screen(self, screen_type: Type[Screen]) -> Screen:
         """Get existing screen instance or create new one"""
         if screen_type not in self._screens:

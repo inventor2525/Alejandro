@@ -12,9 +12,9 @@ def show_main() -> str:
         
     session = get_or_create_session(session_id)
     screen = session.screen_stack.current
-    print("----------------LOADED-----------------------------------")
-    print(type(screen))
-    print("----------------LOADED-----------------------------------")
+    print(f"Loading main screen for session {session_id}")
+    print(f"Current screen type: {type(screen).__name__}")
+    print(f"Screen stack contents: {[type(s).__name__ for s in session.screen_stack._stack]}")
     return render_template(
         'base.html',
         screen=screen,
