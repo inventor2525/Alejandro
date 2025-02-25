@@ -24,8 +24,7 @@ class Session:
     def get_screen(self, screen_type: Type[Screen]) -> Screen:
         """Get existing screen instance or create new one"""
         if screen_type not in self._screens:
-            screen = screen_type()
-            screen.session = ref(self)  # Weak reference back to session
+            screen = screen_type(session=ref(self))
             self._screens[screen_type] = screen
         return self._screens[screen_type]
         
