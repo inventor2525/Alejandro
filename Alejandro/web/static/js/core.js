@@ -18,7 +18,7 @@ function triggerControl(controlId) {
         },
         body: JSON.stringify({
             control_id: controlId,
-            session_id: window.sessionId
+            session_id: localStorage.getItem('sessionId')
         })
     })
     .then(response => {
@@ -69,7 +69,7 @@ eventSource.onmessage = function(event) {
         case 'NavigationEvent':
             console.log('Navigating to:', data.screen);
             if (data.force || window.location.pathname.substring(1) !== data.screen) {
-                window.location.href = '/' + data.screen + '?session=' + window.sessionId;
+                window.location.href = '/' + data.screen + '?session=' + data.session_id;
                 window.location.reload();
             }
             break;
