@@ -75,9 +75,17 @@ def conversations() -> str:
     template_data = screen.get_template_data()
     print(f"Rendering conversations with data: {template_data}")
     
-    return render_template(
+    # Override base template block with conversation list content
+    content = render_template(
         'conversation_list.html',
         screen=screen,
         session_id=session.id,
         conversations=template_data.get('conversations', [])
+    )
+    
+    return render_template(
+        'base.html',
+        screen=screen,
+        session_id=session.id,
+        content=content
     )

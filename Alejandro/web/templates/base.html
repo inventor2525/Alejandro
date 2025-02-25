@@ -9,7 +9,11 @@
     <div class="app-container">
         <div class="content-area">
             <h1>{{ screen.title }}</h1>
-            {% block content %}{% endblock %}
+            {% if content %}
+                {{ content|safe }}
+            {% else %}
+                {% block content %}{% endblock %}
+            {% endif %}
         </div>
         
         <div class="footer">
