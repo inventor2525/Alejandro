@@ -4,7 +4,6 @@ from Alejandro.web.session import get_or_create_session
 bp = Blueprint('welcome', __name__)
 
 @bp.route('/')
-@bp.route('/welcomescreen')
 def welcome() -> str:
     """Welcome screen route"""
     session_id = request.args.get('session')
