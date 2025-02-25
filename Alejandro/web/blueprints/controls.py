@@ -29,6 +29,10 @@ def trigger_control() -> Response:
                 print("Executing control action...")
                 control.action()
                 print("Action completed")
+                # Return current screen info after action
+                return jsonify({
+                    "screen": session.screen_stack.current.__class__.__name__.lower()
+                })
             return jsonify({})
     
     print(f"Error: Control {control_id} not found")        

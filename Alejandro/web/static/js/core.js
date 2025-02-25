@@ -63,7 +63,10 @@ eventSource.onmessage = function(event) {
             break;
         case 'NavigationEvent':
             console.log('Navigating to:', data.screen);
-            window.location.href = '/' + data.screen + '?session=' + window.sessionId;
+            if (data.force || window.location.pathname.substring(1) !== data.screen) {
+                window.location.href = '/' + data.screen + '?session=' + window.sessionId;
+                window.location.reload();
+            }
             break;
     }
 };
