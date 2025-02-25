@@ -1,5 +1,8 @@
-// Initialize session ID
-if (!localStorage.getItem('sessionId')) {
+// Initialize or clear session ID based on path
+if (window.location.pathname === '/') {
+    localStorage.removeItem('sessionId');
+    localStorage.setItem('sessionId', window.initialSessionId);
+} else if (!localStorage.getItem('sessionId')) {
     localStorage.setItem('sessionId', window.initialSessionId);
 }
 window.sessionId = localStorage.getItem('sessionId');
