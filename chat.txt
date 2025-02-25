@@ -17,6 +17,7 @@
 /read-only Alejandro/Core/test_word_stream.py
 /read-only Alejandro/Interfaces/word_stream.py
 /read-only Alejandro/Models/control.py
+/read-only Alejandro/Models/screen.py
 /read-only Alejandro/Models/modal_control.py
 /read-only Alejandro/Models/word_mapping.py
 /read-only Alejandro/Models/word_node.py
