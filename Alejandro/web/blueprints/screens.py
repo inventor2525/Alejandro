@@ -13,8 +13,10 @@ def show_screen(screen_name: str):
     session = get_or_create_session(session_id)
     screen = session.screen_stack.current
     
-    return render_template(
-        'base.html',
-        screen=screen,
-        session_id=session_id
-    )
+    # Get screen-specific template if it exists, fall back to base.html
+    template = f"{screen_name}.html"
+    try:
+        render_template(template)  # Test if template exists
+        return render_template(template, screen=screen, session_id=session_id)
+    except:
+        return render_template('base.html', screen=screen, session_id=session_id)
