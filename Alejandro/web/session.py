@@ -92,11 +92,19 @@ def get_or_create_session(session_id: Optional[str] = None) -> Session:
     cleanup_sessions()
     
     if session_id and session_id in sessions:
+        print(f"Reusing existing session: {session_id}")
         sessions[session_id].last_active = datetime.now()
         return sessions[session_id]
         
     from Alejandro.web.screens import WelcomeScreen
-    session = Session(WelcomeScreen)
+    if session_id:
+        print(f"Creating new session with provided ID: {session_id}")
+        session = Session(WelcomeScreen)
+        session.id = session_id  # Use provided ID instead of generating new one
+    else:
+        print("Creating new session with generated ID")
+        session = Session(WelcomeScreen)
+        
     sessions[session.id] = session
     
     # Start voice control for new session
