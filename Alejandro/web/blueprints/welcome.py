@@ -23,7 +23,7 @@ class WelcomeScreen(Screen):
         )
 
 @bp.route('/')
-@bp.route('/welcome')
+@bp.route(f'/{WelcomeScreen.url()}')
 def welcome() -> str:
     """Welcome screen route"""
     session_id = request.args.get('session')

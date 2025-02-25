@@ -27,3 +27,11 @@ class Screen(BaseModel):
     def get_template_data(self) -> Dict[str, Any]:
         """Get any additional template data needed for rendering"""
         return {}
+    
+    @classmethod
+    def url(cls):
+        url = cls.__name__.lower()
+        if url.endswith('screen'):
+            #remove screen from the end of the name:
+            url = url[:-len("screen")]
+        return url

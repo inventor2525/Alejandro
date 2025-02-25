@@ -31,7 +31,7 @@ def trigger_control() -> Response:
                 print("Action completed")
                 # Return current screen info after action
                 return jsonify({
-                    "screen": session.screen_stack.current.__class__.__name__.lower()
+                    "screen": type(session.screen_stack.current).url()
                 })
             return jsonify({})
     

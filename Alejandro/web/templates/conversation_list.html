@@ -43,7 +43,7 @@
     function openConversation(convId) {
         if (convId) {
             const sessionId = localStorage.getItem('sessionId');
-            window.location.href = '/conversationscreen/' + convId + '?session=' + sessionId;
+            window.location.href = '/conversation/' + convId + '?session=' + sessionId;
         }
     }
     </script>

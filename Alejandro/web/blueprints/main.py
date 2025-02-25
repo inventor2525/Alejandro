@@ -35,7 +35,7 @@ class MainScreen(Screen):
             ]
         )
 
-@bp.route('/main')
+@bp.route(f'/{MainScreen.url()}')
 def show_screen() -> str:
     """Generic screen route handler"""
     session_id = request.args.get('session')

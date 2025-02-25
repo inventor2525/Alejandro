@@ -62,7 +62,7 @@ class ConversationsScreen(Screen):
             "conversations": self.get_conversations()
         }
 
-@bp.route('/conversations')
+@bp.route(f'/{ConversationsScreen.url()}')
 def conversations() -> str:
     """Conversations screen route"""
     session_id = request.args.get('session')
