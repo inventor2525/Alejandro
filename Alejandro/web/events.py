@@ -39,16 +39,8 @@ class NavigationEvent(Event):
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
-        screen_name = self.screen_type.__name__.lower()
-        # Map screen names to routes
-        route_map = {
-            'welcomescreen': 'welcome',
-            'mainscreen': 'mainscreen',
-            'conversationsscreen': 'conversations', 
-            'terminalscreen': 'terminal'
-        }
         data.update({
-            "screen": route_map.get(screen_name, screen_name),
+            "screen": self.screen_type.__name__.lower(),
             "force": self.force
         })
         return data
