@@ -27,14 +27,8 @@
 <script>
 function openConversation(convId) {
     if (convId) {
-        fetch(`/conversation/${convId}`)
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '/conversation/' + convId;
-                } else {
-                    console.error('Failed to load conversation:', convId);
-                }
-            });
+        const sessionId = localStorage.getItem('sessionId');
+        window.location.href = '/conversation/' + convId + '?session=' + sessionId;
     }
 }
 </script>
