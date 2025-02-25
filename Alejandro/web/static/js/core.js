@@ -28,7 +28,7 @@ function triggerControl(controlId) {
     .then(data => {
         console.log('Control data:', data);
         if (data.screen) {
-            window.location.href = '/' + data.screen + 'screen?session=' + window.sessionId;
+            window.location.href = '/' + data.screen + '?session=' + window.sessionId;
         }
     })
     .catch(error => {
@@ -69,7 +69,7 @@ eventSource.onmessage = function(event) {
         case 'NavigationEvent':
             console.log('Navigating to:', data.screen);
             if (data.force || window.location.pathname.substring(1) !== data.screen + 'screen') {
-                window.location.href = '/' + data.screen + 'screen?session=' + data.session_id;
+                window.location.href = '/' + data.screen + '?session=' + data.session_id;
             }
             break;
     }
