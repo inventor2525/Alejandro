@@ -20,9 +20,9 @@ function initTerminal() {
     });
 
     // Add addons
-    fitAddon = new FitAddon.FitAddon();
+    fitAddon = new window.FitAddon.FitAddon();
     term.loadAddon(fitAddon);
-    term.loadAddon(new WebLinksAddon.WebLinksAddon());
+    term.loadAddon(new window.WebLinksAddon.WebLinksAddon());
 
     // Open terminal
     term.open(document.getElementById('terminal-container'));
@@ -37,6 +37,9 @@ function initTerminal() {
     window.addEventListener('resize', () => {
         if (fitAddon) {
             fitAddon.fit();
+            // Send terminal size to server
+            const dimensions = term.options;
+            sendTerminalResize(dimensions.cols, dimensions.rows);
         }
     });
 
@@ -50,6 +53,10 @@ function initTerminal() {
         });
         pendingData = [];
     }
+    
+    // Send terminal size to server
+    const dimensions = term.options;
+    sendTerminalResize(dimensions.cols, dimensions.rows);
     
     // Send a dummy input to initialize the terminal if needed
     sendTerminalInput('\r');
@@ -76,6 +83,31 @@ function sendTerminalInput(data) {
     })
     .catch(error => {
         console.error('Error sending terminal input:', error);
+    });
+}
+
+// Send terminal resize to server
+function sendTerminalResize(cols, rows) {
+    const host = window.location.hostname;
+    const port = window.location.port;
+    fetch(`http://${host}:${port}/terminal/resize`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            session_id: window.sessionId,
+            terminal_id: window.terminalId,
+            cols: cols,
+            rows: rows
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Terminal resize response:', data);
+    })
+    .catch(error => {
+        console.error('Error sending terminal resize:', error);
     });
 }
 
