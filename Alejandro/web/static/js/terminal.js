@@ -105,6 +105,9 @@ function initTerminal() {
 
     if (savedBuffer) {
         try {
+            // Set restoration flag immediately to block incoming updates
+            localStorage.setItem(`terminal_restoring_${window.terminalId}`, 'true');
+            
             const buffer = JSON.parse(savedBuffer);
             console.log(`Restoring terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
         
@@ -127,14 +130,11 @@ function initTerminal() {
                 term.write(`\x1b[${cursor.y};${cursor.x}H`);
             }
             
-            // Set a flag to prevent server updates from overwriting our restored buffer
-            localStorage.setItem(`terminal_restoring_${window.terminalId}`, 'true');
-            
-            // Clear the restoration flag after a short delay
+            // Keep the restoration flag active longer
             setTimeout(() => {
                 localStorage.removeItem(`terminal_restoring_${window.terminalId}`);
                 console.log("Terminal restoration complete, accepting server updates again");
-            }, 1000);
+            }, 2000);
         } catch (e) {
             console.error("Error restoring terminal buffer:", e);
         }
@@ -284,8 +284,8 @@ function handleTerminalData(data) {
         return;
     }
     
-    // Check if we have a saved buffer that we're restoring
-    const isRestoringBuffer = localStorage.getItem(`terminal_buffer_${window.terminalId}`) !== null;
+    // Check if we have a restoration flag set
+    const isRestoringBuffer = localStorage.getItem(`terminal_restoring_${window.terminalId}`) === 'true';
     
     // Only write data if we're not in the middle of restoring a buffer
     if (!isRestoringBuffer) {
@@ -325,6 +325,12 @@ window.addEventListener('beforeunload', function(event) {
                 timestamp: timestamp
             }));
             console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines) at ${timestamp}`);
+            
+            // This helps ensure the data is saved before navigation
+            const start = Date.now();
+            while (Date.now() - start < 50) {
+                // Small delay to ensure storage completes
+            }
         }
     }
 });
@@ -349,13 +355,24 @@ document.addEventListener('click', function(event) {
                 }
             }
             
-            // Store buffer and cursor position
+            // Store buffer and cursor position with a timestamp
+            const timestamp = Date.now();
             localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
             localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
                 x: term.buffer.active.cursorX,
-                y: term.buffer.active.cursorY
+                y: term.buffer.active.cursorY,
+                timestamp: timestamp
             }));
-            console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
+            console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines) at ${timestamp}`);
+            
+            // Force a small delay before navigation to ensure storage completes
+            if (event.target.id === 'back') {
+                event.preventDefault();
+                setTimeout(() => {
+                    triggerControl('back');
+                }, 100);
+                return false;
+            }
         }
     }
 });
@@ -380,10 +397,10 @@ window.addEventListener('load', function() {
     
     // Don't clear the terminal active flag - we need it for buffer restoration
     
-    // Initialize terminal with a slight delay to ensure DOM is ready
+    // Initialize terminal with a longer delay to ensure DOM is ready
     setTimeout(() => {
         initTerminal();
-    }, 100);
+    }, 300);
     
     // Save terminal buffer periodically
     setInterval(() => {

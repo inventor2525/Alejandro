@@ -71,7 +71,8 @@ class Terminal:
         except:
             pass
             
-        # Don't send an initial update - let the client restore from localStorage
+        # Wait a bit longer before sending updates to allow client to restore buffer
+        time.sleep(0.5)
             
         while self.running:
             try:
