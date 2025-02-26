@@ -6,7 +6,7 @@ import json
 import queue
 import time
 
-from Alejandro.web.events import Event, event_queue
+from Alejandro.web.events import Event, TerminalScreenEvent, event_queue
 
 # Create Flask app
 app = Flask(__name__)
