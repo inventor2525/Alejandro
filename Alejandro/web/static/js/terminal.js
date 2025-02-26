@@ -6,6 +6,16 @@ let pendingData = [];
 
 // Initialize terminal
 function initTerminal() {
+    console.log("Initializing xterm.js terminal");
+    
+    // Check if required libraries are loaded
+    if (typeof Terminal === 'undefined') {
+        console.error("xterm.js Terminal is not defined! Make sure the library is loaded.");
+        document.getElementById('terminal-container').innerHTML = 
+            '<div style="color: red; padding: 20px;">Error: xterm.js library not loaded properly.</div>';
+        return;
+    }
+    
     // Create terminal instance
     term = new Terminal({
         cursorBlink: true,
@@ -19,14 +29,50 @@ function initTerminal() {
         scrollback: 1000
     });
 
-    // Add addons
-    fitAddon = new window.FitAddon.FitAddon();
-    term.loadAddon(fitAddon);
-    term.loadAddon(new window.WebLinksAddon.WebLinksAddon());
+    console.log("Terminal instance created");
+
+    // Add addons if available
+    try {
+        if (window.FitAddon) {
+            fitAddon = new window.FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+            console.log("Fit addon loaded");
+        } else {
+            console.warn("FitAddon not available");
+        }
+        
+        if (window.WebLinksAddon) {
+            term.loadAddon(new window.WebLinksAddon.WebLinksAddon());
+            console.log("WebLinks addon loaded");
+        } else {
+            console.warn("WebLinksAddon not available");
+        }
+    } catch (e) {
+        console.error("Error loading addons:", e);
+    }
+
+    // Get terminal container
+    const container = document.getElementById('terminal-container');
+    if (!container) {
+        console.error("Terminal container not found!");
+        return;
+    }
 
     // Open terminal
-    term.open(document.getElementById('terminal-container'));
-    fitAddon.fit();
+    try {
+        term.open(container);
+        console.log("Terminal opened in container");
+        
+        if (fitAddon) {
+            fitAddon.fit();
+            console.log("Terminal fitted to container");
+        }
+    } catch (e) {
+        console.error("Error opening terminal:", e);
+        container.innerHTML = 
+            `<div style="color: red; padding: 20px;">Error opening terminal: ${e.message}</div>`;
+        return;
+    }
 
     // Handle terminal input
     term.onData(data => {
@@ -45,9 +91,11 @@ function initTerminal() {
 
     // Mark terminal as ready
     terminalReady = true;
+    console.log("Terminal ready");
     
     // Process any pending data
     if (pendingData.length > 0) {
+        console.log(`Processing ${pendingData.length} pending data items`);
         pendingData.forEach(data => {
             term.write(data);
         });
@@ -55,11 +103,16 @@ function initTerminal() {
     }
     
     // Send terminal size to server
-    const dimensions = term.options;
-    sendTerminalResize(dimensions.cols, dimensions.rows);
+    if (fitAddon) {
+        const dimensions = term.options;
+        sendTerminalResize(dimensions.cols, dimensions.rows);
+    }
     
     // Send a dummy input to initialize the terminal if needed
     sendTerminalInput('\r');
+    
+    // Write a welcome message
+    term.write('\r\nAlejandro Terminal Ready\r\n');
 }
 
 // Send terminal input to server
@@ -160,43 +213,73 @@ function handleTerminalData(data) {
 
 // Override the existing event source handler
 window.addEventListener('load', function() {
-    // Initialize terminal
-    initTerminal();
+    console.log("Terminal page load event fired");
+    
+    // Initialize terminal with a slight delay to ensure DOM is ready
+    setTimeout(() => {
+        initTerminal();
+    }, 100);
     
     // Make sure we have the terminal ID
     console.log('Terminal page loaded with terminal ID:', window.terminalId);
     
     // Override the event source handler
-    eventSource.onmessage = function(event) {
-        if (!event.data) {
-            return; // Skip keepalive
-        }
-        
-        try {
-            const data = JSON.parse(event.data);
-            
-            switch(data.type) {
-                case 'TranscriptionEvent':
-                    document.getElementById('transcription-text').textContent = data.text;
-                    break;
-                case 'NavigationEvent':
-                    console.log('Navigation event received:', data.screen);
-                    const targetUrl = '/' + data.screen + '?session=' + data.session_id;
-                    if (window.location.pathname !== '/' + data.screen) {
-                        window.location.href = targetUrl;
-                    }
-                    break;
-                case 'TerminalScreenEvent':
-                    // If we don't have a terminal ID yet, use the one from the event
-                    if (!window.terminalId && data.terminal_id) {
-                        window.terminalId = data.terminal_id;
-                        console.log('Setting terminal ID to:', window.terminalId);
-                    }
-                    handleTerminalData(data);
-                    break;
+    if (typeof eventSource !== 'undefined') {
+        console.log("Setting up event source handler");
+        eventSource.onmessage = function(event) {
+            if (!event.data) {
+                return; // Skip keepalive
             }
-        } catch (e) {
-            console.error('Error processing event:', e);
-        }
-    };
+            
+            try {
+                const data = JSON.parse(event.data);
+                
+                switch(data.type) {
+                    case 'TranscriptionEvent':
+                        const transcriptionElement = document.getElementById('transcription-text');
+                        if (transcriptionElement) {
+                            transcriptionElement.textContent = data.text;
+                        }
+                        break;
+                    case 'NavigationEvent':
+                        console.log('Navigation event received:', data.screen);
+                        const targetUrl = '/' + data.screen + '?session=' + data.session_id;
+                        if (window.location.pathname !== '/' + data.screen) {
+                            window.location.href = targetUrl;
+                        }
+                        break;
+                    case 'TerminalScreenEvent':
+                        console.log('Terminal event received for:', data.terminal_id);
+                        // If we don't have a terminal ID yet, use the one from the event
+                        if (!window.terminalId && data.terminal_id) {
+                            window.terminalId = data.terminal_id;
+                            console.log('Setting terminal ID to:', window.terminalId);
+                        }
+                        handleTerminalData(data);
+                        break;
+                }
+            } catch (e) {
+                console.error('Error processing event:', e, event.data);
+            }
+        };
+    } else {
+        console.error("eventSource is not defined! Make sure core.js is loaded first.");
+    }
 });
+
+// Add a debug function to check terminal state
+function debugTerminal() {
+    console.log("Terminal debug info:");
+    console.log("- terminalReady:", terminalReady);
+    console.log("- term initialized:", typeof term !== 'undefined');
+    console.log("- fitAddon initialized:", typeof fitAddon !== 'undefined');
+    console.log("- pendingData count:", pendingData.length);
+    console.log("- terminal container:", document.getElementById('terminal-container'));
+    
+    if (typeof term !== 'undefined') {
+        console.log("- term options:", term.options);
+    }
+}
+
+// Call debug after a delay
+setTimeout(debugTerminal, 2000);
