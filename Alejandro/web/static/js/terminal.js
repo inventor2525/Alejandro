@@ -154,7 +154,7 @@ function handleTerminalData(data) {
         return;
     }
     
-    // Clear and write new content
+    // Write new content directly to terminal
     term.write(data.raw_text);
 }
 
@@ -187,7 +187,6 @@ window.addEventListener('load', function() {
                     }
                     break;
                 case 'TerminalScreenEvent':
-                    console.log('Terminal event received for:', data.terminal_id);
                     // If we don't have a terminal ID yet, use the one from the event
                     if (!window.terminalId && data.terminal_id) {
                         window.terminalId = data.terminal_id;

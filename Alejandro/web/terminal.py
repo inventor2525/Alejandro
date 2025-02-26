@@ -372,9 +372,7 @@ class Terminal:
         event = TerminalScreenEvent(
             session_id=self.session_id,
             terminal_id=self.name,
-            raw_text=raw_text,
-            color_json={"colors": []},
-            cursor_position={"x": 0, "y": 0}
+            raw_text=raw_text
         )
         push_event(event)
     

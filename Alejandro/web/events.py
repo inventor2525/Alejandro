@@ -61,16 +61,12 @@ class TerminalScreenEvent(Event):
     """Event for terminal screen updates"""
     terminal_id: str = field(kw_only=True)
     raw_text: str = field(kw_only=True)
-    color_json: Dict[str, Any] = field(default_factory=dict, kw_only=True)
-    cursor_position: Dict[str, int] = field(default_factory=lambda: {"x": 0, "y": 0}, kw_only=True)
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
         data.update({
             "terminal_id": self.terminal_id,
-            "raw_text": self.raw_text,
-            "color_json": self.color_json,
-            "cursor_position": self.cursor_position
+            "raw_text": self.raw_text
         })
         return data
 
