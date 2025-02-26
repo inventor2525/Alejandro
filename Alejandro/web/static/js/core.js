@@ -62,9 +62,12 @@ eventSource.onmessage = function(event) {
             break;
         case 'NavigationEvent':
             console.log('Navigating to:', data.screen);
-            if (data.force || window.location.pathname.substring(1) !== data.screen) {
-                window.location.href = '/' + data.screen + '?session=' + data.session_id;
-            }
+            // Always include session parameter
+            const targetUrl = '/' + data.screen + '?session=' + data.session_id;
+            console.log('Target URL:', targetUrl);
+            
+            // Force navigation to ensure proper loading
+            window.location.href = targetUrl;
             break;
         case 'TerminalScreenEvent':
             // This will be handled by terminal.js if we're on the terminal page

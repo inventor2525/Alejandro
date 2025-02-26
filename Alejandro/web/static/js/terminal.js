@@ -165,34 +165,44 @@ function renderTerminal(data) {
     }
 }
 
-// Extend the existing event source handler
-eventSource.onmessage = function(event) {
-    if (!event.data) {
-        console.log('Skipping keepalive');
-        return;
-    }
+// Override the existing event source handler
+window.addEventListener('load', function() {
+    // Make sure we have the terminal ID
+    console.log('Terminal page loaded with terminal ID:', window.terminalId);
     
-    console.log('Raw SSE event:', event);
-    console.log('Event data:', event.data);
-    
-    const data = JSON.parse(event.data);
-    console.log('Parsed event data:', data);
-    
-    switch(data.type) {
-        case 'TranscriptionEvent':
-            document.getElementById('transcription-text').textContent = data.text;
-            break;
-        case 'NavigationEvent':
-            console.log('Navigating to:', data.screen);
-            if (data.force || window.location.pathname.substring(1) !== data.screen) {
-                window.location.href = '/' + data.screen + '?session=' + data.session_id;
+    // Override the event source handler
+    eventSource.onmessage = function(event) {
+        if (!event.data) {
+            return; // Skip keepalive
+        }
+        
+        try {
+            const data = JSON.parse(event.data);
+            
+            switch(data.type) {
+                case 'TranscriptionEvent':
+                    document.getElementById('transcription-text').textContent = data.text;
+                    break;
+                case 'NavigationEvent':
+                    console.log('Navigation event received:', data.screen);
+                    const targetUrl = '/' + data.screen + '?session=' + data.session_id;
+                    if (window.location.pathname !== '/' + data.screen) {
+                        window.location.href = targetUrl;
+                    }
+                    break;
+                case 'TerminalScreenEvent':
+                    console.log('Terminal event received for:', data.terminal_id);
+                    renderTerminal(data);
+                    break;
             }
-            break;
-        case 'TerminalScreenEvent':
-            renderTerminal(data);
-            break;
-    }
-};
+        } catch (e) {
+            console.error('Error processing event:', e);
+        }
+    };
+    
+    // Focus terminal immediately
+    terminal.focus();
+});
 
 // Focus terminal on load
 window.addEventListener('load', function() {

@@ -39,8 +39,9 @@ class NavigationEvent(Event):
     
     def to_json(self) -> Dict[str, Any]:
         data = super().to_json()
+        screen_url = self.screen_type.url()
         data.update({
-            "screen": self.screen_type.url(),
+            "screen": screen_url,
             "force": self.force
         })
         return data

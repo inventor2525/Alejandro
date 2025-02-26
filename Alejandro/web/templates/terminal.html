@@ -37,6 +37,7 @@
         window.initialSessionId = "{{ session_id }}";
         window.sessionId = "{{ session_id }}";
         window.terminalId = "{{ terminal_id }}";
+        console.log("Terminal page initialized with terminal ID:", "{{ terminal_id }}");
     </script>
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>

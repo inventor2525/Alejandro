@@ -98,17 +98,22 @@ def terminal() -> str:
     
     session = get_or_create_session(session_id)
     
-    # Create terminal screen if needed
-    screen = session.screen_stack.current
-    if not isinstance(screen, TerminalScreen):
-        screen = TerminalScreen(session)
+    # Always create a fresh terminal screen
+    screen = TerminalScreen(session)
+    
+    # Only push to stack if not already a terminal screen
+    if not isinstance(session.screen_stack.current, TerminalScreen):
         session.screen_stack.push(screen)
+    
+    # Get template data after ensuring terminal exists
+    template_data = screen.get_template_data()
+    print(f"Rendering terminal with data: {template_data}")
     
     return render_template(
         'terminal.html',
         screen=screen,
         session_id=session.id,
-        **screen.get_template_data()
+        **template_data
     )
 
 @bp.route('/terminal/input', methods=['POST'])
