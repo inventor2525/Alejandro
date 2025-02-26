@@ -67,6 +67,12 @@ class Terminal:
     
     def _run(self):
         """Background thread to read terminal output"""
+        # Send initial screen update
+        self._send_screen_update()
+        
+        # Send a welcome message
+        self.send_input("echo 'Welcome to Alejandro Terminal'\n")
+        
         while True:
             try:
                 rlist, _, _ = select.select([self._master_fd], [], [], 0.1)
@@ -91,11 +97,8 @@ class Terminal:
                     else:
                         self.current_stream.feed(data.decode('utf-8', errors='ignore'))
                     
-                    # Throttle screen updates
-                    now = time.time()
-                    if now - self._last_update > self._update_interval:
-                        self._last_update = now
-                        self._send_screen_update()
+                    # Always send screen update after receiving data
+                    self._send_screen_update()
             except Exception as e:
                 print(f"Terminal error: {e}")
                 time.sleep(1)

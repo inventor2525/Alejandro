@@ -36,6 +36,8 @@ terminal.addEventListener('keydown', function(e) {
         return; // Ignore other special keys
     }
     
+    console.log('Sending terminal input:', data);
+    
     // Send input to server
     const host = window.location.hostname;
     const port = window.location.port;
@@ -49,7 +51,12 @@ terminal.addEventListener('keydown', function(e) {
             terminal_id: window.terminalId,
             input: data
         })
-    }).catch(error => {
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Terminal input response:', data);
+    })
+    .catch(error => {
         console.error('Error sending terminal input:', error);
     });
 });
@@ -62,8 +69,11 @@ terminal.addEventListener('blur', function() {
 // Handle terminal screen updates
 function renderTerminal(data) {
     if (data.terminal_id !== window.terminalId) {
+        console.log('Skipping update for different terminal:', data.terminal_id);
         return; // Skip updates for other terminals
     }
+    
+    console.log('Rendering terminal update:', data);
     
     display.innerHTML = '';
     
@@ -74,7 +84,7 @@ function renderTerminal(data) {
         const lineDiv = document.createElement('div');
         lineDiv.className = 'terminal-line';
         
-        if (colors[y]) {
+        if (y < colors.length) {
             colors[y].forEach((char, x) => {
                 const span = document.createElement('span');
                 span.textContent = char.char || ' ';
