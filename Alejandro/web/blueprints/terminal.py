@@ -93,8 +93,14 @@ def terminal() -> str:
     
     session = get_or_create_session(session_id)
     
-    # Create terminal screen
-    screen = TerminalScreen(session)
+    # Check if we already have a terminal screen in the stack
+    current_screen = session.screen_stack.current
+    if isinstance(current_screen, TerminalScreen):
+        screen = current_screen
+    else:
+        # Create terminal screen and push it to the stack
+        screen = TerminalScreen(session)
+        session.screen_stack.push(screen)
     
     # Make sure terminal exists
     if not session.terminals:

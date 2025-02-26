@@ -115,7 +115,21 @@ class Terminal:
         """Close terminal"""
         self.running = False
         try:
+            # Try to terminate process gracefully first
             self.process.terminate()
+            
+            # Give it a moment to terminate
+            for _ in range(5):
+                if self.process.poll() is not None:
+                    break
+                time.sleep(0.1)
+                
+            # Force kill if still running
+            if self.process.poll() is None:
+                pgid = os.getpgid(self.process.pid)
+                os.killpg(pgid, signal.SIGKILL)
+                
+            # Close file descriptors
             os.close(self.master_fd)
             os.close(self.slave_fd)
         except Exception as e:

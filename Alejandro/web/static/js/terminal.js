@@ -8,6 +8,12 @@ let pendingData = [];
 function initTerminal() {
     console.log("Initializing xterm.js terminal");
     
+    // If terminal is already initialized, just return
+    if (terminalReady && term) {
+        console.log("Terminal already initialized, skipping initialization");
+        return;
+    }
+    
     // Check if required libraries are loaded
     if (typeof Terminal === 'undefined') {
         console.error("xterm.js Terminal is not defined! Make sure the library is loaded.");
@@ -209,9 +215,36 @@ function handleTerminalData(data) {
     term.write(data.raw_text);
 }
 
+// Store terminal state when navigating away
+window.addEventListener('beforeunload', function(event) {
+    // Only store state if we're on the terminal page
+    if (window.location.pathname.includes('/terminal')) {
+        console.log("Storing terminal state before navigation");
+        localStorage.setItem('terminalActive', 'true');
+        localStorage.setItem('lastTerminalId', window.terminalId);
+    }
+});
+
 // Override the existing event source handler
 window.addEventListener('load', function() {
     console.log("Terminal page load event fired");
+    
+    // Check if we're returning to the terminal page
+    const wasTerminalActive = localStorage.getItem('terminalActive') === 'true';
+    const lastTerminalId = localStorage.getItem('lastTerminalId');
+    
+    if (wasTerminalActive && lastTerminalId && window.terminalId !== lastTerminalId) {
+        console.log(`Restoring previous terminal: ${lastTerminalId}`);
+        window.terminalId = lastTerminalId;
+        
+        // Update URL to match the restored terminal
+        const url = new URL(window.location.href);
+        url.searchParams.set('terminal_id', lastTerminalId);
+        window.history.replaceState({}, '', url);
+    }
+    
+    // Clear the terminal active flag
+    localStorage.removeItem('terminalActive');
     
     // Initialize terminal with a slight delay to ensure DOM is ready
     setTimeout(() => {
