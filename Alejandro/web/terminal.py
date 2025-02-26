@@ -1,28 +1,13 @@
 import os
 import pty
 import select
+import subprocess
+import threading
+import fcntl
 import struct
 import termios
-import fcntl
-import threading
 import time
 import signal
-import subprocess
-from datetime import datetime
-from typing import Dict, List, Any, Optional
-
-import pyte
-from Alejandro.web.events import TerminalScreenEvent, push_event
-
-import os
-import pty
-import select
-import subprocess
-import threading
-import fcntl
-import struct
-import termios
-import time
 from typing import Dict, Any, Optional
 from Alejandro.web.events import TerminalScreenEvent, push_event
 

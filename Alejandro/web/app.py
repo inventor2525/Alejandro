@@ -26,7 +26,7 @@ def event_stream(session_id: str) -> Iterator[str]:
                     event_json = json.dumps(event.to_json())
                     # Only log minimal info for terminal events
                     if isinstance(event, TerminalScreenEvent):
-                        print(f"Sending terminal event to client for terminal: {event.terminal_id}")
+                        print(f"Sending terminal event to client")
                     else:
                         print(f"Sending event to client: {event.__class__.__name__}")
                     yield f"data: {event_json}\n\n"
