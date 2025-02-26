@@ -29,14 +29,28 @@ terminal.addEventListener('keydown', function(e) {
         data = '\x1b[C';
     } else if (e.key === 'ArrowLeft') {
         data = '\x1b[D';
+    } else if (e.key === 'Home') {
+        data = '\x1b[H';
+    } else if (e.key === 'End') {
+        data = '\x1b[F';
+    } else if (e.key === 'Delete') {
+        data = '\x1b[3~';
+    } else if (e.key === 'PageUp') {
+        data = '\x1b[5~';
+    } else if (e.key === 'PageDown') {
+        data = '\x1b[6~';
+    } else if (e.ctrlKey && e.key.length === 1) {
+        // Control characters
+        const code = e.key.charCodeAt(0) - 64;
+        if (code > 0 && code < 27) {
+            data = String.fromCharCode(code);
+        }
     } else if (e.key.length === 1) {
         // Regular character
         data = e.key;
     } else {
         return; // Ignore other special keys
     }
-    
-    console.log('Sending terminal input:', data);
     
     // Send input to server
     const host = window.location.hostname;

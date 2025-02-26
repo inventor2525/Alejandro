@@ -116,15 +116,13 @@ def terminal_input():
     terminal_id = data.get('terminal_id')
     input_text = data.get('input')
     
-    print(f"Terminal input: session={session_id}, terminal={terminal_id}, input={repr(input_text)}")
-    
     if not all([session_id, terminal_id, input_text]):
         return jsonify({"error": "Missing required parameters"}), 400
     
     session = get_or_create_session(session_id)
     if terminal_id in session.terminals:
         session.terminals[terminal_id].send_input(input_text)
-        return jsonify({"status": "ok", "received": input_text})
+        return jsonify({"status": "ok"})
     
     print(f"Terminal not found: {terminal_id}")
     print(f"Available terminals: {list(session.terminals.keys())}")
