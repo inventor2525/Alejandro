@@ -158,10 +158,10 @@ class Terminal:
     def _send_screen_update(self):
         """Send screen update event"""
         # Get raw text from screen
-        raw_text = "\n".join("".join(row) for row in self.current_screen.display)
+        raw_text = "\n".join("".join(row) for row in self._screen_buffer.display)
         
         # Clean up empty lines at the end for main screen
-        if self.current_screen == self.main_screen:
+        if self._screen_buffer.current_screen == self._screen_buffer.main_screen:
             lines = raw_text.split('\n')
             empty_lines_count = 0
             for line in reversed(lines):
@@ -176,16 +176,16 @@ class Terminal:
         
         # Build color information
         color_info = {
-            "cursor": {"x": self.current_screen.cursor.x, "y": self.current_screen.cursor.y},
+            "cursor": {"x": self._screen_buffer.cursor.x, "y": self._screen_buffer.cursor.y},
             "colors": []
         }
         
         # Process each line in the buffer
-        for y in range(len(self.current_screen.buffer)):
+        for y in range(len(self._screen_buffer.buffer)):
             row_colors = []
             for x in range(self.columns):
-                if x in self.current_screen.buffer[y]:
-                    char = self.current_screen.buffer[y][x]
+                if x in self._screen_buffer.buffer[y]:
+                    char = self._screen_buffer.buffer[y][x]
                     color_data = {
                         "char": char.data,
                         "fg": char.fg,
@@ -216,7 +216,7 @@ class Terminal:
             terminal_id=self.id,
             raw_text=raw_text,
             color_json=color_info,
-            cursor_position={"x": self.current_screen.cursor.x, "y": self.current_screen.cursor.y}
+            cursor_position={"x": self._screen_buffer.cursor.x, "y": self._screen_buffer.cursor.y}
         )
         
         # Don't log the full event data
