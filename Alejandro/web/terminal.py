@@ -73,6 +73,19 @@ class Terminal:
         """Read from PTY and send updates"""
         buffer = b""
         
+        # Skip initial output which often contains empty lines
+        try:
+            # Wait briefly for initial output
+            time.sleep(0.1)
+            # Read and discard initial output
+            while True:
+                r, _, _ = select.select([self.master_fd], [], [], 0.01)
+                if not (self.master_fd in r):
+                    break
+                os.read(self.master_fd, 1024)
+        except:
+            pass
+            
         while self.running:
             try:
                 r, _, _ = select.select([self.master_fd], [], [], 0.1)

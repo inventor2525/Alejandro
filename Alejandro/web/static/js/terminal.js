@@ -108,8 +108,7 @@ function initTerminal() {
         sendTerminalResize(dimensions.cols, dimensions.rows);
     }
     
-    // Send a dummy input to initialize the terminal if needed
-    sendTerminalInput('\r');
+    // No need to send initial input
     
     // Terminal is ready
 }
