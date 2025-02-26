@@ -111,8 +111,7 @@ function initTerminal() {
     // Send a dummy input to initialize the terminal if needed
     sendTerminalInput('\r');
     
-    // Write a welcome message
-    term.write('\r\nAlejandro Terminal Ready\r\n');
+    // Terminal is ready
 }
 
 // Send terminal input to server
