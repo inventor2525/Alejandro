@@ -71,8 +71,7 @@ class Terminal:
         except:
             pass
             
-        # Send an initial update to ensure we have the prompt
-        self._send_screen_update("\r\n")
+        # Don't send an initial update - let the client restore from localStorage
             
         while self.running:
             try:
