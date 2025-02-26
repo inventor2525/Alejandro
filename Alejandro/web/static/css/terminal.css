@@ -19,11 +19,18 @@
 .xterm {
     height: 100%;
     width: 100%;
+    padding: 0;
 }
 
 .xterm-screen {
     height: 100%;
     width: 100%;
+}
+
+.xterm-viewport {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
 }
 
 .terminal-tabs {
