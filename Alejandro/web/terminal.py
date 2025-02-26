@@ -48,8 +48,7 @@ class Terminal:
             stdout=self._slave_fd,
             stderr=self._slave_fd,
             env=env,
-            start_new_session=True,
-            preexec_fn=os.setsid
+            start_new_session=True
         )
         
         # Close slave fd in parent
@@ -78,12 +77,15 @@ class Terminal:
         time.sleep(0.5)
         self.send_input("echo 'Welcome to Alejandro Terminal'\n")
         
+        # Initial screen update
+        self._send_screen_update()
+        
         buffer = b""
         
         while True:
             try:
                 # Check if process is still alive
-                if self._process.poll() is not None:
+                if hasattr(self, '_process') and self._process.poll() is not None:
                     print(f"Terminal process exited with code {self._process.returncode}")
                     break
                 
@@ -96,32 +98,11 @@ class Terminal:
                         if not chunk:
                             break
                         
-                        buffer += chunk
+                        # Feed data to stream
+                        self.current_stream.feed(chunk.decode('utf-8', errors='ignore'))
                         
-                        # Process complete escape sequences
-                        if buffer:
-                            # Handle screen switching
-                            if b'\x1b[?1049h' in buffer:
-                                main_part, alt_part = buffer.split(b'\x1b[?1049h', 1)
-                                self.main_stream.feed(main_part.decode('utf-8', errors='ignore'))
-                                self.current_screen = self.alt_screen
-                                self.current_stream = self.alt_stream
-                                self.alt_stream.feed(alt_part.decode('utf-8', errors='ignore'))
-                                buffer = b""
-                            elif b'\x1b[?1049l' in buffer:
-                                alt_part, main_part = buffer.split(b'\x1b[?1049l', 1)
-                                self.alt_stream.feed(alt_part.decode('utf-8', errors='ignore'))
-                                self.current_screen = self.main_screen
-                                self.current_stream = self.main_stream
-                                self.main_stream.feed(main_part.decode('utf-8', errors='ignore'))
-                                buffer = b""
-                            else:
-                                # Feed data to current stream
-                                self.current_stream.feed(buffer.decode('utf-8', errors='ignore'))
-                                buffer = b""
-                            
-                            # Send screen update
-                            self._send_screen_update()
+                        # Send screen update
+                        self._send_screen_update()
                     except OSError as e:
                         if e.errno != 11:  # EAGAIN - Resource temporarily unavailable
                             raise
@@ -203,15 +184,17 @@ class Terminal:
     def close(self):
         """Close terminal"""
         try:
-            # Kill process group
+            # Terminate process
             if hasattr(self, '_process') and self._process.poll() is None:
-                pgid = os.getpgid(self._process.pid)
-                os.killpg(pgid, signal.SIGTERM)
-                self._process.wait(timeout=1)
-        except:
-            pass
+                self._process.terminate()
+                try:
+                    self._process.wait(timeout=1)
+                except:
+                    self._process.kill()
+        except Exception as e:
+            print(f"Error terminating terminal process: {e}")
             
         try:
             os.close(self._master_fd)
-        except:
-            pass
+        except Exception as e:
+            print(f"Error closing terminal fd: {e}")
