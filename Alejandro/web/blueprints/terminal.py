@@ -1,110 +1,169 @@
-import os
-import pty
-import select
-import subprocess
-import threading
-import fcntl
-import struct
-import termios
-import time
-from typing import Dict, Any, Optional
-from Alejandro.web.events import TerminalScreenEvent, push_event
+from flask import Blueprint, render_template, request, jsonify
+from Alejandro.web.session import get_or_create_session, Session
+from Alejandro.Models.screen import Screen
+from Alejandro.Models.control import Control
+from Alejandro.web.terminal import Terminal
 
-class Terminal:
-    """Terminal emulator for web interface"""
-    
-    def __init__(self, name: str, session_id: str, columns: int = 80, lines: int = 24):
-        self.name = name
-        self.session_id = session_id
-        self.columns = columns
-        self.lines = lines
-        self.running = True
+bp = Blueprint('terminal', __name__)
+
+class TerminalScreen(Screen):
+    """Terminal emulator screen"""
+    def __init__(self, session: 'Session'):
+        # Get terminal info
+        terminal_names = list(session.terminals.keys())
+        current_terminal = terminal_names[session.current_terminal_index] if terminal_names and session.terminals else "none"
         
-        # Create PTY
-        self.master_fd, self.slave_fd = pty.openpty()
-        
-        # Set non-blocking mode for master
-        flags = fcntl.fcntl(self.master_fd, fcntl.F_GETFL)
-        fcntl.fcntl(self.master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-        
-        # Set terminal size
-        self._set_winsize(self.slave_fd, self.lines, self.columns)
-        
-        # Start shell
-        self.process = subprocess.Popen(
-            [os.environ.get('SHELL', '/bin/bash')],
-            preexec_fn=os.setsid,
-            stdin=self.slave_fd,
-            stdout=self.slave_fd,
-            stderr=self.slave_fd,
-            universal_newlines=True
+        super().__init__(
+            session=session,
+            title=f"Terminal - {current_terminal}",
+            controls=[
+                Control(
+                    id="new",
+                    text="New Terminal",
+                    keyphrases=["new terminal", "create terminal"],
+                    action=lambda s=self: s._create_new_terminal()
+                ),
+                Control(
+                    id="next",
+                    text="Next Terminal",
+                    keyphrases=["next terminal"],
+                    action=lambda s=self: s._next_terminal()
+                ),
+                Control(
+                    id="prev",
+                    text="Previous Terminal",
+                    keyphrases=["previous terminal", "prev terminal"],
+                    action=lambda s=self: s._prev_terminal()
+                ),
+                Control(
+                    id="back",
+                    text="Back",
+                    keyphrases=["back", "go back", "return"],
+                    action=lambda s=self: s.session().go_back()
+                )
+            ]
         )
+    
+    def _create_new_terminal(self) -> None:
+        """Create a new terminal"""
+        session = self.session()
+        terminal_id = f"terminal_{len(session.terminals) + 1}"
+        session.terminals[terminal_id] = Terminal(terminal_id, session.id)
+        session.current_terminal_index = len(session.terminals) - 1
+        self.title = f"Terminal - {terminal_id}"
+    
+    def _next_terminal(self) -> None:
+        """Switch to next terminal"""
+        session = self.session()
+        terminal_names = list(session.terminals.keys())
+        if terminal_names:
+            session.current_terminal_index = (session.current_terminal_index + 1) % len(terminal_names)
+            current_terminal = terminal_names[session.current_terminal_index]
+            self.title = f"Terminal - {current_terminal}"
+    
+    def _prev_terminal(self) -> None:
+        """Switch to previous terminal"""
+        session = self.session()
+        terminal_names = list(session.terminals.keys())
+        if terminal_names:
+            session.current_terminal_index = (session.current_terminal_index - 1) % len(terminal_names)
+            current_terminal = terminal_names[session.current_terminal_index]
+            self.title = f"Terminal - {current_terminal}"
+    
+    def get_template_data(self) -> dict:
+        """Get template data for rendering"""
+        session = self.session()
+        terminal_names = list(session.terminals.keys())
+        current_terminal = terminal_names[session.current_terminal_index] if terminal_names else None
         
-        # Start read thread
-        self.read_thread = threading.Thread(target=self._read_loop)
-        self.read_thread.daemon = True
-        self.read_thread.start()
-        
-        # Send initial screen update
-        self._send_screen_update()
+        return {
+            "terminal_id": current_terminal,
+            "terminal_names": terminal_names,
+            "current_index": session.current_terminal_index
+        }
+
+@bp.route(f'/{TerminalScreen.url()}')
+def terminal() -> str:
+    """Terminal screen route"""
+    session_id = request.args.get('session')
+    terminal_id = request.args.get('terminal_id')
     
-    def _set_winsize(self, fd, row, col, xpix=0, ypix=0):
-        """Set terminal window size"""
-        winsize = struct.pack("HHHH", row, col, xpix, ypix)
-        fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
+    if not session_id:
+        return "No session ID provided", 400
     
-    def _read_loop(self):
-        """Read from PTY and send updates"""
-        buffer = b""
-        
-        while self.running:
-            try:
-                r, _, _ = select.select([self.master_fd], [], [], 0.1)
-                if self.master_fd in r:
-                    data = os.read(self.master_fd, 1024)
-                    if data:
-                        buffer += data
-                        # Send update after a small delay to batch updates
-                        self._send_screen_update(buffer.decode('utf-8', errors='replace'))
-                        buffer = b""
-            except (OSError, IOError) as e:
-                if e.errno != 11:  # EAGAIN
-                    print(f"Terminal read error: {e}")
-                    break
-            except Exception as e:
-                print(f"Terminal error: {e}")
-                break
+    session = get_or_create_session(session_id)
     
-    def _send_screen_update(self, raw_text: str = ""):
-        """Send terminal screen update to client"""
-        event = TerminalScreenEvent(
-            session_id=self.session_id,
-            terminal_id=self.name,
-            raw_text=raw_text,
-            color_json={"colors": []},
-            cursor_position={"x": 0, "y": 0}
-        )
-        push_event(event)
+    # Create terminal screen
+    screen = TerminalScreen(session)
     
-    def send_input(self, data: str):
-        """Send input to terminal"""
-        try:
-            os.write(self.master_fd, data.encode('utf-8'))
-        except Exception as e:
-            print(f"Error sending input to terminal: {e}")
+    # Make sure terminal exists
+    if not session.terminals:
+        print("Creating terminal for session in route handler")
+        session.terminals["main"] = Terminal("main", session.id)
+        session.current_terminal_index = 0
     
-    def resize(self, columns: int, lines: int):
-        """Resize terminal"""
-        self.columns = columns
-        self.lines = lines
-        self._set_winsize(self.slave_fd, lines, columns)
+    # If terminal_id is specified, switch to it
+    if terminal_id and terminal_id in session.terminals:
+        terminal_names = list(session.terminals.keys())
+        session.current_terminal_index = terminal_names.index(terminal_id)
+        screen.title = f"Terminal - {terminal_id}"
     
-    def close(self):
-        """Close terminal"""
-        self.running = False
-        try:
-            self.process.terminate()
-            os.close(self.master_fd)
-            os.close(self.slave_fd)
-        except:
-            pass
+    # Get template data
+    template_data = screen.get_template_data()
+    print(f"Rendering terminal with data: {template_data}")
+    
+    return render_template(
+        'terminal.html',
+        screen=screen,
+        session_id=session.id,
+        **template_data
+    )
+
+@bp.route('/terminal/input', methods=['POST'])
+def terminal_input():
+    """Handle terminal input"""
+    data = request.get_json()
+    session_id = data.get('session_id')
+    terminal_id = data.get('terminal_id')
+    input_text = data.get('input')
+    
+    if not all([session_id, terminal_id, input_text]):
+        return jsonify({"error": "Missing required parameters"}), 400
+    
+    session = get_or_create_session(session_id)
+    
+    # Create terminal if it doesn't exist
+    if not session.terminals:
+        print(f"Creating terminal '{terminal_id}' for session during input")
+        session.terminals[terminal_id] = Terminal(terminal_id, session.id)
+        session.current_terminal_index = 0
+    
+    if terminal_id in session.terminals:
+        session.terminals[terminal_id].send_input(input_text)
+        return jsonify({"status": "ok"})
+    else:
+        # Create the specific terminal if it doesn't exist
+        print(f"Creating requested terminal '{terminal_id}'")
+        session.terminals[terminal_id] = Terminal(terminal_id, session.id)
+        session.terminals[terminal_id].send_input(input_text)
+        return jsonify({"status": "ok", "created": True})
+
+@bp.route('/terminal/resize', methods=['POST'])
+def terminal_resize():
+    """Handle terminal resize"""
+    data = request.get_json()
+    session_id = data.get('session_id')
+    terminal_id = data.get('terminal_id')
+    cols = data.get('cols')
+    rows = data.get('rows')
+    
+    if not all([session_id, terminal_id, cols, rows]):
+        return jsonify({"error": "Missing required parameters"}), 400
+    
+    session = get_or_create_session(session_id)
+    
+    if terminal_id in session.terminals:
+        session.terminals[terminal_id].resize(cols, rows)
+        return jsonify({"status": "ok"})
+    else:
+        return jsonify({"error": "Terminal not found"}), 404
