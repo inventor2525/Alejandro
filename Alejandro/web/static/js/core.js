@@ -66,6 +66,9 @@ eventSource.onmessage = function(event) {
                 window.location.href = '/' + data.screen + '?session=' + data.session_id;
             }
             break;
+        case 'TerminalScreenEvent':
+            // This will be handled by terminal.js if we're on the terminal page
+            break;
     }
 };
 

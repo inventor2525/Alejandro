@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ screen.title }} - Alejandro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <div class="content-area">
+            <h1>{{ screen.title }}</h1>
+            
+            <div class="terminal-view" id="terminal-container" tabindex="0">
+                <div id="terminal-display"></div>
+                <div id="terminal-cursor" class="terminal-cursor"></div>
+            </div>
+            
+            <div class="terminal-tabs">
+                {% for name in terminal_names %}
+                <div class="terminal-tab {% if loop.index0 == current_index %}active{% endif %}">
+                    {{ name }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="footer">
+            {% include 'menu.html' %}
+        </div>
+    </div>
+
+    <script>
+        window.initialSessionId = "{{ session_id }}";
+        window.terminalId = "{{ terminal_id }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
+</body>
+</html>

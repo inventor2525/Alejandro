@@ -14,6 +14,8 @@ class Session:
         self.id = str(uuid.uuid4())
         self.last_active = datetime.now()
         self._screens: Dict[Type[Screen], Screen] = {}
+        self.terminals: Dict[str, 'Terminal'] = {}
+        self.current_terminal_index = 0
         
         # Create session-specific word stream and app
         self.word_stream = StringWordStream()
@@ -88,6 +90,11 @@ def cleanup_sessions() -> None:
     for session_id in to_remove:
         from Alejandro.web.voice import stop_voice_control
         stop_voice_control(session_id)
+        
+        # Close all terminals
+        for terminal in sessions[session_id].terminals.values():
+            terminal.close()
+            
         del sessions[session_id]
 
 def get_or_create_session(session_id: Optional[str] = None) -> Session:

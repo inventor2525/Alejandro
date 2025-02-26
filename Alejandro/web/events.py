@@ -55,6 +55,24 @@ class ButtonClickEvent(Event):
         data["control_id"] = self.control_id
         return data
 
+@dataclass
+class TerminalScreenEvent(Event):
+    """Event for terminal screen updates"""
+    terminal_id: str = field(kw_only=True)
+    raw_text: str = field(kw_only=True)
+    color_json: Dict[str, Any] = field(kw_only=True)
+    cursor_position: Dict[str, int] = field(kw_only=True)
+    
+    def to_json(self) -> Dict[str, Any]:
+        data = super().to_json()
+        data.update({
+            "terminal_id": self.terminal_id,
+            "raw_text": self.raw_text,
+            "color_json": self.color_json,
+            "cursor_position": self.cursor_position
+        })
+        return data
+
 def push_event(event: Event) -> None:
     """Add event to queue"""
     print(f"Pushing event: {event.__class__.__name__} for session {event.session_id}")
