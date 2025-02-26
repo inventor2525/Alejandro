@@ -80,32 +80,46 @@ terminal.addEventListener('blur', function() {
     terminal.focus();
 });
 
+// Last received terminal data for optimization
+let lastTerminalData = null;
+
 // Handle terminal screen updates
 function renderTerminal(data) {
     if (data.terminal_id !== window.terminalId) {
         return; // Skip updates for other terminals
     }
     
-    console.log('Rendering terminal with cursor at:', data.cursor_position);
+    // Skip rendering if nothing changed
+    if (lastTerminalData && 
+        JSON.stringify(data.cursor_position) === JSON.stringify(lastTerminalData.cursor_position) &&
+        data.raw_text === lastTerminalData.raw_text) {
+        return;
+    }
     
-    display.innerHTML = '';
+    lastTerminalData = data;
     
+    // Fast path for empty terminal
+    if (!data.raw_text && data.color_json.colors.length === 0) {
+        display.innerHTML = '<div class="terminal-line">$&nbsp;</div>';
+        cursor.style.top = '0';
+        cursor.style.left = '1.2em';
+        return;
+    }
+    
+    // Use document fragment for better performance
+    const fragment = document.createDocumentFragment();
     const lines = data.raw_text.split('\n');
     const colors = data.color_json.colors;
-    
-    // Create a container for positioning
-    const container = document.createElement('div');
-    container.style.position = 'relative';
     
     lines.forEach((line, y) => {
         const lineDiv = document.createElement('div');
         lineDiv.className = 'terminal-line';
         
         if (y < colors.length) {
+            // For performance, create a single string of HTML rather than many DOM elements
+            let lineHtml = '';
+            
             colors[y].forEach((char, x) => {
-                const span = document.createElement('span');
-                span.textContent = char.char || ' ';
-                
                 let style = '';
                 if (char.fg && char.fg !== 'default') style += `color: ${char.fg};`;
                 if (char.bg && char.bg !== 'default') style += `background-color: ${char.bg};`;
@@ -114,24 +128,31 @@ function renderTerminal(data) {
                 if (char.underscore) style += 'text-decoration: underline;';
                 if (char.strikethrough) style += 'text-decoration: line-through;';
                 if (char.reverse) {
-                    // Swap foreground and background
                     const tempFg = char.fg;
                     const tempBg = char.bg;
                     if (tempBg && tempBg !== 'default') style += `color: ${tempBg};`;
                     if (tempFg && tempFg !== 'default') style += `background-color: ${tempFg};`;
                 }
                 
-                span.style = style;
-                lineDiv.appendChild(span);
+                const charContent = char.char || ' ';
+                if (style) {
+                    lineHtml += `<span style="${style}">${charContent}</span>`;
+                } else {
+                    lineHtml += charContent;
+                }
             });
+            
+            lineDiv.innerHTML = lineHtml;
         } else {
             lineDiv.textContent = line || ' ';
         }
         
-        container.appendChild(lineDiv);
+        fragment.appendChild(lineDiv);
     });
     
-    display.appendChild(container);
+    // Replace content in one operation
+    display.innerHTML = '';
+    display.appendChild(fragment);
     
     // Position cursor
     cursor.style.top = `${data.cursor_position.y * 1.2}em`;

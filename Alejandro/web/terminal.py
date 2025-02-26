@@ -73,7 +73,10 @@ class Terminal:
         fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         
         # Debug flag
-        self._debug = True
+        self._debug = False
+        
+        # Initialize with basic prompt
+        self._screen_buffer.main_stream.feed("$ ")
         
         # Start shell
         env = os.environ.copy()
@@ -115,16 +118,18 @@ class Terminal:
     
     def _run(self):
         """Background thread to read terminal output"""
-        # Force initial screen update
+        # Force initial screen update immediately
         self._send_screen_update()
         
-        # Send a welcome message after a short delay
-        time.sleep(0.2)
+        # Send a welcome message without delay
         self.send_input("echo 'Welcome to Alejandro Terminal'\n")
         
-        # Force another update after welcome message
-        time.sleep(0.2)
-        self._send_screen_update()
+        # Send initial data to make shell prompt appear immediately
+        self.send_input("\n")
+        
+        # Buffer for collecting data
+        buffer_data = b""
+        last_update_time = time.time()
         
         while True:
             try:
@@ -137,12 +142,12 @@ class Terminal:
                 except:
                     pass
                 
-                # Wait for data with timeout
-                rlist, _, _ = select.select([self._master_fd], [], [], 0.1)
+                # Wait for data with a very short timeout
+                rlist, _, _ = select.select([self._master_fd], [], [], 0.01)
                 if self._master_fd in rlist:
                     try:
                         # Read available data
-                        data = os.read(self._master_fd, 1024)
+                        data = os.read(self._master_fd, 4096)  # Larger buffer
                         if not data:
                             break
                             
@@ -152,18 +157,29 @@ class Terminal:
                             
                         # Feed data to screen buffer
                         self._screen_buffer.feed(data)
+                        buffer_data += data
                         
-                        if self._debug:
-                            print(f"Terminal received data: {len(data)} bytes")
-                        
-                        # Always send screen update after receiving data
-                        self._send_screen_update()
+                        # Update screen if enough time has passed or buffer is large
+                        current_time = time.time()
+                        if current_time - last_update_time > 0.05 or len(buffer_data) > 1024:
+                            self._send_screen_update()
+                            buffer_data = b""
+                            last_update_time = current_time
+                            
                     except OSError as e:
                         if e.errno != 11:  # EAGAIN - Resource temporarily unavailable
                             raise
+                else:
+                    # Send periodic updates even if no data received
+                    current_time = time.time()
+                    if buffer_data and current_time - last_update_time > 0.05:
+                        self._send_screen_update()
+                        buffer_data = b""
+                        last_update_time = current_time
+                        
             except Exception as e:
                 print(f"Terminal error: {e}")
-                time.sleep(1)
+                time.sleep(0.1)  # Shorter error recovery time
     
     def _send_screen_update(self):
         """Send screen update event"""
@@ -237,10 +253,8 @@ class Terminal:
     def send_input(self, data: str):
         """Send input to terminal"""
         try:
-            if self._debug:
-                print(f"Sending to terminal: {repr(data)}")
             os.write(self._master_fd, data.encode('utf-8'))
-            # Force update after input
+            # Force immediate update after input
             self._send_screen_update()
         except Exception as e:
             print(f"Error sending input to terminal: {e}")

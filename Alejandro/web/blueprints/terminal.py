@@ -11,8 +11,11 @@ class TerminalScreen(Screen):
     def __init__(self, session: 'Session'):
         # Create default terminal if none exists
         if not session.terminals:
+            print("Creating new terminal for session")
             session.terminals["main"] = Terminal("main", session.id)
             session.current_terminal_index = 0
+            # Force immediate screen update
+            session.terminals["main"]._send_screen_update()
         
         terminal_names = list(session.terminals.keys())
         current_terminal = terminal_names[session.current_terminal_index] if terminal_names else "none"
