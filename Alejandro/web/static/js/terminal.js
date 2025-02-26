@@ -168,6 +168,15 @@ function sendTerminalResize(cols, rows) {
     });
 }
 
+// Clear terminal
+function clearTerminal() {
+    if (term) {
+        term.clear();
+        // Also send clear command to server
+        sendTerminalInput('\x1b[H\x1b[2J');
+    }
+}
+
 // Switch between terminals
 function switchTerminal(terminalId) {
     if (terminalId === window.terminalId) {

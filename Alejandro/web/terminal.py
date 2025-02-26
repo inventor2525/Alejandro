@@ -110,6 +110,10 @@ class Terminal:
         self.columns = columns
         self.lines = lines
         self._set_winsize(self.slave_fd, lines, columns)
+        
+    def clear(self):
+        """Clear terminal screen"""
+        self.send_input("\x1b[H\x1b[2J")  # ANSI escape sequence to clear screen
     
     def close(self):
         """Close terminal"""

@@ -36,6 +36,12 @@ class TerminalScreen(Screen):
                     action=lambda s=self: s._prev_terminal()
                 ),
                 Control(
+                    id="clear",
+                    text="Clear Terminal",
+                    keyphrases=["clear terminal", "clear screen"],
+                    action=lambda s=self: s._clear_terminal()
+                ),
+                Control(
                     id="back",
                     text="Back",
                     keyphrases=["back", "go back", "return"],
@@ -69,6 +75,15 @@ class TerminalScreen(Screen):
             session.current_terminal_index = (session.current_terminal_index - 1) % len(terminal_names)
             current_terminal = terminal_names[session.current_terminal_index]
             self.title = f"Terminal - {current_terminal}"
+            
+    def _clear_terminal(self) -> None:
+        """Clear current terminal"""
+        session = self.session()
+        terminal_names = list(session.terminals.keys())
+        if terminal_names:
+            current_terminal = terminal_names[session.current_terminal_index]
+            if current_terminal in session.terminals:
+                session.terminals[current_terminal].clear()
     
     def get_template_data(self) -> dict:
         """Get template data for rendering"""
