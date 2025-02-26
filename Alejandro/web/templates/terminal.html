@@ -15,6 +15,10 @@
                 <div id="terminal-cursor" class="terminal-cursor"></div>
             </div>
             
+            <div style="margin-top: 10px; color: #666; font-size: 12px;">
+                Press keys to interact with the terminal. Click inside the terminal to focus.
+            </div>
+            
             <div class="terminal-tabs">
                 {% for name in terminal_names %}
                 <div class="terminal-tab {% if loop.index0 == current_index %}active{% endif %}">

@@ -72,6 +72,9 @@ class Terminal:
         flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
         fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         
+        # Debug flag
+        self._debug = True
+        
         # Start shell
         env = os.environ.copy()
         env['TERM'] = 'xterm'
@@ -112,9 +115,16 @@ class Terminal:
     
     def _run(self):
         """Background thread to read terminal output"""
+        # Force initial screen update
+        self._send_screen_update()
+        
         # Send a welcome message after a short delay
-        time.sleep(0.5)
+        time.sleep(0.2)
         self.send_input("echo 'Welcome to Alejandro Terminal'\n")
+        
+        # Force another update after welcome message
+        time.sleep(0.2)
+        self._send_screen_update()
         
         while True:
             try:
@@ -143,11 +153,11 @@ class Terminal:
                         # Feed data to screen buffer
                         self._screen_buffer.feed(data)
                         
-                        # Send screen update (throttled)
-                        now = time.time()
-                        if now - self._last_update > self._update_interval:
-                            self._last_update = now
-                            self._send_screen_update()
+                        if self._debug:
+                            print(f"Terminal received data: {len(data)} bytes")
+                        
+                        # Always send screen update after receiving data
+                        self._send_screen_update()
                     except OSError as e:
                         if e.errno != 11:  # EAGAIN - Resource temporarily unavailable
                             raise
@@ -227,7 +237,11 @@ class Terminal:
     def send_input(self, data: str):
         """Send input to terminal"""
         try:
+            if self._debug:
+                print(f"Sending to terminal: {repr(data)}")
             os.write(self._master_fd, data.encode('utf-8'))
+            # Force update after input
+            self._send_screen_update()
         except Exception as e:
             print(f"Error sending input to terminal: {e}")
     

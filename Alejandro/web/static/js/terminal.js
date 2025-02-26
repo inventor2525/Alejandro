@@ -86,10 +86,16 @@ function renderTerminal(data) {
         return; // Skip updates for other terminals
     }
     
+    console.log('Rendering terminal with cursor at:', data.cursor_position);
+    
     display.innerHTML = '';
     
     const lines = data.raw_text.split('\n');
     const colors = data.color_json.colors;
+    
+    // Create a container for positioning
+    const container = document.createElement('div');
+    container.style.position = 'relative';
     
     lines.forEach((line, y) => {
         const lineDiv = document.createElement('div');
@@ -119,11 +125,13 @@ function renderTerminal(data) {
                 lineDiv.appendChild(span);
             });
         } else {
-            lineDiv.textContent = line;
+            lineDiv.textContent = line || ' ';
         }
         
-        display.appendChild(lineDiv);
+        container.appendChild(lineDiv);
     });
+    
+    display.appendChild(container);
     
     // Position cursor
     cursor.style.top = `${data.cursor_position.y * 1.2}em`;

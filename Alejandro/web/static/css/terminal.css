@@ -12,11 +12,12 @@
 }
 
 #terminal-display {
-    height: 100%;
+    height: calc(100% - 20px);
     overflow-y: auto;
     white-space: pre;
     line-height: 1.2;
     font-size: 14px;
+    position: relative;
 }
 
 .terminal-line {
@@ -30,6 +31,7 @@
     height: 1.2em;
     background: rgba(255, 255, 255, 0.7);
     animation: blink 1s infinite;
+    z-index: 10;
 }
 
 @keyframes blink {
