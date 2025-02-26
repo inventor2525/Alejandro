@@ -116,17 +116,31 @@ function renderTerminal(data) {
 }
 
 // Extend the existing event source handler
-const originalOnMessage = eventSource.onmessage;
 eventSource.onmessage = function(event) {
-    if (!event.data) return;
+    if (!event.data) {
+        console.log('Skipping keepalive');
+        return;
+    }
+    
+    console.log('Raw SSE event:', event);
+    console.log('Event data:', event.data);
     
     const data = JSON.parse(event.data);
+    console.log('Parsed event data:', data);
     
-    if (data.type === 'TerminalScreenEvent') {
-        renderTerminal(data);
-    } else if (originalOnMessage) {
-        // Call the original handler for other event types
-        originalOnMessage(event);
+    switch(data.type) {
+        case 'TranscriptionEvent':
+            document.getElementById('transcription-text').textContent = data.text;
+            break;
+        case 'NavigationEvent':
+            console.log('Navigating to:', data.screen);
+            if (data.force || window.location.pathname.substring(1) !== data.screen) {
+                window.location.href = '/' + data.screen + '?session=' + data.session_id;
+            }
+            break;
+        case 'TerminalScreenEvent':
+            renderTerminal(data);
+            break;
     }
 };
 

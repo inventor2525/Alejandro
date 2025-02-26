@@ -3,6 +3,7 @@ import pty
 import select
 import struct
 import termios
+import fcntl
 import threading
 import time
 from datetime import datetime
@@ -62,7 +63,7 @@ class Terminal:
     def _set_winsize(self, fd, row, col, xpix=0, ypix=0):
         """Set terminal window size"""
         winsize = struct.pack("HHHH", row, col, xpix, ypix)
-        termios.ioctl(fd, termios.TIOCSWINSZ, winsize)
+        fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
     
     def _run(self):
         """Background thread to read terminal output"""
