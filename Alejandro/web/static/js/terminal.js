@@ -1,58 +1,62 @@
-// Terminal handling
-const terminal = document.getElementById('terminal-container');
-const display = document.getElementById('terminal-display');
-const cursor = document.getElementById('terminal-cursor');
+// Initialize xterm.js
+let term;
+let fitAddon;
+let terminalReady = false;
+let pendingData = [];
 
-// Keep focus on terminal
-terminal.addEventListener('click', function() {
-    terminal.focus();
-});
+// Initialize terminal
+function initTerminal() {
+    // Create terminal instance
+    term = new Terminal({
+        cursorBlink: true,
+        theme: {
+            background: '#000000',
+            foreground: '#ffffff'
+        },
+        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+        fontSize: 14,
+        lineHeight: 1.2,
+        scrollback: 1000
+    });
 
-// Handle key input
-terminal.addEventListener('keydown', function(e) {
-    e.preventDefault(); // Prevent default browser actions
-    
-    let data = '';
-    if (e.key === 'Enter') {
-        data = '\r';
-    } else if (e.key === 'Backspace') {
-        data = '\b';
-    } else if (e.key === 'Tab') {
-        data = '\t';
-    } else if (e.key === 'Escape') {
-        data = '\x1b';
-    } else if (e.key === 'ArrowUp') {
-        data = '\x1b[A';
-    } else if (e.key === 'ArrowDown') {
-        data = '\x1b[B';
-    } else if (e.key === 'ArrowRight') {
-        data = '\x1b[C';
-    } else if (e.key === 'ArrowLeft') {
-        data = '\x1b[D';
-    } else if (e.key === 'Home') {
-        data = '\x1b[H';
-    } else if (e.key === 'End') {
-        data = '\x1b[F';
-    } else if (e.key === 'Delete') {
-        data = '\x1b[3~';
-    } else if (e.key === 'PageUp') {
-        data = '\x1b[5~';
-    } else if (e.key === 'PageDown') {
-        data = '\x1b[6~';
-    } else if (e.ctrlKey && e.key.length === 1) {
-        // Control characters
-        const code = e.key.charCodeAt(0) - 64;
-        if (code > 0 && code < 27) {
-            data = String.fromCharCode(code);
+    // Add addons
+    fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+    term.loadAddon(new WebLinksAddon.WebLinksAddon());
+
+    // Open terminal
+    term.open(document.getElementById('terminal-container'));
+    fitAddon.fit();
+
+    // Handle terminal input
+    term.onData(data => {
+        sendTerminalInput(data);
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (fitAddon) {
+            fitAddon.fit();
         }
-    } else if (e.key.length === 1) {
-        // Regular character
-        data = e.key;
-    } else {
-        return; // Ignore other special keys
+    });
+
+    // Mark terminal as ready
+    terminalReady = true;
+    
+    // Process any pending data
+    if (pendingData.length > 0) {
+        pendingData.forEach(data => {
+            term.write(data);
+        });
+        pendingData = [];
     }
     
-    // Send input to server
+    // Send a dummy input to initialize the terminal if needed
+    sendTerminalInput('\r');
+}
+
+// Send terminal input to server
+function sendTerminalInput(data) {
     const host = window.location.hostname;
     const port = window.location.port;
     fetch(`http://${host}:${port}/terminal/input`, {
@@ -73,100 +77,60 @@ terminal.addEventListener('keydown', function(e) {
     .catch(error => {
         console.error('Error sending terminal input:', error);
     });
-});
+}
 
-// Keep focus on terminal
-terminal.addEventListener('blur', function() {
-    terminal.focus();
-});
+// Switch between terminals
+function switchTerminal(terminalId) {
+    if (terminalId === window.terminalId) {
+        return; // Already on this terminal
+    }
+    
+    window.terminalId = terminalId;
+    console.log('Switching to terminal:', terminalId);
+    
+    // Update URL without reloading
+    const url = new URL(window.location.href);
+    url.searchParams.set('terminal_id', terminalId);
+    window.history.pushState({}, '', url);
+    
+    // Clear terminal and request new data
+    if (term) {
+        term.clear();
+    }
+    
+    // Update active tab
+    document.querySelectorAll('.terminal-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.textContent.trim() === terminalId) {
+            tab.classList.add('active');
+        }
+    });
+    
+    // Send a dummy input to refresh the terminal
+    sendTerminalInput('\r');
+}
 
-// Last received terminal data for optimization
-let lastTerminalData = null;
-
-// Handle terminal screen updates
-function renderTerminal(data) {
+// Handle terminal data from server
+function handleTerminalData(data) {
     if (data.terminal_id !== window.terminalId) {
         return; // Skip updates for other terminals
     }
     
-    // Skip rendering if nothing changed
-    if (lastTerminalData && 
-        JSON.stringify(data.cursor_position) === JSON.stringify(lastTerminalData.cursor_position) &&
-        data.raw_text === lastTerminalData.raw_text) {
+    if (!terminalReady) {
+        // Queue data until terminal is ready
+        pendingData.push(data.raw_text);
         return;
     }
     
-    lastTerminalData = data;
-    
-    // Fast path for empty terminal
-    if (!data.raw_text && data.color_json.colors.length === 0) {
-        display.innerHTML = '<div class="terminal-line">$&nbsp;</div>';
-        cursor.style.top = '0';
-        cursor.style.left = '1.2em';
-        return;
-    }
-    
-    // Use document fragment for better performance
-    const fragment = document.createDocumentFragment();
-    const lines = data.raw_text.split('\n');
-    const colors = data.color_json.colors;
-    
-    lines.forEach((line, y) => {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'terminal-line';
-        
-        if (y < colors.length) {
-            // For performance, create a single string of HTML rather than many DOM elements
-            let lineHtml = '';
-            
-            colors[y].forEach((char, x) => {
-                let style = '';
-                if (char.fg && char.fg !== 'default') style += `color: ${char.fg};`;
-                if (char.bg && char.bg !== 'default') style += `background-color: ${char.bg};`;
-                if (char.bold) style += 'font-weight: bold;';
-                if (char.italics) style += 'font-style: italic;';
-                if (char.underscore) style += 'text-decoration: underline;';
-                if (char.strikethrough) style += 'text-decoration: line-through;';
-                if (char.reverse) {
-                    const tempFg = char.fg;
-                    const tempBg = char.bg;
-                    if (tempBg && tempBg !== 'default') style += `color: ${tempBg};`;
-                    if (tempFg && tempFg !== 'default') style += `background-color: ${tempFg};`;
-                }
-                
-                const charContent = char.char || ' ';
-                if (style) {
-                    lineHtml += `<span style="${style}">${charContent}</span>`;
-                } else {
-                    lineHtml += charContent;
-                }
-            });
-            
-            lineDiv.innerHTML = lineHtml;
-        } else {
-            lineDiv.textContent = line || ' ';
-        }
-        
-        fragment.appendChild(lineDiv);
-    });
-    
-    // Replace content in one operation
-    display.innerHTML = '';
-    display.appendChild(fragment);
-    
-    // Position cursor
-    cursor.style.top = `${data.cursor_position.y * 1.2}em`;
-    cursor.style.left = `${data.cursor_position.x * 0.6}em`;
-    
-    // Scroll to bottom if we're near the bottom already
-    const isNearBottom = display.scrollTop + display.clientHeight >= display.scrollHeight - 50;
-    if (isNearBottom) {
-        display.scrollTop = display.scrollHeight;
-    }
+    // Clear and write new content
+    term.write(data.raw_text);
 }
 
 // Override the existing event source handler
 window.addEventListener('load', function() {
+    // Initialize terminal
+    initTerminal();
+    
     // Make sure we have the terminal ID
     console.log('Terminal page loaded with terminal ID:', window.terminalId);
     
@@ -197,36 +161,11 @@ window.addEventListener('load', function() {
                         window.terminalId = data.terminal_id;
                         console.log('Setting terminal ID to:', window.terminalId);
                     }
-                    renderTerminal(data);
+                    handleTerminalData(data);
                     break;
             }
         } catch (e) {
             console.error('Error processing event:', e);
         }
     };
-    
-    // Send a dummy input to initialize the terminal if needed
-    if (window.terminalId) {
-        const host = window.location.hostname;
-        const port = window.location.port;
-        fetch(`http://${host}:${port}/terminal/input`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                session_id: window.sessionId,
-                terminal_id: window.terminalId,
-                input: '\r'
-            })
-        });
-    }
-    
-    // Focus terminal immediately
-    terminal.focus();
-});
-
-// Focus terminal on load
-window.addEventListener('load', function() {
-    terminal.focus();
 });
