@@ -1,6 +1,7 @@
 // Initialize xterm.js
 let term;
 let fitAddon;
+let serializeAddon;
 let terminalReady = false;
 let pendingData = [];
 
@@ -53,6 +54,14 @@ function initTerminal() {
         } else {
             console.warn("WebLinksAddon not available");
         }
+        
+        if (window.SerializeAddon) {
+            serializeAddon = new window.SerializeAddon.SerializeAddon();
+            term.loadAddon(serializeAddon);
+            console.log("Serialize addon loaded");
+        } else {
+            console.warn("SerializeAddon not available");
+        }
     } catch (e) {
         console.error("Error loading addons:", e);
     }
@@ -101,34 +110,19 @@ function initTerminal() {
 
     // Restore buffer if available
     const savedBuffer = localStorage.getItem(`terminal_buffer_${window.terminalId}`);
-    const savedCursor = localStorage.getItem(`terminal_cursor_${window.terminalId}`);
 
-    if (savedBuffer) {
+    if (savedBuffer && serializeAddon) {
         try {
             // Set restoration flag immediately to block incoming updates
             localStorage.setItem(`terminal_restoring_${window.terminalId}`, 'true');
             
-            const buffer = JSON.parse(savedBuffer);
-            console.log(`Restoring terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
-        
+            console.log(`Restoring terminal buffer for ${window.terminalId} using serialize addon`);
+            
             // Clear terminal first
             term.clear();
-        
-            // Write saved buffer
-            buffer.forEach((line, index) => {
-                if (index > 0) {
-                    term.write('\r\n');
-                }
-                if (line) {
-                    term.write(line);
-                }
-            });
-        
-            // Restore cursor position if available
-            if (savedCursor) {
-                const cursor = JSON.parse(savedCursor);
-                term.write(`\x1b[${cursor.y};${cursor.x}H`);
-            }
+            
+            // Write the serialized buffer directly
+            term.write(savedBuffer);
             
             // Keep the restoration flag active longer
             setTimeout(() => {
@@ -220,25 +214,18 @@ function clearTerminal() {
 
 // Save terminal buffer manually
 function saveTerminalBuffer() {
-    if (!term) return;
+    if (!term || !serializeAddon) return;
     
-    const lines = term.buffer.active.getLines();
-    const buffer = [];
-    
-    // Convert lines to strings
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i]) {
-            buffer.push(lines[i].translateToString(true));
-        }
+    try {
+        // Use the serialize addon to get the terminal state
+        const serializedState = serializeAddon.serialize();
+        
+        // Store the serialized state
+        localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
+        console.log(`Manually saved terminal buffer for ${window.terminalId} using serialize addon`);
+    } catch (e) {
+        console.error("Error saving terminal buffer:", e);
     }
-    
-    // Store buffer and cursor position
-    localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
-    localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
-        x: term.buffer.active.cursorX,
-        y: term.buffer.active.cursorY
-    }));
-    console.log(`Manually saved terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
 }
 
 // Switch between terminals
@@ -304,32 +291,20 @@ window.addEventListener('beforeunload', function(event) {
         localStorage.setItem('terminalActive', 'true');
         localStorage.setItem('lastTerminalId', window.terminalId);
         
-        // Force save the terminal buffer
-        if (term) {
-            const lines = term.buffer.active.getLines();
-            const buffer = [];
-            
-            // Convert lines to strings
-            for (let i = 0; i < lines.length; i++) {
-                if (lines[i]) {
-                    buffer.push(lines[i].translateToString(true));
+        // Force save the terminal buffer using serialize addon
+        if (term && serializeAddon) {
+            try {
+                const serializedState = serializeAddon.serialize();
+                localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
+                console.log(`Stored terminal buffer for ${window.terminalId} using serialize addon`);
+                
+                // This helps ensure the data is saved before navigation
+                const start = Date.now();
+                while (Date.now() - start < 50) {
+                    // Small delay to ensure storage completes
                 }
-            }
-            
-            // Store buffer and cursor position with a timestamp
-            const timestamp = Date.now();
-            localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
-            localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
-                x: term.buffer.active.cursorX,
-                y: term.buffer.active.cursorY,
-                timestamp: timestamp
-            }));
-            console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines) at ${timestamp}`);
-            
-            // This helps ensure the data is saved before navigation
-            const start = Date.now();
-            while (Date.now() - start < 50) {
-                // Small delay to ensure storage completes
+            } catch (e) {
+                console.error("Error saving terminal buffer:", e);
             }
         }
     }
@@ -344,34 +319,22 @@ document.addEventListener('click', function(event) {
         window.location.pathname.includes('/terminal')) {
         
         console.log("Navigation button clicked, saving terminal state");
-        if (term) {
-            const lines = term.buffer.active.getLines();
-            const buffer = [];
-            
-            // Convert lines to strings
-            for (let i = 0; i < lines.length; i++) {
-                if (lines[i]) {
-                    buffer.push(lines[i].translateToString(true));
+        if (term && serializeAddon) {
+            try {
+                const serializedState = serializeAddon.serialize();
+                localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
+                console.log(`Stored terminal buffer for ${window.terminalId} using serialize addon`);
+                
+                // Force a small delay before navigation to ensure storage completes
+                if (event.target.id === 'back') {
+                    event.preventDefault();
+                    setTimeout(() => {
+                        triggerControl('back');
+                    }, 100);
+                    return false;
                 }
-            }
-            
-            // Store buffer and cursor position with a timestamp
-            const timestamp = Date.now();
-            localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
-            localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
-                x: term.buffer.active.cursorX,
-                y: term.buffer.active.cursorY,
-                timestamp: timestamp
-            }));
-            console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines) at ${timestamp}`);
-            
-            // Force a small delay before navigation to ensure storage completes
-            if (event.target.id === 'back') {
-                event.preventDefault();
-                setTimeout(() => {
-                    triggerControl('back');
-                }, 100);
-                return false;
+            } catch (e) {
+                console.error("Error saving terminal buffer:", e);
             }
         }
     }
