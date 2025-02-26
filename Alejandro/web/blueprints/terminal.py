@@ -9,16 +9,9 @@ bp = Blueprint('terminal', __name__)
 class TerminalScreen(Screen):
     """Terminal emulator screen"""
     def __init__(self, session: 'Session'):
-        # Create default terminal if none exists
-        if not session.terminals:
-            print("Creating new terminal for session")
-            session.terminals["main"] = Terminal("main", session.id)
-            session.current_terminal_index = 0
-            # Force immediate screen update
-            session.terminals["main"]._send_screen_update()
-        
+        # Get terminal info
         terminal_names = list(session.terminals.keys())
-        current_terminal = terminal_names[session.current_terminal_index] if terminal_names else "none"
+        current_terminal = terminal_names[session.current_terminal_index] if terminal_names and session.terminals else "none"
         
         super().__init__(
             session=session,
@@ -98,14 +91,17 @@ def terminal() -> str:
     
     session = get_or_create_session(session_id)
     
-    # Always create a fresh terminal screen
+    # Create terminal screen
     screen = TerminalScreen(session)
     
-    # Only push to stack if not already a terminal screen
-    if not isinstance(session.screen_stack.current, TerminalScreen):
-        session.screen_stack.push(screen)
+    # Make sure terminal exists
+    if not session.terminals:
+        print("Creating terminal for session in route handler")
+        session.terminals["main"] = Terminal("main", session.id)
+        session.current_terminal_index = 0
+        session.terminals["main"]._send_screen_update()
     
-    # Get template data after ensuring terminal exists
+    # Get template data
     template_data = screen.get_template_data()
     print(f"Rendering terminal with data: {template_data}")
     
@@ -128,10 +124,20 @@ def terminal_input():
         return jsonify({"error": "Missing required parameters"}), 400
     
     session = get_or_create_session(session_id)
+    
+    # Create terminal if it doesn't exist
+    if not session.terminals:
+        print(f"Creating terminal '{terminal_id}' for session during input")
+        session.terminals[terminal_id] = Terminal(terminal_id, session.id)
+        session.current_terminal_index = 0
+        session.terminals[terminal_id]._send_screen_update()
+    
     if terminal_id in session.terminals:
         session.terminals[terminal_id].send_input(input_text)
         return jsonify({"status": "ok"})
-    
-    print(f"Terminal not found: {terminal_id}")
-    print(f"Available terminals: {list(session.terminals.keys())}")
-    return jsonify({"error": "Terminal not found"}), 404
+    else:
+        # Create the specific terminal if it doesn't exist
+        print(f"Creating requested terminal '{terminal_id}'")
+        session.terminals[terminal_id] = Terminal(terminal_id, session.id)
+        session.terminals[terminal_id].send_input(input_text)
+        return jsonify({"status": "ok", "created": True})

@@ -38,6 +38,12 @@
         window.sessionId = "{{ session_id }}";
         window.terminalId = "{{ terminal_id }}";
         console.log("Terminal page initialized with terminal ID:", "{{ terminal_id }}");
+        
+        // Default to "main" if no terminal ID is provided
+        if (!window.terminalId || window.terminalId === "none") {
+            window.terminalId = "main";
+            console.log("Using default terminal ID:", window.terminalId);
+        }
     </script>
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>

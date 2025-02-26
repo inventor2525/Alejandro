@@ -192,6 +192,11 @@ window.addEventListener('load', function() {
                     break;
                 case 'TerminalScreenEvent':
                     console.log('Terminal event received for:', data.terminal_id);
+                    // If we don't have a terminal ID yet, use the one from the event
+                    if (!window.terminalId && data.terminal_id) {
+                        window.terminalId = data.terminal_id;
+                        console.log('Setting terminal ID to:', window.terminalId);
+                    }
                     renderTerminal(data);
                     break;
             }
@@ -199,6 +204,23 @@ window.addEventListener('load', function() {
             console.error('Error processing event:', e);
         }
     };
+    
+    // Send a dummy input to initialize the terminal if needed
+    if (window.terminalId) {
+        const host = window.location.hostname;
+        const port = window.location.port;
+        fetch(`http://${host}:${port}/terminal/input`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                session_id: window.sessionId,
+                terminal_id: window.terminalId,
+                input: '\r'
+            })
+        });
+    }
     
     // Focus terminal immediately
     terminal.focus();
