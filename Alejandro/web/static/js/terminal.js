@@ -98,16 +98,52 @@ function initTerminal() {
     // Mark terminal as ready
     terminalReady = true;
     console.log("Terminal ready");
-    
-    // Process any pending data
-    if (pendingData.length > 0) {
-        console.log(`Processing ${pendingData.length} pending data items`);
-        pendingData.forEach(data => {
-            term.write(data);
-        });
-        pendingData = [];
+
+    // Restore buffer if available
+    const savedBuffer = localStorage.getItem(`terminal_buffer_${window.terminalId}`);
+    const savedCursor = localStorage.getItem(`terminal_cursor_${window.terminalId}`);
+
+    if (savedBuffer) {
+        try {
+            const buffer = JSON.parse(savedBuffer);
+            console.log(`Restoring terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
+        
+            // Clear terminal first
+            term.clear();
+        
+            // Write saved buffer
+            buffer.forEach((line, index) => {
+                if (index > 0) {
+                    term.write('\r\n');
+                }
+                if (line) {
+                    term.write(line);
+                }
+            });
+        
+            // Restore cursor position if available
+            if (savedCursor) {
+                const cursor = JSON.parse(savedCursor);
+                term.write(`\x1b[${cursor.y};${cursor.x}H`);
+            }
+        
+            // Clear the saved buffer after restoring
+            localStorage.removeItem(`terminal_buffer_${window.terminalId}`);
+            localStorage.removeItem(`terminal_cursor_${window.terminalId}`);
+        } catch (e) {
+            console.error("Error restoring terminal buffer:", e);
+        }
+    } else {
+        // Process any pending data if no saved buffer
+        if (pendingData.length > 0) {
+            console.log(`Processing ${pendingData.length} pending data items`);
+            pendingData.forEach(data => {
+                term.write(data);
+            });
+            pendingData = [];
+        }
     }
-    
+
     // Send terminal size to server
     if (fitAddon) {
         const dimensions = term.options;
@@ -177,6 +213,29 @@ function clearTerminal() {
     }
 }
 
+// Save terminal buffer manually
+function saveTerminalBuffer() {
+    if (!term) return;
+    
+    const lines = term.buffer.active.getLines();
+    const buffer = [];
+    
+    // Convert lines to strings
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i]) {
+            buffer.push(lines[i].translateToString(true));
+        }
+    }
+    
+    // Store buffer and cursor position
+    localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
+    localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
+        x: term.buffer.active.cursorX,
+        y: term.buffer.active.cursorY
+    }));
+    console.log(`Manually saved terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
+}
+
 // Switch between terminals
 function switchTerminal(terminalId) {
     if (terminalId === window.terminalId) {
@@ -231,6 +290,27 @@ window.addEventListener('beforeunload', function(event) {
         console.log("Storing terminal state before navigation");
         localStorage.setItem('terminalActive', 'true');
         localStorage.setItem('lastTerminalId', window.terminalId);
+        
+        // Store terminal buffer if available
+        if (term) {
+            const lines = term.buffer.active.getLines();
+            const buffer = [];
+            
+            // Convert lines to strings
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i]) {
+                    buffer.push(lines[i].translateToString(true));
+                }
+            }
+            
+            // Store buffer and cursor position
+            localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
+            localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
+                x: term.buffer.active.cursorX,
+                y: term.buffer.active.cursorY
+            }));
+            console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
+        }
     }
 });
 
@@ -259,6 +339,13 @@ window.addEventListener('load', function() {
     setTimeout(() => {
         initTerminal();
     }, 100);
+    
+    // Save terminal buffer periodically
+    setInterval(() => {
+        if (window.location.pathname.includes('/terminal') && term) {
+            saveTerminalBuffer();
+        }
+    }, 5000); // Save every 5 seconds
     
     // Make sure we have the terminal ID
     console.log('Terminal page loaded with terminal ID:', window.terminalId);
