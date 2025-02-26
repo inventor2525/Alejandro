@@ -75,6 +75,11 @@ class TerminalScreenEvent(Event):
 
 def push_event(event: Event) -> None:
     """Add event to queue"""
-    print(f"Pushing event: {event.__class__.__name__} for session {event.session_id}")
-    print(f"Event data: {event.to_json()}")
+    # Don't log the full event data for terminal events
+    if isinstance(event, TerminalScreenEvent):
+        print(f"Pushing terminal event for session {event.session_id}, terminal {event.terminal_id}")
+    else:
+        print(f"Pushing event: {event.__class__.__name__} for session {event.session_id}")
+        print(f"Event data: {event.to_json()}")
+    
     event_queue.put(event)

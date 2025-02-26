@@ -14,6 +14,45 @@ from typing import Dict, List, Any, Optional
 import pyte
 from Alejandro.web.events import TerminalScreenEvent, push_event
 
+class DualScreenBuffer:
+    """Manages both main and alternate screen buffers"""
+    def __init__(self, columns, main_lines, alt_lines):
+        self.main_screen = pyte.Screen(columns, main_lines)
+        self.alt_screen = pyte.Screen(columns, alt_lines)
+        self.main_stream = pyte.Stream(self.main_screen)
+        self.alt_stream = pyte.Stream(self.alt_screen)
+        self.current_screen = self.main_screen
+        self.current_stream = self.main_stream
+
+    def feed(self, data):
+        """Feed data to the appropriate screen"""
+        if b'\x1b[?1049h' in data:
+            main_part, alt_part = data.split(b'\x1b[?1049h', 1)
+            self.main_stream.feed(main_part.decode('utf-8', errors='ignore'))
+            self.current_screen = self.alt_screen
+            self.current_stream = self.alt_stream
+            self.alt_stream.feed(alt_part.decode('utf-8', errors='ignore'))
+        elif b'\x1b[?1049l' in data:
+            alt_part, main_part = data.split(b'\x1b[?1049l', 1)
+            self.alt_stream.feed(alt_part.decode('utf-8', errors='ignore'))
+            self.current_screen = self.main_screen
+            self.current_stream = self.main_stream
+            self.main_stream.feed(main_part.decode('utf-8', errors='ignore'))
+        else:
+            self.current_stream.feed(data.decode('utf-8', errors='ignore'))
+
+    @property
+    def display(self):
+        return self.current_screen.display
+
+    @property
+    def cursor(self):
+        return self.current_screen.cursor
+
+    @property
+    def buffer(self):
+        return self.current_screen.buffer
+
 class Terminal:
     """Terminal emulator for web interface"""
     
@@ -24,41 +63,41 @@ class Terminal:
         self.columns = columns
         self.lines = lines
         
-        # Setup screen buffer
-        self.main_screen = pyte.Screen(columns, main_lines)
-        self.alt_screen = pyte.Screen(columns, lines)
-        self.main_stream = pyte.Stream(self.main_screen)
-        self.alt_stream = pyte.Stream(self.alt_screen)
-        self.current_screen = self.main_screen
-        self.current_stream = self.main_stream
-        
         # Create PTY
         self._master_fd, self._slave_fd = pty.openpty()
+        self._screen_buffer = DualScreenBuffer(columns, main_lines, lines)
         self._set_winsize(self._slave_fd, lines, columns)
+        
+        # Set master fd to non-blocking
+        flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
+        fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
         
         # Start shell
         env = os.environ.copy()
         env['TERM'] = 'xterm'
         env['SHELL'] = '/bin/bash'
         
-        # Use subprocess instead of fork/exec
-        self._process = subprocess.Popen(
-            ["/bin/bash", "--login"],
-            stdin=self._slave_fd,
-            stdout=self._slave_fd,
-            stderr=self._slave_fd,
-            env=env,
-            start_new_session=True
-        )
-        
-        # Close slave fd in parent
-        os.close(self._slave_fd)
-        
-        # Set master fd to non-blocking
-        flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
-        fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        # Fork and exec
+        pid = os.fork()
+        if pid == 0:  # Child process
+            try:
+                os.close(self._master_fd)
+                os.setsid()
+                os.dup2(self._slave_fd, 0)
+                os.dup2(self._slave_fd, 1)
+                os.dup2(self._slave_fd, 2)
+                os.close(self._slave_fd)
+                os.execvpe("bash", ["bash", "--login"], env)
+            except Exception as e:
+                print(f"Child process error: {e}")
+                os._exit(1)
+        else:  # Parent process
+            self._pid = pid
+            os.close(self._slave_fd)
         
         # Start reading thread
+        self._outputs = []
+        self._output_lock = threading.Lock()
         self._run_thread = threading.Thread(target=self._run, daemon=True)
         self._run_thread.start()
         
@@ -77,32 +116,38 @@ class Terminal:
         time.sleep(0.5)
         self.send_input("echo 'Welcome to Alejandro Terminal'\n")
         
-        # Initial screen update
-        self._send_screen_update()
-        
-        buffer = b""
-        
         while True:
             try:
                 # Check if process is still alive
-                if hasattr(self, '_process') and self._process.poll() is not None:
-                    print(f"Terminal process exited with code {self._process.returncode}")
-                    break
+                try:
+                    pid, status = os.waitpid(self._pid, os.WNOHANG)
+                    if pid == self._pid:
+                        print(f"Terminal process exited with status {status}")
+                        break
+                except:
+                    pass
                 
                 # Wait for data with timeout
                 rlist, _, _ = select.select([self._master_fd], [], [], 0.1)
                 if self._master_fd in rlist:
                     try:
                         # Read available data
-                        chunk = os.read(self._master_fd, 4096)
-                        if not chunk:
+                        data = os.read(self._master_fd, 1024)
+                        if not data:
                             break
+                            
+                        # Store output
+                        with self._output_lock:
+                            self._outputs.append(data)
+                            
+                        # Feed data to screen buffer
+                        self._screen_buffer.feed(data)
                         
-                        # Feed data to stream
-                        self.current_stream.feed(chunk.decode('utf-8', errors='ignore'))
-                        
-                        # Send screen update
-                        self._send_screen_update()
+                        # Send screen update (throttled)
+                        now = time.time()
+                        if now - self._last_update > self._update_interval:
+                            self._last_update = now
+                            self._send_screen_update()
                     except OSError as e:
                         if e.errno != 11:  # EAGAIN - Resource temporarily unavailable
                             raise
@@ -165,14 +210,19 @@ class Terminal:
                 row_colors.append(color_data)
             color_info["colors"].append(row_colors)
         
-        # Send event
-        push_event(TerminalScreenEvent(
+        # Send event without logging the entire color data
+        event = TerminalScreenEvent(
             session_id=self.session_id,
             terminal_id=self.id,
             raw_text=raw_text,
             color_json=color_info,
             cursor_position={"x": self.current_screen.cursor.x, "y": self.current_screen.cursor.y}
-        ))
+        )
+        
+        # Don't log the full event data
+        from Alejandro.web.events import event_queue
+        print(f"Sending terminal update for terminal: {self.id}")
+        event_queue.put(event)
     
     def send_input(self, data: str):
         """Send input to terminal"""
@@ -184,17 +234,31 @@ class Terminal:
     def close(self):
         """Close terminal"""
         try:
-            # Terminate process
-            if hasattr(self, '_process') and self._process.poll() is None:
-                self._process.terminate()
-                try:
-                    self._process.wait(timeout=1)
-                except:
-                    self._process.kill()
+            # Kill process group
+            try:
+                pgid = os.getpgid(self._pid)
+                os.killpg(pgid, signal.SIGTERM)
+                # Wait briefly for process to terminate
+                for _ in range(10):
+                    try:
+                        pid, _ = os.waitpid(self._pid, os.WNOHANG)
+                        if pid == self._pid:
+                            break
+                    except:
+                        break
+                    time.sleep(0.1)
+                else:
+                    # Force kill if still running
+                    try:
+                        os.killpg(pgid, signal.SIGKILL)
+                    except:
+                        pass
+            except:
+                pass
         except Exception as e:
             print(f"Error terminating terminal process: {e}")
             
         try:
             os.close(self._master_fd)
-        except Exception as e:
-            print(f"Error closing terminal fd: {e}")
+        except:
+            pass

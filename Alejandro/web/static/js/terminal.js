@@ -83,11 +83,8 @@ terminal.addEventListener('blur', function() {
 // Handle terminal screen updates
 function renderTerminal(data) {
     if (data.terminal_id !== window.terminalId) {
-        console.log('Skipping update for different terminal:', data.terminal_id);
         return; // Skip updates for other terminals
     }
-    
-    console.log('Rendering terminal update:', data);
     
     display.innerHTML = '';
     

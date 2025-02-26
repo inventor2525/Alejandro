@@ -21,15 +21,15 @@ def event_stream(session_id: str) -> Iterator[str]:
     while True:
         try:
             event = event_queue.get_nowait()
-            print(f"Got event from queue: {event.__class__.__name__}")
             if isinstance(event, Event):
-                print(f"Event session: {event.session_id}, Current session: {session_id}")
                 if event.session_id == session_id:
                     event_json = json.dumps(event.to_json())
-                    print(f"Sending event to client: {event_json}")
+                    # Only log minimal info for terminal events
+                    if isinstance(event, TerminalScreenEvent):
+                        print(f"Sending terminal event to client for terminal: {event.terminal_id}")
+                    else:
+                        print(f"Sending event to client: {event.__class__.__name__}")
                     yield f"data: {event_json}\n\n"
-                else:
-                    print("Event session ID mismatch - skipping")
             else:
                 print(f"Non-Event object in queue: {type(event)}")
         except queue.Empty:
