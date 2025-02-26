@@ -25,13 +25,6 @@ function triggerControl(controlId) {
         console.log('Control response:', response);
         return response.json();
     })
-    .then(data => {
-        console.log('Control data:', data);
-        if (data.screen) {
-            window.location.href = '/' + data.screen + '?session=' + window.sessionId;
-            console.log('Navigating to:', window.location.href);
-        }
-    })
     .catch(error => {
         console.error('Control error:', error);
     });
