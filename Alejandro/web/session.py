@@ -7,6 +7,7 @@ from Alejandro.Core.screen_stack import ScreenStack
 from Alejandro.Core.string_word_stream import StringWordStream
 from Alejandro.web.events import NavigationEvent, push_event
 from Alejandro.Models.screen import Screen
+from Alejandro.web.terminal import Terminal
 
 class Session:
     """Manages application state for a browser session"""
