@@ -63,6 +63,9 @@ class Terminal:
         
         # Send initial screen update
         self._send_screen_update()
+        
+        # Send initial data to make shell prompt appear immediately
+        self.send_input("\n")
     
     def _set_winsize(self, fd, row, col, xpix=0, ypix=0):
         """Set terminal window size"""
