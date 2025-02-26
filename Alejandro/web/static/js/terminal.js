@@ -126,10 +126,8 @@ function initTerminal() {
                 const cursor = JSON.parse(savedCursor);
                 term.write(`\x1b[${cursor.y};${cursor.x}H`);
             }
-        
-            // Clear the saved buffer after restoring
-            localStorage.removeItem(`terminal_buffer_${window.terminalId}`);
-            localStorage.removeItem(`terminal_cursor_${window.terminalId}`);
+            
+            // Don't clear the saved buffer - keep it for future navigations
         } catch (e) {
             console.error("Error restoring terminal buffer:", e);
         }
@@ -292,6 +290,37 @@ window.addEventListener('beforeunload', function(event) {
         localStorage.setItem('lastTerminalId', window.terminalId);
         
         // Store terminal buffer if available
+        if (term) {
+            const lines = term.buffer.active.getLines();
+            const buffer = [];
+            
+            // Convert lines to strings
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i]) {
+                    buffer.push(lines[i].translateToString(true));
+                }
+            }
+            
+            // Store buffer and cursor position
+            localStorage.setItem(`terminal_buffer_${window.terminalId}`, JSON.stringify(buffer));
+            localStorage.setItem(`terminal_cursor_${window.terminalId}`, JSON.stringify({
+                x: term.buffer.active.cursorX,
+                y: term.buffer.active.cursorY
+            }));
+            console.log(`Stored terminal buffer for ${window.terminalId} (${buffer.length} lines)`);
+        }
+    }
+});
+
+// Also store terminal state when clicking on navigation controls
+document.addEventListener('click', function(event) {
+    if (event.target.tagName === 'BUTTON' && 
+        event.target.id !== 'new' && 
+        event.target.id !== 'next' && 
+        event.target.id !== 'prev' && 
+        window.location.pathname.includes('/terminal')) {
+        
+        console.log("Navigation button clicked, saving terminal state");
         if (term) {
             const lines = term.buffer.active.getLines();
             const buffer = [];

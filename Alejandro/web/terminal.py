@@ -71,6 +71,9 @@ class Terminal:
         except:
             pass
             
+        # Send an initial update to ensure we have the prompt
+        self._send_screen_update("\r\n")
+            
         while self.running:
             try:
                 r, _, _ = select.select([self.master_fd], [], [], 0.1)
