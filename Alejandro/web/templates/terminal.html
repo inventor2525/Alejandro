@@ -49,12 +49,6 @@
             window.terminalId = "main";
             console.log("Using default terminal ID:", window.terminalId);
         }
-        
-        // Check if we're returning to the terminal page
-        const wasTerminalActive = localStorage.getItem('terminalActive') === 'true';
-        if (wasTerminalActive) {
-            console.log("Returning to terminal page, will restore buffer");
-        }
     </script>
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>

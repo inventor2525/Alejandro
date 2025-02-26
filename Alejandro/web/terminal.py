@@ -71,9 +71,6 @@ class Terminal:
         except:
             pass
             
-        # Wait a bit longer before sending updates to allow client to restore buffer
-        time.sleep(0.5)
-            
         while self.running:
             try:
                 r, _, _ = select.select([self.master_fd], [], [], 0.1)

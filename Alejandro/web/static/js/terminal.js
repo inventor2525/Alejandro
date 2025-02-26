@@ -113,9 +113,6 @@ function initTerminal() {
 
     if (savedBuffer && serializeAddon) {
         try {
-            // Set restoration flag immediately to block incoming updates
-            localStorage.setItem(`terminal_restoring_${window.terminalId}`, 'true');
-            
             console.log(`Restoring terminal buffer for ${window.terminalId} using serialize addon`);
             
             // Clear terminal first
@@ -123,12 +120,6 @@ function initTerminal() {
             
             // Write the serialized buffer directly
             term.write(savedBuffer);
-            
-            // Keep the restoration flag active longer
-            setTimeout(() => {
-                localStorage.removeItem(`terminal_restoring_${window.terminalId}`);
-                console.log("Terminal restoration complete, accepting server updates again");
-            }, 2000);
         } catch (e) {
             console.error("Error restoring terminal buffer:", e);
         }
@@ -271,16 +262,8 @@ function handleTerminalData(data) {
         return;
     }
     
-    // Check if we have a restoration flag set
-    const isRestoringBuffer = localStorage.getItem(`terminal_restoring_${window.terminalId}`) === 'true';
-    
-    // Only write data if we're not in the middle of restoring a buffer
-    if (!isRestoringBuffer) {
-        // Write new content directly to terminal
-        term.write(data.raw_text);
-    } else {
-        console.log("Skipping server update while restoring buffer");
-    }
+    // Write new content directly to terminal
+    term.write(data.raw_text);
 }
 
 // Store terminal state when navigating away
@@ -291,18 +274,12 @@ window.addEventListener('beforeunload', function(event) {
         localStorage.setItem('terminalActive', 'true');
         localStorage.setItem('lastTerminalId', window.terminalId);
         
-        // Force save the terminal buffer using serialize addon
+        // Save the terminal buffer using serialize addon
         if (term && serializeAddon) {
             try {
                 const serializedState = serializeAddon.serialize();
                 localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
                 console.log(`Stored terminal buffer for ${window.terminalId} using serialize addon`);
-                
-                // This helps ensure the data is saved before navigation
-                const start = Date.now();
-                while (Date.now() - start < 50) {
-                    // Small delay to ensure storage completes
-                }
             } catch (e) {
                 console.error("Error saving terminal buffer:", e);
             }
@@ -324,15 +301,6 @@ document.addEventListener('click', function(event) {
                 const serializedState = serializeAddon.serialize();
                 localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
                 console.log(`Stored terminal buffer for ${window.terminalId} using serialize addon`);
-                
-                // Force a small delay before navigation to ensure storage completes
-                if (event.target.id === 'back') {
-                    event.preventDefault();
-                    setTimeout(() => {
-                        triggerControl('back');
-                    }, 100);
-                    return false;
-                }
             } catch (e) {
                 console.error("Error saving terminal buffer:", e);
             }
@@ -358,19 +326,15 @@ window.addEventListener('load', function() {
         window.history.replaceState({}, '', url);
     }
     
-    // Don't clear the terminal active flag - we need it for buffer restoration
-    
-    // Initialize terminal with a longer delay to ensure DOM is ready
-    setTimeout(() => {
-        initTerminal();
-    }, 300);
+    // Initialize terminal
+    initTerminal();
     
     // Save terminal buffer periodically
     setInterval(() => {
         if (window.location.pathname.includes('/terminal') && term) {
             saveTerminalBuffer();
         }
-    }, 2000); // Save more frequently (every 2 seconds)
+    }, 5000); // Save every 5 seconds
     
     // Make sure we have the terminal ID
     console.log('Terminal page loaded with terminal ID:', window.terminalId);
