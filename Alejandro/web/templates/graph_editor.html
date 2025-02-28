@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Editor</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f5f5f5;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .node {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #999;
+            border-radius: 5px;
+            padding: 10px;
+            min-width: 150px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .node-title {
+            font-weight: bold;
+        }
+        .node-controls {
+            display: flex;
+            gap: 5px;
+        }
+        .collapse-toggle {
+            cursor: pointer;
+        }
+        .connector {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #555;
+            cursor: pointer;
+        }
+        .connector.input {
+            left: -6px;
+        }
+        .connector.output {
+            right: -6px;
+        }
+        .connector-label {
+            position: absolute;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+        .connector.input .connector-label {
+            left: 15px;
+        }
+        .connector.output .connector-label {
+            right: 15px;
+        }
+        .connection {
+            position: absolute;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .node-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 5px;
+        }
+        .field-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .field-input {
+            padding: 3px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas"></div>
+    <div class="toolbar">
+        <button id="add-node">Add Node</button>
+        <button id="add-subgraph">Add Subgraph</button>
+    </div>
+
+    <script>
+        class GraphEditor {
+            constructor(canvasElement) {
+                this.canvas = canvasElement;
+                this.nodes = [];
+                this.connections = [];
+                this.nodeIdCounter = 0;
+                this.connectionIdCounter = 0;
+                
+                this.draggedNode = null;
+                this.dragOffset = { x: 0, y: 0 };
+                
+                this.connectingFrom = null;
+                this.tempConnection = null;
+                
+                this.panOffset = { x: 0, y: 0 };
+                this.isPanning = false;
+                this.panStart = { x: 0, y: 0 };
+                
+                this.scale = 1;
+                
+                this.initEvents();
+            }
+            
+            initEvents() {
+                // Mouse move event for dragging nodes and creating connections
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (this.draggedNode) {
+                        const x = e.clientX - this.dragOffset.x + this.panOffset.x;
+                        const y = e.clientY - this.dragOffset.y + this.panOffset.y;
+                        this.draggedNode.position = { x, y };
+                        this.updateNodePosition(this.draggedNode);
+                        this.updateConnections();
+                    } else if (this.connectingFrom) {
+                        this.updateTempConnection(e.clientX, e.clientY);
+                    } else if (this.isPanning) {
+                        const dx = e.clientX - this.panStart.x;
+                        const dy = e.clientY - this.panStart.y;
+                        this.panOffset.x -= dx / this.scale;
+                        this.panOffset.y -= dy / this.scale;
+                        this.panStart = { x: e.clientX, y: e.clientY };
+                        this.updateNodesPosition();
+                        this.updateConnections();
+                    }
+                });
+                
+                // Mouse up event to stop dragging or create connection
+                this.canvas.addEventListener('mouseup', (e) => {
+                    if (this.draggedNode) {
+                        this.draggedNode = null;
+                    } else if (this.connectingFrom) {
+                        const connector = this.findConnectorAt(e.clientX, e.clientY);
+                        if (connector && connector !== this.connectingFrom && 
+                            connector.type === this.connectingFrom.type &&
+                            connector.direction !== this.connectingFrom.direction) {
+                            this.createConnection(this.connectingFrom, connector);
+                        }
+                        
+                        if (this.tempConnection) {
+                            this.tempConnection.remove();
+                            this.tempConnection = null;
+                        }
+                        this.connectingFrom = null;
+                    } else if (this.isPanning) {
+                        this.isPanning = false;
+                    }
+                });
+                
+                // Mouse down on empty space starts panning
+                this.canvas.addEventListener('mousedown', (e) => {
+                    if (e.target === this.canvas) {
+                        this.isPanning = true;
+                        this.panStart = { x: e.clientX, y: e.clientY };
+                    }
+                });
+                
+                // Mouse wheel for zooming
+                this.canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    this.scale *= delta;
+                    this.scale = Math.max(0.1, Math.min(2, this.scale));
+                    
+                    this.updateNodesPosition();
+                    this.updateConnections();
+                });
+                
+                // Key events
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Delete') {
+                        this.deleteSelectedNodes();
+                    }
+                });
+                
+                // Add node button
+                document.getElementById('add-node').addEventListener('click', () => {
+                    this.createNode({
+                        title: 'New Node',
+                        fields: [
+                            { name: 'field1', type: 'string', value: '' },
+                            { name: 'field2', type: 'number', value: 0 }
+                        ],
+                        connectors: [
+                            { name: 'input1', type: 'string', direction: 'input' },
+                            { name: 'output1', type: 'string', direction: 'output' }
+                        ]
+                    });
+                });
+                
+                // Add subgraph button
+                document.getElementById('add-subgraph').addEventListener('click', () => {
+                    this.createNode({
+                        title: 'Subgraph',
+                        isSubgraph: true,
+                        fields: [
+                            { name: 'description', type: 'string', value: 'Double-click to open' }
+                        ],
+                        connectors: [
+                            { name: 'input1', type: 'string', direction: 'input' },
+                            { name: 'output1', type: 'string', direction: 'output' }
+                        ],
+                        subgraphNodes: []
+                    });
+                });
+            }
+            
+            createNode(nodeData) {
+                const id = `node-${this.nodeIdCounter++}`;
+                const position = {
+                    x: Math.random() * 300 + 100 - this.panOffset.x,
+                    y: Math.random() * 300 + 100 - this.panOffset.y
+                };
+                
+                const node = {
+                    id,
+                    position,
+                    collapsed: false,
+                    ...nodeData
+                };
+                
+                this.nodes.push(node);
+                this.renderNode(node);
+                return node;
+            }
+            
+            renderNode(node) {
+                const nodeElement = document.createElement('div');
+                nodeElement.className = 'node';
+                nodeElement.id = node.id;
+                nodeElement.dataset.nodeId = node.id;
+                
+                // Node header
+                const header = document.createElement('div');
+                header.className = 'node-header';
+                
+                const title = document.createElement('div');
+                title.className = 'node-title';
+                title.textContent = node.title;
+                
+                const controls = document.createElement('div');
+                controls.className = 'node-controls';
+                
+                const collapseToggle = document.createElement('span');
+                collapseToggle.className = 'collapse-toggle';
+                collapseToggle.textContent = node.collapsed ? '▶' : '▼';
+                collapseToggle.addEventListener('click', () => {
+                    node.collapsed = !node.collapsed;
+                    collapseToggle.textContent = node.collapsed ? '▶' : '▼';
+                    this.updateNodeContent(node);
+                });
+                
+                controls.appendChild(collapseToggle);
+                header.appendChild(title);
+                header.appendChild(controls);
+                nodeElement.appendChild(header);
+                
+                // Node content (fields)
+                const content = document.createElement('div');
+                content.className = 'node-content';
+                
+                if (!node.collapsed) {
+                    node.fields.forEach(field => {
+                        const fieldEl = document.createElement('div');
+                        fieldEl.className = 'field';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'field-label';
+                        label.textContent = field.name;
+                        
+                        const input = document.createElement('input');
+                        input.className = 'field-input';
+                        input.type = 'text';
+                        input.value = field.value;
+                        input.addEventListener('input', (e) => {
+                            field.value = e.target.value;
+                        });
+                        
+                        fieldEl.appendChild(label);
+                        fieldEl.appendChild(input);
+                        content.appendChild(fieldEl);
+                    });
+                }
+                
+                nodeElement.appendChild(content);
+                
+                // Make node draggable
+                nodeElement.addEventListener('mousedown', (e) => {
+                    if (e.target === nodeElement || e.target.closest('.node-header')) {
+                        this.draggedNode = node;
+                        const rect = nodeElement.getBoundingClientRect();
+                        this.dragOffset = {
+                            x: e.clientX - rect.left,
+                            y: e.clientY - rect.top
+                        };
+                        e.stopPropagation();
+                    }
+                });
+                
+                // Double click to open subgraph
+                if (node.isSubgraph) {
+                    nodeElement.addEventListener('dblclick', () => {
+                        alert(`Opening subgraph: ${node.title}`);
+                        // Here you would navigate to a new view for the subgraph
+                    });
+                }
+                
+                this.canvas.appendChild(nodeElement);
+                this.updateNodePosition(node);
+                
+                // Add connectors
+                this.renderConnectors(node);
+            }
+            
+            updateNodeContent(node) {
+                const nodeElement = document.getElementById(node.id);
+                const content = nodeElement.querySelector('.node-content');
+                content.innerHTML = '';
+                
+                if (!node.collapsed) {
+                    node.fields.forEach(field => {
+                        const fieldEl = document.createElement('div');
+                        fieldEl.className = 'field';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'field-label';
+                        label.textContent = field.name;
+                        
+                        const input = document.createElement('input');
+                        input.className = 'field-input';
+                        input.type = 'text';
+                        input.value = field.value;
+                        input.addEventListener('input', (e) => {
+                            field.value = e.target.value;
+                        });
+                        
+                        fieldEl.appendChild(label);
+                        fieldEl.appendChild(input);
+                        content.appendChild(fieldEl);
+                    });
+                }
+                
+                this.updateConnectors(node);
+                this.updateConnections();
+            }
+            
+            renderConnectors(node) {
+                const nodeElement = document.getElementById(node.id);
+                
+                node.connectors.forEach((connector, index) => {
+                    const connectorElement = document.createElement('div');
+                    connectorElement.className = `connector ${connector.direction}`;
+                    connectorElement.dataset.nodeId = node.id;
+                    connectorElement.dataset.connectorIndex = index;
+                    connectorElement.dataset.type = connector.type;
+                    connectorElement.dataset.direction = connector.direction;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'connector-label';
+                    label.textContent = `${connector.name} (${connector.type})`;
+                    connectorElement.appendChild(label);
+                    
+                    // Position connector based on direction and index
+                    const offset = 30 + index * 20;
+                    connectorElement.style.top = `${offset}px`;
+                    
+                    connectorElement.addEventListener('mousedown', (e) => {
+                        this.connectingFrom = {
+                            node,
+                            index,
+                            type: connector.type,
+                            direction: connector.direction,
+                            element: connectorElement
+                        };
+                        
+                        this.tempConnection = this.createConnectionLine(
+                            connectorElement.getBoundingClientRect().left + 6,
+                            connectorElement.getBoundingClientRect().top + 6,
+                            e.clientX,
+                            e.clientY
+                        );
+                        
+                        e.stopPropagation();
+                    });
+                    
+                    nodeElement.appendChild(connectorElement);
+                });
+            }
+            
+            updateConnectors(node) {
+                const nodeElement = document.getElementById(node.id);
+                
+                // Remove existing connectors
+                nodeElement.querySelectorAll('.connector').forEach(el => el.remove());
+                
+                // Recreate connectors
+                this.renderConnectors(node);
+            }
+            
+            createConnection(from, to) {
+                const connection = {
+                    id: `connection-${this.connectionIdCounter++}`,
+                    from: {
+                        node: from.node.id,
+                        connector: from.index
+                    },
+                    to: {
+                        node: to.node.id,
+                        connector: to.index
+                    }
+                };
+                
+                this.connections.push(connection);
+                this.renderConnection(connection);
+            }
+            
+            renderConnection(connection) {
+                const fromNode = this.findNodeById(connection.from.node);
+                const toNode = this.findNodeById(connection.to.node);
+                
+                if (!fromNode || !toNode) return;
+                
+                const fromConnector = fromNode.connectors[connection.from.connector];
+                const toConnector = toNode.connectors[connection.to.connector];
+                
+                if (!fromConnector || !toConnector) return;
+                
+                const fromNodeElement = document.getElementById(fromNode.id);
+                const toNodeElement = document.getElementById(toNode.id);
+                
+                const fromConnectorElement = fromNodeElement.querySelector(
+                    `.connector[data-connector-index="${connection.from.connector}"]`
+                );
+                const toConnectorElement = toNodeElement.querySelector(
+                    `.connector[data-connector-index="${connection.to.connector}"]`
+                );
+                
+                if (!fromConnectorElement || !toConnectorElement) return;
+                
+                const fromRect = fromConnectorElement.getBoundingClientRect();
+                const toRect = toConnectorElement.getBoundingClientRect();
+                
+                const lineElement = this.createConnectionLine(
+                    fromRect.left + 6,
+                    fromRect.top + 6,
+                    toRect.left + 6,
+                    toRect.top + 6
+                );
+                lineElement.id = connection.id;
+                
+                this.canvas.appendChild(lineElement);
+            }
+            
+            createConnectionLine(x1, y1, x2, y2) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                line.setAttribute('class', 'connection');
+                line.style.position = 'absolute';
+                line.style.left = '0';
+                line.style.top = '0';
+                line.style.width = '100%';
+                line.style.height = '100%';
+                line.style.pointerEvents = 'none';
+                
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('stroke', '#666');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('fill', 'none');
+                
+                const dx = x2 - x1;
+                const bezierX = Math.abs(dx) * 0.5;
+                const d = `M ${x1} ${y1} C ${x1 + bezierX} ${y1}, ${x2 - bezierX} ${y2}, ${x2} ${y2}`;
+                path.setAttribute('d', d);
+                
+                line.appendChild(path);
+                this.canvas.appendChild(line);
+                
+                return line;
+            }
+            
+            updateTempConnection(x, y) {
+                if (!this.tempConnection || !this.connectingFrom) return;
+                
+                const fromRect = this.connectingFrom.element.getBoundingClientRect();
+                const path = this.tempConnection.querySelector('path');
+                
+                const dx = x - (fromRect.left + 6);
+                const bezierX = Math.abs(dx) * 0.5;
+                const d = `M ${fromRect.left + 6} ${fromRect.top + 6} C ${fromRect.left + 6 + bezierX} ${fromRect.top + 6}, ${x - bezierX} ${y}, ${x} ${y}`;
+                path.setAttribute('d', d);
+            }
+            
+            updateConnections() {
+                // Remove all connection lines
+                document.querySelectorAll('.connection').forEach(el => el.remove());
+                
+                // Redraw all connections
+                this.connections.forEach(connection => {
+                    this.renderConnection(connection);
+                });
+            }
+            
+            updateNodePosition(node) {
+                const nodeElement = document.getElementById(node.id);
+                if (!nodeElement) return;
+                
+                const screenX = node.position.x - this.panOffset.x;
+                const screenY = node.position.y - this.panOffset.y;
+                
+                nodeElement.style.transform = `translate(${screenX}px, ${screenY}px) scale(${this.scale})`;
+                nodeElement.style.transformOrigin = 'top left';
+            }
+            
+            updateNodesPosition() {
+                this.nodes.forEach(node => {
+                    this.updateNodePosition(node);
+                });
+            }
+            
+            findNodeById(id) {
+                return this.nodes.find(node => node.id === id);
+            }
+            
+            findConnectorAt(x, y) {
+                const elements = document.elementsFromPoint(x, y);
+                const connectorElement = elements.find(el => el.classList.contains('connector'));
+                
+                if (!connectorElement) return null;
+                
+                const nodeId = connectorElement.dataset.nodeId;
+                const connectorIndex = parseInt(connectorElement.dataset.connectorIndex);
+                const node = this.findNodeById(nodeId);
+                
+                if (!node) return null;
+                
+                return {
+                    node,
+                    index: connectorIndex,
+                    type: node.connectors[connectorIndex].type,
+                    direction: node.connectors[connectorIndex].direction,
+                    element: connectorElement
+                };
+            }
+            
+            deleteSelectedNodes() {
+                // We could implement node selection here. For now, just an alert
+                alert('Delete key pressed. Selection feature to be implemented.');
+            }
+            
+            // Get a list of all dangling connectors (not connected to anything)
+            getDanglingConnectors() {
+                const connectors = [];
+                
+                this.nodes.forEach(node => {
+                    node.connectors.forEach((connector, index) => {
+                        // Check if this connector is used in any connection
+                        const isConnected = this.connections.some(connection => 
+                            (connection.from.node === node.id && connection.from.connector === index) ||
+                            (connection.to.node === node.id && connection.to.connector === index)
+                        );
+                        
+                        if (!isConnected) {
+                            connectors.push({
+                                node: node.id,
+                                connector: index,
+                                type: connector.type,
+                                direction: connector.direction,
+                                name: connector.name
+                            });
+                        }
+                    });
+                });
+                
+                return connectors;
+            }
+            
+            // Export canvas data
+            exportData() {
+                return {
+                    nodes: this.nodes,
+                    connections: this.connections
+                };
+            }
+            
+            // Import canvas data
+            importData(data) {
+                // Clear current state
+                this.nodes = [];
+                this.connections = [];
+                this.canvas.innerHTML = '';
+                
+                // Import nodes
+                data.nodes.forEach(nodeData => {
+                    this.createNode(nodeData);
+                });
+                
+                // Import connections
+                data.connections.forEach(connection => {
+                    this.connections.push(connection);
+                    this.renderConnection(connection);
+                });
+            }
+        }
+
+        // Initialize the graph editor when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('canvas');
+            const editor = new GraphEditor(canvas);
+            
+            // Create some demo nodes
+            const node1 = editor.createNode({
+                title: 'String Node',
+                fields: [
+                    { name: 'text', type: 'string', value: 'Hello World' }
+                ],
+                connectors: [
+                    { name: 'output', type: 'string', direction: 'output' }
+                ]
+            });
+            
+            const node2 = editor.createNode({
+                title: 'Number Node',
+                fields: [
+                    { name: 'value', type: 'number', value: '42' }
+                ],
+                connectors: [
+                    { name: 'output', type: 'number', direction: 'output' }
+                ]
+            });
+            
+            const node3 = editor.createNode({
+                title: 'Processor',
+                fields: [
+                    { name: 'operation', type: 'string', value: 'process' }
+                ],
+                connectors: [
+                    { name: 'input1', type: 'string', direction: 'input' },
+                    { name: 'input2', type: 'number', direction: 'input' },
+                    { name: 'output', type: 'string', direction: 'output' }
+                ]
+            });
+            
+            const subgraphNode = editor.createNode({
+                title: 'Subgraph Example',
+                isSubgraph: true,
+                fields: [
+                    { name: 'description', type: 'string', value: 'Double-click to open' }
+                ],
+                connectors: [
+                    { name: 'input', type: 'string', direction: 'input' },
+                    { name: 'output', type: 'string', direction: 'output' }
+                ],
+                subgraphNodes: []
+            });
+            
+            // Position the demo nodes
+            node1.position = { x: 100, y: 100 };
+            node2.position = { x: 100, y: 250 };
+            node3.position = { x: 350, y: 175 };
+            subgraphNode.position = { x: 600, y: 175 };
+            
+            editor.updateNodesPosition();
+            
+            // Make window.editor available for debugging
+            window.editor = editor;
+        });
+    </script>
+</body>
+</html>
