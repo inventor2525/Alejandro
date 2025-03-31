@@ -3,6 +3,7 @@ from Alejandro.web.session import get_or_create_session, Session
 from Alejandro.Models.screen import Screen
 from Alejandro.Models.control import Control
 from Alejandro.web.terminal import Terminal
+from Alejandro.web.events import TerminalScreenEvent, push_event
 
 bp = Blueprint('terminal', __name__)
 
@@ -51,6 +52,13 @@ class TerminalScreen(Screen):
         session.terminals[terminal_id] = Terminal(terminal_id, session.id)
         session.current_terminal_index = len(session.terminals) - 1
         self.title = f"Terminal - {terminal_id}"
+        
+        # Send empty event to trigger terminal switch on client
+        push_event(TerminalScreenEvent(
+            session_id=session.id,
+            terminal_id=terminal_id,
+            raw_text=""
+        ))
     
     def _next_terminal(self) -> None:
         """Switch to next terminal"""
@@ -60,6 +68,13 @@ class TerminalScreen(Screen):
             session.current_terminal_index = (session.current_terminal_index + 1) % len(terminal_names)
             current_terminal = terminal_names[session.current_terminal_index]
             self.title = f"Terminal - {current_terminal}"
+            
+            # Send empty event to trigger terminal switch on client
+            push_event(TerminalScreenEvent(
+                session_id=session.id,
+                terminal_id=current_terminal,
+                raw_text=""
+            ))
     
     def _prev_terminal(self) -> None:
         """Switch to previous terminal"""
@@ -70,6 +85,13 @@ class TerminalScreen(Screen):
             current_terminal = terminal_names[session.current_terminal_index]
             self.title = f"Terminal - {current_terminal}"
             
+            # Send empty event to trigger terminal switch on client
+            push_event(TerminalScreenEvent(
+                session_id=session.id,
+                terminal_id=current_terminal,
+                raw_text=""
+            ))
+            
     
     def get_template_data(self) -> dict:
         """Get template data for rendering"""
@@ -78,9 +100,7 @@ class TerminalScreen(Screen):
         current_terminal = terminal_names[session.current_terminal_index] if terminal_names else None
         
         return {
-            "terminal_id": current_terminal,
-            "terminal_names": terminal_names,
-            "current_index": session.current_terminal_index
+            "terminal_id": current_terminal
         }
 
 @bp.route(f'/{TerminalScreen.url()}')
@@ -114,6 +134,12 @@ def terminal() -> str:
         terminal_names = list(session.terminals.keys())
         session.current_terminal_index = terminal_names.index(terminal_id)
         screen.title = f"Terminal - {terminal_id}"
+        # Send an event to update the client
+        push_event(TerminalScreenEvent(
+            session_id=session.id,
+            terminal_id=terminal_id,
+            raw_text=""
+        ))
     
     # Get template data
     template_data = screen.get_template_data()

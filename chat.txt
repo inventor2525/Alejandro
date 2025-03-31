@@ -1,6 +1,5 @@
 /drop
 /read-only Instructions.md
-/read-only ExampleCode.md
 
 /read-only Alejandro/Core/application.py
 /read-only Alejandro/Core/screen_stack.py
@@ -21,27 +20,27 @@
 
 /add       Alejandro/web/app.py
 /add       Alejandro/web/events.py
-/add       Alejandro/web/session.py
+/read-only       Alejandro/web/session.py
 /add       Alejandro/web/terminal.py
-/add       Alejandro/web/voice.py
+/read-only       Alejandro/web/voice.py
 
-/add       Alejandro/web/blueprints/__init__.py
-/add       Alejandro/web/blueprints/controls.py
-/add       Alejandro/web/blueprints/conversation.py
-/add       Alejandro/web/blueprints/conversations.py
-/add       Alejandro/web/blueprints/main.py
+/read-only       Alejandro/web/blueprints/__init__.py
+/read-only       Alejandro/web/blueprints/controls.py
+/read-only       Alejandro/web/blueprints/conversation.py
+/read-only       Alejandro/web/blueprints/conversations.py
+/read-only       Alejandro/web/blueprints/main.py
 /add       Alejandro/web/blueprints/terminal.py
-/add       Alejandro/web/blueprints/welcome.py
+/read-only       Alejandro/web/blueprints/welcome.py
 
-/add       Alejandro/web/static/css/conversation.css
-/add       Alejandro/web/static/css/core.css
-/add       Alejandro/web/static/js/core.js
+/read-only       Alejandro/web/static/css/conversation.css
+/read-only       Alejandro/web/static/css/core.css
+/read-only       Alejandro/web/static/js/core.js
 /add       Alejandro/web/static/js/terminal.js
 /add       Alejandro/web/static/js/xterm.js
 
-/add       Alejandro/web/templates/base.html
-/add       Alejandro/web/templates/conversation_list.html
-/add       Alejandro/web/templates/conversation.html
-/add       Alejandro/web/templates/menu.html
+/read-only       Alejandro/web/templates/base.html
+/read-only       Alejandro/web/templates/conversation_list.html
+/read-only       Alejandro/web/templates/conversation.html
+/read-only       Alejandro/web/templates/menu.html
 /add       Alejandro/web/templates/terminal.html
 

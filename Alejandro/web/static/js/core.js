@@ -46,32 +46,36 @@ const eventSource = new EventSource(`http://${host}:${port}/stream?session=${win
 
 eventSource.onmessage = function(event) {
     if (!event.data) {
-        console.log('Skipping keepalive');
-        return;
+        return; // Skip keepalive
     }
     
-    console.log('Raw SSE event:', event);
-    console.log('Event data:', event.data);
-    
-    const data = JSON.parse(event.data);
-    console.log('Parsed event data:', data);
-    
-    switch(data.type) {
-        case 'TranscriptionEvent':
-            document.getElementById('transcription-text').textContent = data.text;
-            break;
-        case 'NavigationEvent':
-            console.log('Navigating to:', data.screen);
-            // Always include session parameter
-            const targetUrl = '/' + data.screen + '?session=' + data.session_id;
-            console.log('Target URL:', targetUrl);
-            
-            // Force navigation to ensure proper loading
-            window.location.href = targetUrl;
-            break;
-        case 'TerminalScreenEvent':
-            // This will be handled by terminal.js if we're on the terminal page
-            break;
+    try {
+        console.log('Core received event data:', event.data);
+        
+        const data = JSON.parse(event.data);
+        console.log('Core parsed event data:', data);
+        
+        switch(data.type) {
+            case 'TranscriptionEvent':
+                const transcriptionElement = document.getElementById('transcription-text');
+                if (transcriptionElement) {
+                    transcriptionElement.textContent = data.text;
+                }
+                break;
+            case 'NavigationEvent':
+                console.log('Navigating to:', data.screen);
+                // Always include session parameter
+                const targetUrl = '/' + data.screen + '?session=' + data.session_id;
+                console.log('Target URL:', targetUrl);
+                
+                // Force navigation to ensure proper loading
+                window.location.href = targetUrl;
+                break;
+            // Terminal events are handled directly by terminal.js's event listener
+            // Don't process them here to avoid duplication
+        }
+    } catch (e) {
+        console.error('Core error processing event:', e);
     }
 };
 

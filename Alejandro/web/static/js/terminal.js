@@ -219,36 +219,8 @@ function saveTerminalBuffer() {
     }
 }
 
-// Switch between terminals
-function switchTerminal(terminalId) {
-    if (terminalId === window.terminalId) {
-        return; // Already on this terminal
-    }
-    
-    window.terminalId = terminalId;
-    console.log('Switching to terminal:', terminalId);
-    
-    // Update URL without reloading
-    const url = new URL(window.location.href);
-    url.searchParams.set('terminal_id', terminalId);
-    window.history.pushState({}, '', url);
-    
-    // Clear terminal and request new data
-    if (term) {
-        term.clear();
-    }
-    
-    // Update active tab
-    document.querySelectorAll('.terminal-tab').forEach(tab => {
-        tab.classList.remove('active');
-        if (tab.textContent.trim() === terminalId) {
-            tab.classList.add('active');
-        }
-    });
-    
-    // Send a dummy input to refresh the terminal
-    sendTerminalInput('\r');
-}
+// Terminal switch is now handled through the TerminalScreen controls
+// No need for custom terminal switching UI
 
 // Handle terminal data from server
 function handleTerminalData(data) {
@@ -308,7 +280,77 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Override the existing event source handler
+// Custom event handler for terminal events
+function handleTerminalEvents(event) {
+    if (!event.data) {
+        return; // Skip keepalive
+    }
+    
+    try {
+        const data = JSON.parse(event.data);
+        console.log('Received event type:', data.type);
+        
+        if (data.type === 'TerminalScreenEvent') {
+            console.log('Terminal event received for:', data.terminal_id);
+            
+            // Check if we need to switch terminals
+            if (data.terminal_id !== window.terminalId) {
+                // Save current terminal buffer before switching
+                if (term && serializeAddon) {
+                    try {
+                        const serializedState = serializeAddon.serialize();
+                        localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
+                        console.log(`Saved buffer for terminal ${window.terminalId} before switching`);
+                    } catch (e) {
+                        console.error("Error saving terminal buffer:", e);
+                    }
+                }
+                
+                // Update terminal ID
+                window.terminalId = data.terminal_id;
+                console.log('Switching to terminal:', window.terminalId);
+                
+                // Update URL without reloading
+                const url = new URL(window.location.href);
+                url.searchParams.set('terminal_id', window.terminalId);
+                window.history.replaceState({}, '', url);
+                
+                // Update page title
+                document.title = `Terminal - ${window.terminalId} - Alejandro`;
+                // Update h1 title if it exists
+                const titleElement = document.querySelector('h1');
+                if (titleElement) {
+                    titleElement.textContent = `Terminal - ${window.terminalId}`;
+                }
+                
+                // Clear terminal
+                if (term) {
+                    term.clear();
+                }
+                
+                // Restore buffer for this terminal if available
+                const savedBuffer = localStorage.getItem(`terminal_buffer_${window.terminalId}`);
+                if (savedBuffer && serializeAddon && term) {
+                    try {
+                        term.write(savedBuffer);
+                        console.log(`Restored buffer for terminal ${window.terminalId}`);
+                    } catch (e) {
+                        console.error("Error restoring terminal buffer:", e);
+                    }
+                }
+            }
+            
+            // Process the terminal data if there is any
+            if (data.raw_text) {
+                handleTerminalData(data);
+            }
+        }
+    } catch (e) {
+        console.error('Error processing terminal event:', e, event.data);
+    }
+}
+
+// Initialize and set up event handling
 window.addEventListener('load', function() {
     console.log("Terminal page load event fired");
     
@@ -339,45 +381,15 @@ window.addEventListener('load', function() {
     // Make sure we have the terminal ID
     console.log('Terminal page loaded with terminal ID:', window.terminalId);
     
-    // Override the event source handler
+    // Set up event handling
     if (typeof eventSource !== 'undefined') {
-        console.log("Setting up event source handler");
-        eventSource.onmessage = function(event) {
-            if (!event.data) {
-                return; // Skip keepalive
-            }
-            
-            try {
-                const data = JSON.parse(event.data);
-                
-                switch(data.type) {
-                    case 'TranscriptionEvent':
-                        const transcriptionElement = document.getElementById('transcription-text');
-                        if (transcriptionElement) {
-                            transcriptionElement.textContent = data.text;
-                        }
-                        break;
-                    case 'NavigationEvent':
-                        console.log('Navigation event received:', data.screen);
-                        const targetUrl = '/' + data.screen + '?session=' + data.session_id;
-                        if (window.location.pathname !== '/' + data.screen) {
-                            window.location.href = targetUrl;
-                        }
-                        break;
-                    case 'TerminalScreenEvent':
-                        console.log('Terminal event received for:', data.terminal_id);
-                        // If we don't have a terminal ID yet, use the one from the event
-                        if (!window.terminalId && data.terminal_id) {
-                            window.terminalId = data.terminal_id;
-                            console.log('Setting terminal ID to:', window.terminalId);
-                        }
-                        handleTerminalData(data);
-                        break;
-                }
-            } catch (e) {
-                console.error('Error processing event:', e, event.data);
-            }
-        };
+        console.log("Setting up terminal event listener");
+        
+        // Remove any existing event listener
+        eventSource.removeEventListener('message', handleTerminalEvents);
+        
+        // Add our terminal event listener
+        eventSource.addEventListener('message', handleTerminalEvents);
     } else {
         console.error("eventSource is not defined! Make sure core.js is loaded first.");
     }

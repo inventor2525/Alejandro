@@ -33,32 +33,7 @@
     width: 100% !important;
 }
 
-.terminal-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 10px;
-}
-
-.terminal-tab {
-    padding: 5px 10px;
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.terminal-tab:hover {
-    background: #e0e0e0;
-}
-
-.terminal-tab.active {
-    background: #4CAF50;
-    color: white;
-    border-color: #4CAF50;
-}
+/* Terminal tabs have been removed in favor of the Control-based navigation */
 
 /* Override some xterm.js styles */
 .xterm-viewport::-webkit-scrollbar {
