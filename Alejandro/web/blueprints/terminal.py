@@ -4,6 +4,7 @@ from Alejandro.Models.screen import Screen
 from Alejandro.Models.control import Control
 from Alejandro.web.terminal import Terminal
 from Alejandro.web.events import TerminalScreenEvent, push_event
+import time
 
 bp = Blueprint('terminal', __name__)
 
@@ -49,16 +50,17 @@ class TerminalScreen(Screen):
         """Create a new terminal"""
         session = self.session()
         terminal_id = f"terminal_{len(session.terminals) + 1}"
-        session.terminals[terminal_id] = Terminal(terminal_id, session.id)
+        # Create the new terminal
+        new_terminal = Terminal(terminal_id, session.id)
+        session.terminals[terminal_id] = new_terminal
         session.current_terminal_index = len(session.terminals) - 1
         self.title = f"Terminal - {terminal_id}"
         
-        # Send empty event to trigger terminal switch on client
-        push_event(TerminalScreenEvent(
-            session_id=session.id,
-            terminal_id=terminal_id,
-            raw_text=""
-        ))
+        # Give the terminal a moment to initialize
+        time.sleep(0.2)
+        
+        # Send a terminal switch event and replay the buffer
+        new_terminal.replay_buffer()
     
     def _next_terminal(self) -> None:
         """Switch to next terminal"""
@@ -69,12 +71,10 @@ class TerminalScreen(Screen):
             current_terminal = terminal_names[session.current_terminal_index]
             self.title = f"Terminal - {current_terminal}"
             
-            # Send empty event to trigger terminal switch on client
-            push_event(TerminalScreenEvent(
-                session_id=session.id,
-                terminal_id=current_terminal,
-                raw_text=""
-            ))
+            # Get the terminal instance and replay its buffer
+            terminal = session.terminals[current_terminal]
+            # Replay the full buffer to restore all previous output
+            terminal.replay_buffer()
     
     def _prev_terminal(self) -> None:
         """Switch to previous terminal"""
@@ -85,12 +85,10 @@ class TerminalScreen(Screen):
             current_terminal = terminal_names[session.current_terminal_index]
             self.title = f"Terminal - {current_terminal}"
             
-            # Send empty event to trigger terminal switch on client
-            push_event(TerminalScreenEvent(
-                session_id=session.id,
-                terminal_id=current_terminal,
-                raw_text=""
-            ))
+            # Get the terminal instance and replay its buffer
+            terminal = session.terminals[current_terminal]
+            # Replay the full buffer to restore all previous output
+            terminal.replay_buffer()
             
     
     def get_template_data(self) -> dict:
@@ -134,12 +132,11 @@ def terminal() -> str:
         terminal_names = list(session.terminals.keys())
         session.current_terminal_index = terminal_names.index(terminal_id)
         screen.title = f"Terminal - {terminal_id}"
-        # Send an event to update the client
-        push_event(TerminalScreenEvent(
-            session_id=session.id,
-            terminal_id=terminal_id,
-            raw_text=""
-        ))
+        
+        # Get the terminal instance
+        terminal = session.terminals[terminal_id]
+        # Replay the full terminal buffer
+        terminal.replay_buffer()
     
     # Get template data
     template_data = screen.get_template_data()

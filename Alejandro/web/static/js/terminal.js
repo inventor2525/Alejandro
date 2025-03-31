@@ -108,31 +108,16 @@ function initTerminal() {
     terminalReady = true;
     console.log("Terminal ready");
 
-    // Restore buffer if available
-    const savedBuffer = localStorage.getItem(`terminal_buffer_${window.terminalId}`);
-
-    if (savedBuffer && serializeAddon) {
-        try {
-            console.log(`Restoring terminal buffer for ${window.terminalId} using serialize addon`);
-            
-            // Clear terminal first
-            term.clear();
-            
-            // Write the serialized buffer directly
-            term.write(savedBuffer);
-        } catch (e) {
-            console.error("Error restoring terminal buffer:", e);
-        }
-    } else {
-        // Process any pending data if no saved buffer
-        if (pendingData.length > 0) {
-            console.log(`Processing ${pendingData.length} pending data items`);
-            pendingData.forEach(data => {
-                term.write(data);
-            });
-            pendingData = [];
-        }
-    }
+    // We will not restore buffer here on initial load
+// This will be handled by the server sending initial state
+// Process any pending data
+if (pendingData.length > 0) {
+    console.log(`Processing ${pendingData.length} pending data items`);
+    pendingData.forEach(data => {
+        term.write(data);
+    });
+    pendingData = [];
+}
 
     // Send terminal size to server
     if (fitAddon) {
@@ -203,21 +188,8 @@ function clearTerminal() {
     }
 }
 
-// Save terminal buffer manually
-function saveTerminalBuffer() {
-    if (!term || !serializeAddon) return;
-    
-    try {
-        // Use the serialize addon to get the terminal state
-        const serializedState = serializeAddon.serialize();
-        
-        // Store the serialized state
-        localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
-        console.log(`Manually saved terminal buffer for ${window.terminalId} using serialize addon`);
-    } catch (e) {
-        console.error("Error saving terminal buffer:", e);
-    }
-}
+// We no longer manually save terminal buffers
+// Terminal state is managed by the server
 
 // Terminal switch is now handled through the TerminalScreen controls
 // No need for custom terminal switching UI
@@ -235,50 +207,27 @@ function handleTerminalData(data) {
     }
     
     // Write new content directly to terminal
-    term.write(data.raw_text);
+    // Make sure we're getting proper data
+    if (data.raw_text && data.raw_text.length > 0) {
+        console.log(`Writing ${data.raw_text.length} chars to terminal`);
+        // The terminal handles ANSI escape sequences properly
+        term.write(data.raw_text);
+    }
 }
 
-// Store terminal state when navigating away
+// Store terminal session info when navigating away
 window.addEventListener('beforeunload', function(event) {
-    // Only store state if we're on the terminal page
+    // Only store information if we're on the terminal page
     if (window.location.pathname.includes('/terminal')) {
-        console.log("Storing terminal state before navigation");
+        console.log("Storing terminal session info before navigation");
         localStorage.setItem('terminalActive', 'true');
         localStorage.setItem('lastTerminalId', window.terminalId);
-        
-        // Save the terminal buffer using serialize addon
-        if (term && serializeAddon) {
-            try {
-                const serializedState = serializeAddon.serialize();
-                localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
-                console.log(`Stored terminal buffer for ${window.terminalId} using serialize addon`);
-            } catch (e) {
-                console.error("Error saving terminal buffer:", e);
-            }
-        }
+        // We no longer save terminal buffer, as it will be managed by the server
     }
 });
 
-// Also store terminal state when clicking on navigation controls
-document.addEventListener('click', function(event) {
-    if (event.target.tagName === 'BUTTON' && 
-        event.target.id !== 'new' && 
-        event.target.id !== 'next' && 
-        event.target.id !== 'prev' && 
-        window.location.pathname.includes('/terminal')) {
-        
-        console.log("Navigation button clicked, saving terminal state");
-        if (term && serializeAddon) {
-            try {
-                const serializedState = serializeAddon.serialize();
-                localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
-                console.log(`Stored terminal buffer for ${window.terminalId} using serialize addon`);
-            } catch (e) {
-                console.error("Error saving terminal buffer:", e);
-            }
-        }
-    }
-});
+// We don't need to save terminal state on navigation clicks anymore
+// State is managed on the server side
 
 // Custom event handler for terminal events
 function handleTerminalEvents(event) {
@@ -295,16 +244,8 @@ function handleTerminalEvents(event) {
             
             // Check if we need to switch terminals
             if (data.terminal_id !== window.terminalId) {
-                // Save current terminal buffer before switching
-                if (term && serializeAddon) {
-                    try {
-                        const serializedState = serializeAddon.serialize();
-                        localStorage.setItem(`terminal_buffer_${window.terminalId}`, serializedState);
-                        console.log(`Saved buffer for terminal ${window.terminalId} before switching`);
-                    } catch (e) {
-                        console.error("Error saving terminal buffer:", e);
-                    }
-                }
+                // We no longer save terminal buffers before switching
+                // Terminal state is managed by the server
                 
                 // Update terminal ID
                 window.terminalId = data.terminal_id;
@@ -323,21 +264,17 @@ function handleTerminalEvents(event) {
                     titleElement.textContent = `Terminal - ${window.terminalId}`;
                 }
                 
-                // Clear terminal
+                // Clear the terminal - we'll get a full buffer from the server
                 if (term) {
+                    console.log(`Clearing terminal for switch to: ${window.terminalId}`);
                     term.clear();
                 }
                 
-                // Restore buffer for this terminal if available
-                const savedBuffer = localStorage.getItem(`terminal_buffer_${window.terminalId}`);
-                if (savedBuffer && serializeAddon && term) {
-                    try {
-                        term.write(savedBuffer);
-                        console.log(`Restored buffer for terminal ${window.terminalId}`);
-                    } catch (e) {
-                        console.error("Error restoring terminal buffer:", e);
-                    }
-                }
+                console.log(`Switching to terminal: ${window.terminalId}`);
+                
+                // The server will send the complete buffer
+                // No need to request anything else
+                term.focus();
             }
             
             // Process the terminal data if there is any
@@ -371,12 +308,8 @@ window.addEventListener('load', function() {
     // Initialize terminal
     initTerminal();
     
-    // Save terminal buffer periodically
-    setInterval(() => {
-        if (window.location.pathname.includes('/terminal') && term) {
-            saveTerminalBuffer();
-        }
-    }, 5000); // Save every 5 seconds
+    // We no longer periodically save terminal buffers
+    // Terminal state is managed by the server
     
     // Make sure we have the terminal ID
     console.log('Terminal page loaded with terminal ID:', window.terminalId);

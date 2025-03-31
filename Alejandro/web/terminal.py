@@ -21,6 +21,11 @@ class Terminal:
         self.lines = lines
         self.running = True
         
+        # Store screen contents for replay
+        self.buffer = b""
+        self.screen_buffer = ""
+        self.last_output = ""
+        
         # Create PTY
         self.master_fd, self.slave_fd = pty.openpty()
         
@@ -46,8 +51,12 @@ class Terminal:
         self.read_thread.daemon = True
         self.read_thread.start()
         
-        # Send initial screen update
-        self._send_screen_update()
+        # Wait briefly for the shell to initialize
+        time.sleep(0.1)
+        
+        # Send a clear screen command to ensure a clean start
+        # This should be handled properly by xterm.js
+        self.clear()
     
     def _set_winsize(self, fd, row, col, xpix=0, ypix=0):
         """Set terminal window size"""
@@ -56,20 +65,10 @@ class Terminal:
     
     def _read_loop(self):
         """Read from PTY and send updates"""
-        buffer = b""
+        local_buffer = b""
         
-        # Skip initial output which often contains empty lines
-        try:
-            # Wait briefly for initial output
-            time.sleep(0.1)
-            # Read and discard initial output
-            while True:
-                r, _, _ = select.select([self.master_fd], [], [], 0.01)
-                if not (self.master_fd in r):
-                    break
-                os.read(self.master_fd, 1024)
-        except:
-            pass
+        # Wait briefly for the shell to initialize
+        time.sleep(0.1)
             
         while self.running:
             try:
@@ -77,10 +76,43 @@ class Terminal:
                 if self.master_fd in r:
                     data = os.read(self.master_fd, 1024)
                     if data:
-                        buffer += data
-                        # Send update immediately to ensure responsiveness
-                        self._send_screen_update(buffer.decode('utf-8', errors='replace'))
-                        buffer = b""
+                        local_buffer += data
+                        self.buffer += data
+                        
+                        # Accumulate data for a short time to reduce fragmentation
+                        # This helps prevent duplicate prompts caused by rapid partial updates
+                        time.sleep(0.01)
+                        
+                        # Check if there's more data available without blocking
+                        while True:
+                            r, _, _ = select.select([self.master_fd], [], [], 0)
+                            if self.master_fd not in r:
+                                break
+                            try:
+                                more_data = os.read(self.master_fd, 1024)
+                                if more_data:
+                                    local_buffer += more_data
+                                    self.buffer += more_data
+                                else:
+                                    break
+                            except:
+                                break
+                                
+                        # Convert the data to text
+                        output_text = local_buffer.decode('utf-8', errors='replace')
+                        
+                        # Update screen buffer (trimming if needed)
+                        if len(self.buffer) > 102400:  # Keep roughly 100KB of history
+                            self.buffer = self.buffer[-51200:]  # Keep around 50KB
+                            
+                        self.screen_buffer = self.buffer.decode('utf-8', errors='replace')
+                        
+                        # Store last output for replay
+                        self.last_output = output_text
+                        
+                        # Send update with all accumulated data
+                        self._send_screen_update(output_text)
+                        local_buffer = b""
             except (OSError, IOError) as e:
                 if e.errno != 11:  # EAGAIN
                     print(f"Terminal read error: {e}")
@@ -114,6 +146,29 @@ class Terminal:
     def clear(self):
         """Clear terminal screen"""
         self.send_input("\x1b[H\x1b[2J")  # ANSI escape sequence to clear screen
+        
+    def redraw(self):
+        """Redraw the terminal screen (Ctrl-L)"""
+        self.send_input("\x0c")  # Ctrl-L to redraw screen
+        
+    def replay_buffer(self):
+        """Send the complete buffer to the client for display"""
+        if self.screen_buffer:
+            # First clear the terminal
+            event = TerminalScreenEvent(
+                session_id=self.session_id,
+                terminal_id=self.name,
+                raw_text="\x1b[H\x1b[2J"  # Clear screen
+            )
+            push_event(event)
+            
+            # Then send the complete buffer
+            event = TerminalScreenEvent(
+                session_id=self.session_id,
+                terminal_id=self.name,
+                raw_text=self.screen_buffer
+            )
+            push_event(event)
     
     def close(self):
         """Close terminal"""
