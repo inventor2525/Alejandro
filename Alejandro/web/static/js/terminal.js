@@ -5,6 +5,8 @@ let serializeAddon;
 let terminalReady = false;
 let pendingData = [];
 
+// We're not going to adjust terminal size in JS anymore
+
 // Initialize terminal
 function initTerminal() {
     console.log("Initializing xterm.js terminal");
@@ -14,6 +16,8 @@ function initTerminal() {
         console.log("Terminal already initialized, skipping initialization");
         return;
     }
+    
+    // No size adjustment in JS
     
     // Check if required libraries are loaded
     if (typeof Terminal === 'undefined') {
@@ -33,7 +37,11 @@ function initTerminal() {
         fontFamily: 'Menlo, Monaco, "Courier New", monospace',
         fontSize: 14,
         lineHeight: 1.2,
-        scrollback: 1000
+        scrollback: 10000,  // Significantly increased scrollback
+        allowTransparency: false,
+        convertEol: true,   // Convert line feed characters to carriage return + line feed
+        disableStdin: false, // Ensure input is enabled
+        rows: 30            // Set a specific number of rows to ensure height calculation is correct
     });
 
     console.log("Terminal instance created");
@@ -79,8 +87,15 @@ function initTerminal() {
         console.log("Terminal opened in container");
         
         if (fitAddon) {
-            fitAddon.fit();
-            console.log("Terminal fitted to container");
+            // Delay the fit operation slightly to ensure the container is fully rendered
+            setTimeout(() => {
+                fitAddon.fit();
+                console.log("Terminal fitted to container");
+                
+                // After fitting, send the new dimensions to the server
+                const dims = term.options;
+                sendTerminalResize(dims.cols, dims.rows);
+            }, 50);
         }
     } catch (e) {
         console.error("Error opening terminal:", e);
@@ -96,17 +111,42 @@ function initTerminal() {
 
     // Handle window resize
     window.addEventListener('resize', () => {
-        if (fitAddon) {
-            fitAddon.fit();
-            // Send terminal size to server
-            const dimensions = term.options;
-            sendTerminalResize(dimensions.cols, dimensions.rows);
+        if (fitAddon && term) {
+            // Debounce resize to prevent too many events
+            clearTimeout(window.resizeTimer);
+            window.resizeTimer = setTimeout(() => {
+                console.log("Window resized, fitting terminal");
+                
+                // No size adjustment in JS
+                
+                // Then fit the terminal to its container
+                fitAddon.fit();
+                
+                // Send terminal size to server
+                const dimensions = term.options;
+                sendTerminalResize(dimensions.cols, dimensions.rows);
+                
+                // Focus the terminal after resize
+                term.focus();
+            }, 100);
         }
     });
 
     // Mark terminal as ready
     terminalReady = true;
     console.log("Terminal ready");
+    
+    // Add scrollToBottom method if it doesn't exist
+    if (!term.scrollToBottom) {
+        term.scrollToBottom = function() {
+            if (term._core && term._core.viewport) {
+                term._core.viewport.scrollBarWidth = 15; // Make sure scrollbar is visible
+                term._core.viewport.syncScrollArea();
+                term._core.viewport.element.scrollTop = term._core.viewport.element.scrollHeight;
+                console.log("Manually scrolled terminal to bottom");
+            }
+        };
+    }
 
     // We will not restore buffer here on initial load
 // This will be handled by the server sending initial state
@@ -212,6 +252,14 @@ function handleTerminalData(data) {
         console.log(`Writing ${data.raw_text.length} chars to terminal`);
         // The terminal handles ANSI escape sequences properly
         term.write(data.raw_text);
+        
+        // Scroll to bottom after writing content
+        setTimeout(() => {
+            // Try to scroll to bottom to ensure we see the prompt
+            if (term && term._core) {
+                term.scrollToBottom();
+            }
+        }, 10);
     }
 }
 

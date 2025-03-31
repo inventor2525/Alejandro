@@ -146,6 +146,7 @@ def terminal() -> str:
         'terminal.html',
         screen=screen,
         session_id=session.id,
+        body_class="terminal-page",
         **template_data
     )
 

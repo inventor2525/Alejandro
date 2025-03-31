@@ -105,7 +105,16 @@ class Terminal:
                         if len(self.buffer) > 102400:  # Keep roughly 100KB of history
                             self.buffer = self.buffer[-51200:]  # Keep around 50KB
                             
-                        self.screen_buffer = self.buffer.decode('utf-8', errors='replace')
+                        # Decode buffer to text
+                        decoded_buffer = self.buffer.decode('utf-8', errors='replace')
+                        
+                        # Filter out any visible escape sequences
+                        import re
+                        # Replace visible escape sequences (appears as ^[[H^[[2J in terminal) with empty string
+                        self.screen_buffer = re.sub(r'\^\[\[H\^\[\[2J', '', decoded_buffer)
+                        
+                        # Also filter the current output
+                        output_text = re.sub(r'\^\[\[H\^\[\[2J', '', output_text)
                         
                         # Store last output for replay
                         self.last_output = output_text
@@ -153,22 +162,32 @@ class Terminal:
         
     def replay_buffer(self):
         """Send the complete buffer to the client for display"""
-        if self.screen_buffer:
-            # First clear the terminal
-            event = TerminalScreenEvent(
-                session_id=self.session_id,
-                terminal_id=self.name,
-                raw_text="\x1b[H\x1b[2J"  # Clear screen
-            )
-            push_event(event)
+        if not self.screen_buffer:
+            return
             
-            # Then send the complete buffer
-            event = TerminalScreenEvent(
-                session_id=self.session_id,
-                terminal_id=self.name,
-                raw_text=self.screen_buffer
-            )
-            push_event(event)
+        # Use a proper terminal sequence to clear the screen
+        clear_event = TerminalScreenEvent(
+            session_id=self.session_id,
+            terminal_id=self.name,
+            raw_text='\x1b[2J\x1b[H'  # ANSI clear screen and move cursor to home
+        )
+        push_event(clear_event)
+        
+        # Add a small delay to ensure the clear command is processed
+        time.sleep(0.05)
+        
+        # Filter out any raw escape sequences that might be visible
+        # This regex matches the common clear screen sequence that appears as text 
+        import re
+        clean_buffer = re.sub(r'\^\[\[H\^\[\[2J', '', self.screen_buffer)
+            
+        # Then send the cleaned buffer
+        event = TerminalScreenEvent(
+            session_id=self.session_id,
+            terminal_id=self.name,
+            raw_text=clean_buffer
+        )
+        push_event(event)
     
     def close(self):
         """Close terminal"""

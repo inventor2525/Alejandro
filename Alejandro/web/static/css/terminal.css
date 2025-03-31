@@ -1,18 +1,29 @@
+/* Super simple terminal layout that only affects the terminal page */
+body.terminal-page {
+    overflow: hidden !important; /* Prevent body scrollbar, but only on terminal page */
+}
+
+.terminal-page .content-area {
+    overflow: hidden !important; /* Prevent content-area scrollbar, but only on terminal page */
+    padding-bottom: 800px !important; /* Override the default padding-bottom to be smaller */
+}
+
 .terminal-view {
-    height: calc(100vh - 200px);
-    min-height: 400px;
+    width: 100%;
+    height: 50px; /* Increased height to ensure content fits */
     border-radius: 5px;
-    margin: 0;
+    margin: 0 0 -50px 0; /* Add bottom margin to ensure space at end */
     padding: 0;
-    overflow: hidden;
     background-color: #000;
     border: 1px solid #333;
+    position: relative; /* Establish stacking context */
 }
 
 #terminal-container {
     width: 100%;
     height: 100%;
     background-color: #000;
+    overflow: visible; /* Ensure content can overflow with scrollbar */
 }
 
 /* Ensure xterm.js container is visible */
@@ -27,10 +38,12 @@
     width: 100%;
 }
 
+/* Make sure the terminal content is scrollable */
 .xterm-viewport {
-    overflow-y: auto !important;
+    overflow-y: scroll !important; /* Force scrollbar to always show */
     overflow-x: hidden !important;
-    width: 100% !important;
+    width: auto !important; /* Let the width adjust naturally */
+    right: 0 !important;
 }
 
 /* Terminal tabs have been removed in favor of the Control-based navigation */
