@@ -11,6 +11,7 @@ class SyntaxTreeNode:
     end_regex: Optional[str] = None
     validate_start_regex: Optional[str] = None
     validate_end_regex: Optional[str] = None
+    requirements: List[Requirement] = field(default_factory=list)
     children: List["SyntaxTreeNode"] = field(default_factory=list)
     _other_nodes_catch_regexes: Set[str] = field(default_factory=set, init=False)
     
@@ -61,13 +62,13 @@ class SyntaxTreeValidatorRequirement(Requirement):
     
     def evaluate(self, messages: List[dict]) -> bool:
         """
-        Evaluates if the response follows the syntax tree structure.
+        Evaluates if the response follows the syntax tree structure and node requirements.
         
         Args:
             messages: List of message dictionaries
             
         Returns:
-            bool: True if the syntax tree is followed, False otherwise
+            bool: True if the syntax tree and requirements are followed, False otherwise
         """
         self._prompt_info = ""
         if not messages:
@@ -85,6 +86,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
         current_nodes = self.nodes
         node_stack = []
         line_index = 0
+        current_content: List[str] = []
         
         while line_index < len(lines):
             line = lines[line_index].rstrip()
@@ -112,8 +114,9 @@ class SyntaxTreeValidatorRequirement(Requirement):
                             return False
                     
                     # Enter this node
-                    node_stack.append((node, current_nodes))
+                    node_stack.append((node, current_nodes, current_content))
                     current_nodes = node.children
+                    current_content = []
                     found_match = True
                     line_index += 1
                     break
@@ -134,9 +137,22 @@ class SyntaxTreeValidatorRequirement(Requirement):
                         )
                         return False
                     
+                    # Evaluate requirements for this node
+                    if current_node.requirements:
+                        node_content = "\n".join(node_stack[-1][2])
+                        for req in current_node.requirements:
+                            # Pass content as a single message
+                            if not req.evaluate([{"role": "assistant", "content": node_content}]):
+                                self._prompt_info = (
+                                    f"Node with start regex '{current_node.start_regex}' failed requirement "
+                                    f"'{req.__class__.__web_name__}' on content:\n{node_content[:100]}..."
+                                )
+                                return False
+                    
                     # Pop back to parent node
-                    node_stack.pop()
-                    current_nodes = node_stack[-1][1] if node_stack else self.nodes
+                    node, parent_nodes, parent_content = node_stack.pop()
+                    current_nodes = parent_nodes
+                    current_content = parent_content
                     found_match = True
                     line_index += 1
                     continue
@@ -152,6 +168,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
                             f"start regex '{current_node.start_regex}'."
                         )
                         return False
+                current_content.append(line)
             
             line_index += 1
         
@@ -181,14 +198,16 @@ if __name__ == "__main__":
     # Example: Assistant Interaction syntax tree
     assistant_interaction_syntax = [
         SyntaxTreeNode(
-            start_regex=r"^```txt$",
-            end_regex=r"^```$",
+            start_regex=r"^\s*```txt\s*$",
+            end_regex=r"^\s*```\s*$",
             validate_start_regex=r"^```txt$",
             validate_end_regex=r"^```$",
             children=[
                 SyntaxTreeNode(
-                    start_regex=r"^<AI_RESPONSE>$",
-                    end_regex=r"^<END_OF_INPUT>$",
+                    start_regex=r"^\s*<AI_RESPONSE>\s*$",
+                    end_regex=r"^\s*<END_OF_INPUT>\s*$",
+                    validate_start_regex=r"^<AI_RESPONSE>$",
+                    validate_end_regex=r"^<END_OF_INPUT>$",
                     children=[
                         SyntaxTreeNode(
                             start_regex=r"^### AI_SAVE_START:.*$",
@@ -196,8 +215,8 @@ if __name__ == "__main__":
                             validate_start_regex=r"^### AI_SAVE_START:\s*/[^\s]+.*$",
                             children=[
                                 SyntaxTreeNode(
-                                    start_regex=r"^### AI_READ_LINES:.*$",
-                                    validate_start_regex=r"^### AI_READ_LINES:\s*/[^\s]+.*:\d+:\d+(?::\"[+-][^\"]*\")?$"
+                                    start_regex=r"^\s*### AI_READ_LINES:.*$",
+                                    validate_start_regex=r"^\s*### AI_READ_LINES:\s*/[^\s]+.*:\d+:\d+(?::\"[+-][^\"]*\")?$"
                                 )
                             ]
                         ),
