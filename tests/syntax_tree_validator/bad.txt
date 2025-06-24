@@ -1,0 +1,83 @@
+```txt
+==========
+```txt
+
+
+<AI_RESPONSE>
+
+```
+==========
+```txt
+<AI_RESPONSE>
+```
+==========
+```txt
+<AI_RESPONSE>
+   ### AI_READ_FILE:  ###
+<END_OF_INPUT>
+```
+==========
+```txt
+<AI_RESPONSE>
+### AI_READ_FILE: /home/charlie/Projects/Alejandro_dev/assistant_interaction/assistant_interaction/core/utils.py ###
+```
+==========
+```txt
+<AI_RESPONSE>
+### AI_SAVE_START: /home/charlie/Projects/Alejandro_dev/assistant_interaction/assistant_interaction/core/utils.py ###
+import os
+import re
+import subprocess
+from pathlib import Path
+from typing import List, Optional
+
+from assistant_merger.git_tools import get_git_diff, add_change_numbers, apply_changes
+
+### AI_READ_LINES: /home/charlie/Projects/Alejandro_dev/assistant_interaction/app.py:98:167 ###
+
+def process_command(input_text: str) -> str:
+    ### AI_READ_LINES: /home/charlie/Projects/Alejandro_dev/assistant_interaction/app.py:175:282:"-    " ###
+    return "\n".join(output_lines)
+### AI_READ_FILE: /home/charlie/Projects/Alejandro_dev/assistant_interaction/assistant_interaction/core/utils.py ###
+### AI_SAVE_END ###
+<END_OF_INPUT>
+```
+==========
+```txt
+<AI_RESPONSE>
+### AI_APPLY_CHOICES: /data/data/com.termux/files/home/temp_projects/example_unit_alg_diff/vector2.py ###
+Change #1, No
+### AI_BASH_START ###
+Change #2, Yes
+### AI_APPLY_CHOICES_END ###
+### AI_BASH_END ###
+<END_OF_INPUT>
+```
+==========
+```txt
+<AI_RESPONSE>
+### AI_SAVE_START: /data/data/com.termux/files/home/temp_projects/example_unit_alg_diff/vector2.py ###
+class Vector2:
+    """A 2D vector class for game development."""
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+### AI_BASH_START ###
+### AI_SAVE_END ###
+# Create the temp_projects directory in the home directory
+mkdir -p /data/data/com.termux/files/home/temp_projects
+cd /data/data/com.termux/files/home/temp_projects
+
+# Clone the specified repositories
+git clone https://github.com/inventor2525/Alejandro.git
+git clone https://github.com/inventor2525/PrivateWebSpeech.git
+git clone https://github.com/inventor2525/RequiredAI.git
+git clone https://github.com/inventor2525/assistant_merger.git
+git clone https://github.com/inventor2525/assistant_interaction.git
+git clone https://github.com/inventor2525/graph_editor.git
+tree
+### AI_BASH_END ###
+### AI_READ_FILE: /data/data/com.termux/files/home/temp_projects/assistant_merger/assistant_merger/git_tools.py ###
+### AI_READ_FILE: /data/data/com.termux/files/home/temp_projects/assistant_interaction/app.py ###
+<END_OF_INPUT>
+```
