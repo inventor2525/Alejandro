@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Set, Dict
 import re
-from RequiredAI.requirements import requirement, Requirement
+from RequiredAI.requirements import requirement, Requirement, RequirementResult
+import uuid
 
 @dataclass
 class SyntaxTreeNode:
@@ -39,28 +40,32 @@ class SyntaxTreeValidatorRequirement(Requirement):
     
     def __post_init__(self):
         """Populate _other_nodes_catch_regexes for each node."""
-        all_nodes:Set[SyntaxTreeNode] = set()
+        self._all_nodes:Dict[str, SyntaxTreeNode] = {}
         
-        def collect_nodes(node: SyntaxTreeNode):
-            all_nodes.add(node)
-            for child in node.children:
-                collect_nodes(child)
+        open_list = list(self.nodes)
+        while len(open_list)>0:
+            node = open_list.pop()
+            if not hasattr(node, "__uuid__"):
+                node.__uuid__ = str(uuid.uuid4())
+            
+            if node.__uuid__ not in self._all_nodes:
+                self._all_nodes[node.__uuid__] = node
+                open_list.extend(node.children)
         
-        # Collect all nodes
-        for node in self.nodes:
-            collect_nodes(node)
-        
+        for node_uuid, node in self._all_nodes.items():
+            node.__child_uuids__ = set([child.__uuid__ for child in node.children])
+            
         # For each node, find catch regexes of non-self, non-direct-child nodes
-        for node in all_nodes:
+        for node_uuid, node in self._all_nodes.items():
             node._other_nodes_catch_regexes = set()
-            for other_node in all_nodes:
-                if other_node == node or other_node in node.children:
+            for other_node_uuid, other_node in self._all_nodes.items():
+                if other_node_uuid == node_uuid or other_node_uuid in node.__child_uuids__:
                     continue
                 node._other_nodes_catch_regexes.add(other_node.start_regex)
                 if other_node.end_regex:
                     node._other_nodes_catch_regexes.add(other_node.end_regex)
     
-    def evaluate(self, messages: List[Dict[str,str]]) -> bool:
+    def evaluate(self, messages: List[Dict[str,str]]) -> RequirementResult:
         """
         Evaluates if the response follows the syntax tree structure and node requirements.
         
@@ -98,7 +103,9 @@ class SyntaxTreeValidatorRequirement(Requirement):
                             f"Line {line_index + 1}: '{line}' matches start regex '{node.start_regex}' "
                             f"but fails validation regex '{validate_regex}'."
                         )
-                        return False
+                        return RequirementResult.construct(self, False, {
+                            "msg":self._prompt_info
+                        })
                     
                     # Check for invalid catch regexes from other nodes
                     for catch_regex in node._other_nodes_catch_regexes:
@@ -107,7 +114,9 @@ class SyntaxTreeValidatorRequirement(Requirement):
                                 f"Line {line_index + 1}: '{line}' contains invalid marker matching "
                                 f"regex '{catch_regex}' from another node."
                             )
-                            return False
+                            return RequirementResult.construct(self, False, {
+                                "msg":self._prompt_info
+                            })
                     
                     # Enter this node
                     node_stack.append((node, current_nodes, current_content))
@@ -131,7 +140,9 @@ class SyntaxTreeValidatorRequirement(Requirement):
                             f"Line {line_index + 1}: '{line}' matches end regex '{current_node.end_regex}' "
                             f"but fails validation regex '{validate_regex}'."
                         )
-                        return False
+                        return RequirementResult.construct(self, False, {
+                            "msg":self._prompt_info
+                        })
                     
                     # Evaluate requirements for this node
                     if current_node.requirements:
@@ -143,7 +154,9 @@ class SyntaxTreeValidatorRequirement(Requirement):
                                     f"Node with start regex '{current_node.start_regex}' failed requirement "
                                     f"'{req.__class__.__web_name__}' on content:\n{node_content[:100]}..."
                                 )
-                                return False
+                                return RequirementResult.construct(self, False, {
+                                    "msg":self._prompt_info
+                                })
                     
                     # Pop back to parent node
                     node, parent_nodes, parent_content = node_stack.pop()
@@ -163,7 +176,9 @@ class SyntaxTreeValidatorRequirement(Requirement):
                             f"regex '{catch_regex}' from another node while in node with "
                             f"start regex '{current_node.start_regex}'."
                         )
-                        return False
+                        return RequirementResult.construct(self, False, {
+                            "msg":self._prompt_info
+                        })
                 current_content.append(line)
             
             line_index += 1
@@ -176,9 +191,13 @@ class SyntaxTreeValidatorRequirement(Requirement):
                 f"start regex '{current_node.start_regex}', expecting end regex "
                 f"'{current_node.end_regex}'."
             )
-            return False
+            return RequirementResult.construct(self, False, {
+                "msg":self._prompt_info
+            })
             
-        return True
+        return RequirementResult.construct(self, True, {
+            "msg":self._prompt_info
+        })
     
     @property
     def prompt(self) -> str:
@@ -243,3 +262,12 @@ if __name__ == "__main__":
     
     print("Assistant Interaction syntax tree defined:")
     print(assistant_interaction_requirement)
+    
+    print(assistant_interaction_requirement.evaluate([{"content":r"""
+
+```txt
+<AI_RESPONSE>
+<END_OF_INPUT>
+```
+
+"""}]).__bool__())
