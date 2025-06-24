@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Set, Dict
 import re
-from requireai.requirements import requirement, Requirement
+from RequiredAI.requirements import requirement, Requirement
 
 @dataclass
 class SyntaxTreeNode:
