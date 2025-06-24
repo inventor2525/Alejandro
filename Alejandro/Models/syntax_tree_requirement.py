@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Dict
 import re
 from requireai.requirements import requirement, Requirement
 
@@ -39,7 +39,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
     
     def __post_init__(self):
         """Populate _other_nodes_catch_regexes for each node."""
-        all_nodes = set()
+        all_nodes:Set[SyntaxTreeNode] = set()
         
         def collect_nodes(node: SyntaxTreeNode):
             all_nodes.add(node)
@@ -60,7 +60,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
                 if other_node.end_regex:
                     node._other_nodes_catch_regexes.add(other_node.end_regex)
     
-    def evaluate(self, messages: List[dict]) -> bool:
+    def evaluate(self, messages: List[Dict[str,str]]) -> bool:
         """
         Evaluates if the response follows the syntax tree structure and node requirements.
         
@@ -78,10 +78,6 @@ class SyntaxTreeValidatorRequirement(Requirement):
         last_message = messages[-1]
         content = last_message.get("content", "")
         
-        if not isinstance(content, str):
-            self._prompt_info = "Last message content is not a string."
-            return False
-            
         lines = content.splitlines()
         current_nodes = self.nodes
         node_stack = []
