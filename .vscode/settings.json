@@ -1,11 +1,15 @@
 {
-	"python.testing.pytestArgs": [
-		"tests"
-	],
-	"python.testing.unittestEnabled": false,
-	"python.testing.pytestEnabled": true,
 	"python.defaultInterpreterPath": "/home/charlie/.pyenv/versions/3.10.13/envs/alejandro_dev/bin/python",
 	"python.analysis.extraPaths": [
 		"/home/charlie/Projects/Alejandro_dev/RequiredAI"
-	]
+	],
+	"python.testing.unittestArgs": [
+		"-v",
+		"-s",
+		"./tests",
+		"-p",
+		"test_*.py"
+	],
+	"python.testing.pytestEnabled": false,
+	"python.testing.unittestEnabled": true
 }
