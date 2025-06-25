@@ -237,7 +237,7 @@ if __name__ == "__main__":
                     children=[
                         SyntaxTreeNode(
                             start_regex=r"^### AI_SAVE_START:.*$",
-                            end_regex=r"^### AI_SAVE_END$",
+                            end_regex=r"^### AI_SAVE_END ###$",
                             validate_start_regex=r"^### AI_SAVE_START:\s*/[^\s]+.*$",
                             children=[
                                 SyntaxTreeNode(
@@ -252,7 +252,7 @@ if __name__ == "__main__":
                         ),
                         SyntaxTreeNode(
                             start_regex=r"^### AI_READ_FILE:.*$",
-                            validate_start_regex=r"^### AI_READ_FILE:\s*/[^\s]+.*$"
+                            validate_start_regex=r"^### AI_READ_FILE:.* ###$"
                         ),
                         SyntaxTreeNode(
                             start_regex=r"^### AI_APPLY_CHOICES:.*$",
