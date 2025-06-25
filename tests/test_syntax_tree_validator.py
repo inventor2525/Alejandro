@@ -19,7 +19,8 @@ class TestSyntaxTreeValidator(unittest.TestCase):
         self.bad_file = self.test_dir / "bad.txt"
 
         # Define the assistant interaction syntax tree
-        self.syntax_tree = 
+        from Alejandro.Models.assistant_interaction_syntax import assistant_interaction_syntax
+        self.syntax_tree = assistant_interaction_syntax
 
         self.validator = SyntaxTreeValidatorRequirement(
             nodes=self.syntax_tree,

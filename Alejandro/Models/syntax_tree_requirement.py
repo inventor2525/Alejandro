@@ -87,7 +87,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
         current_content: List[str] = []
         
         while line_index < len(lines):
-            line = lines[line_index].rstrip()
+            line = lines[line_index]
             found_match = False
             
             # Check for start of any current node
@@ -234,32 +234,6 @@ if __name__ == "__main__":
                     end_regex=r"^\s*<END_OF_INPUT>\s*$",
                     validate_start_regex=r"^<AI_RESPONSE>$",
                     validate_end_regex=r"^<END_OF_INPUT>$",
-                    children=[
-                        SyntaxTreeNode(
-                            start_regex=r"^### AI_SAVE_START:.*$",
-                            end_regex=r"^### AI_SAVE_END ###$",
-                            validate_start_regex=r"^### AI_SAVE_START:\s*/[^\s]+.*$",
-                            children=[
-                                SyntaxTreeNode(
-                                    start_regex=r"^\s*### AI_READ_LINES:.*$",
-                                    validate_start_regex=r"^\s*### AI_READ_LINES:\s*/[^\s]+.*:\d+:\d+(?::\"[+-][^\"]*\")?$"
-                                )
-                            ]
-                        ),
-                        SyntaxTreeNode(
-                            start_regex=r"^### AI_BASH_START$",
-                            end_regex=r"^### AI_BASH_END$"
-                        ),
-                        SyntaxTreeNode(
-                            start_regex=r"^### AI_READ_FILE:.*$",
-                            validate_start_regex=r"^### AI_READ_FILE:.* ###$"
-                        ),
-                        SyntaxTreeNode(
-                            start_regex=r"^### AI_APPLY_CHOICES:.*$",
-                            end_regex=r"^### AI_APPLY_CHOICES_END$",
-                            validate_start_regex=r"^### AI_APPLY_CHOICES:\s*/[^\s]+.*$"
-                        )
-                    ]
                 )
             ]
         )
