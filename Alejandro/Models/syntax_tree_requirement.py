@@ -73,13 +73,10 @@ class SyntaxTreeValidatorRequirement(Requirement):
             messages: List of message dictionaries
             
         Returns:
-            bool: True if the syntax tree and requirements are followed, False otherwise
+            RequirementResult: True if the syntax tree and requirements are followed, False otherwise
         """
         self._prompt_info = ""
-        if not messages:
-            self._prompt_info = "No messages provided."
-            return False
-            
+        
         last_message = messages[-1]
         content = last_message.get("content", "")
         
@@ -118,7 +115,21 @@ class SyntaxTreeValidatorRequirement(Requirement):
                                 "msg":self._prompt_info
                             })
                     
-                    # Enter this node
+                    # Evaluate requirements for single-line nodes (no end_regex)
+                    if not node.end_regex:
+                        if node.requirements:
+                            for req in node.requirements:
+                                if not req.evaluate([{"role": "assistant", "content": line}]):
+                                    self._prompt_info = (
+                                        f"Node with start regex '{node.start_regex}' failed requirement "
+                                        f"'{req.__class__.__web_name__}' on content:\n{line[:100]}..."
+                                    )
+                                    return RequirementResult.construct(self, False, {"msg": self._prompt_info})
+                        line_index += 1
+                        found_match = True
+                        break
+                    
+                    # Enter content-collecting node
                     node_stack.append((node, current_nodes, current_content))
                     current_nodes = node.children
                     current_content = []
@@ -129,7 +140,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
             if found_match:
                 continue
             
-            # Check for end of current node
+            # Check for end of current node (only for nodes with end_regex)
             if node_stack and node_stack[-1][0].end_regex:
                 current_node = node_stack[-1][0]
                 if re.match(current_node.end_regex, line):
@@ -166,7 +177,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
                     line_index += 1
                     continue
             
-            # Check for invalid catch regexes from other nodes
+            # Check for invalid catch regexes from other nodes (only if in a content-collecting node)
             if node_stack:
                 current_node = node_stack[-1][0]
                 for catch_regex in current_node._other_nodes_catch_regexes:
@@ -183,7 +194,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
             
             line_index += 1
         
-        # Check if we're back at the root (all nodes closed)
+        # Check if we're back at the root (all content-collecting nodes closed)
         if node_stack:
             current_node = node_stack[-1][0]
             self._prompt_info = (
