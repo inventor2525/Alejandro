@@ -2,8 +2,8 @@
 Definition of the SmartModel for RequiredAI.
 """
 
-from RequiredAI.models import *
-from RequiredAI.requirements import *
+from RequiredAI.ModelConfig import *
+from RequiredAI.RequirementTypes import *
 from Alejandro.Models.assistant_interaction_syntax import assistant_interaction_syntax
 from Alejandro.Models.syntax_tree_requirement import SyntaxTreeValidatorRequirement, SyntaxTreeNode
 from RequiredAI.ModelConfig import ModelConfig

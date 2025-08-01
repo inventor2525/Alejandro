@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Set, Dict
 import re
-from RequiredAI.requirements import requirement, Requirement, RequirementResult
+from RequiredAI.RequirementTypes import requirement, Requirement, RequirementResult
 import uuid
 
 @dataclass
