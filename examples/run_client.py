@@ -3,7 +3,7 @@ Example of using the RequiredAI client with SmartModel.
 """
 
 from RequiredAI.client import RequiredAIClient
-from smart_model import smart_model_config, readme_content
+from smart_model import llama_model_config, smart_model_config, readme_content
 from Alejandro.Models.assistant_interaction_syntax import assistant_interaction_syntax
 from Alejandro.Models.syntax_tree_requirement import SyntaxTreeValidatorRequirement
 import json
@@ -15,6 +15,7 @@ if __name__ == "__main__":
     )
     
     # Send the SmartModel configuration to the server
+    response = client.add_model(llama_model_config)
     response = client.add_model(smart_model_config)
     print("Add SmartModel Response:", response)
     

@@ -1,10 +1,12 @@
-from dataclasses import dataclass, field
+from RequiredAI.helpers import json_dataclass, field
+from dataclasses_json import config
 from typing import List, Optional, Set, Dict
 import re
+from RequiredAI.Requirement import Requirements
 from RequiredAI.RequirementTypes import requirement, Requirement, RequirementResult
 import uuid
 
-@dataclass
+@json_dataclass
 class SyntaxTreeNode:
     """A node in a syntax tree with regex-based start and end conditions."""
     
@@ -12,7 +14,10 @@ class SyntaxTreeNode:
     end_regex: Optional[str] = None
     validate_start_regex: Optional[str] = None
     validate_end_regex: Optional[str] = None
-    requirements: List[Requirement] = field(default_factory=list)
+    requirements: List[Requirement] = field(default=None, metadata=config(
+			decoder=Requirements.from_dict, encoder=Requirements.to_dict
+		)
+    ) # This handles the polymorphism of Requirement
     children: List["SyntaxTreeNode"] = field(default_factory=list)
     _other_nodes_catch_regexes: Set[str] = field(default_factory=set, init=False)
     
@@ -30,7 +35,7 @@ class SyntaxTreeNode:
             raise ValueError(f"Invalid regex in node: {e}")
 
 @requirement("SyntaxTreeValidator")
-@dataclass
+@json_dataclass
 class SyntaxTreeValidatorRequirement(Requirement):
     """Requirement that enforces a syntax tree structure on the response."""
     
@@ -84,7 +89,6 @@ class SyntaxTreeValidatorRequirement(Requirement):
         current_nodes = self.nodes
         node_stack = []
         line_index = 0
-        current_content: List[str] = []
         
         while line_index < len(lines):
             line = lines[line_index]
@@ -122,7 +126,7 @@ class SyntaxTreeValidatorRequirement(Requirement):
                                 if not req.evaluate([{"role": "assistant", "content": line}]):
                                     self._prompt_info = (
                                         f"Node with start regex '{node.start_regex}' failed requirement "
-                                        f"'{req.__class__.__web_name__}' on content:\n{line[:100]}..."
+                                        f"'{req.__class__.__requirement_type__}' on content:\n{line[:100]}..."
                                     )
                                     return RequirementResult.construct(self, False, {"msg": self._prompt_info})
                         line_index += 1
@@ -130,12 +134,14 @@ class SyntaxTreeValidatorRequirement(Requirement):
                         break
                     
                     # Enter content-collecting node
-                    node_stack.append((node, current_nodes, current_content))
+                    node_stack.append((node, current_nodes, []))
                     current_nodes = node.children
-                    current_content = []
                     found_match = True
                     line_index += 1
                     break
+            
+            for _, __, nodes_content in node_stack[:-1]:
+                nodes_content.append(line)
             
             if found_match:
                 continue
@@ -159,11 +165,12 @@ class SyntaxTreeValidatorRequirement(Requirement):
                     if current_node.requirements:
                         node_content = "\n".join(node_stack[-1][2])
                         for req in current_node.requirements:
+                            req:Requirement
                             # Pass content as a single message
                             if not req.evaluate([{"role": "assistant", "content": node_content}]):
                                 self._prompt_info = (
-                                    f"Node with start regex '{current_node.start_regex}' failed requirement "
-                                    f"'{req.__class__.__web_name__}' on content:\n{node_content[:100]}..."
+                                    f"Syntax node with start regex '{current_node.start_regex}' and end regex '{current_node.end_regex}' failed requirement "
+                                    f"{req.__class__.__requirement_type__} requirement '{req.name}' on content:\n{node_content[:100]}..."
                                 )
                                 return RequirementResult.construct(self, False, {
                                     "msg":self._prompt_info
@@ -176,6 +183,8 @@ class SyntaxTreeValidatorRequirement(Requirement):
                     found_match = True
                     line_index += 1
                     continue
+                else:
+                    node_stack[-1][2].append(line)
             
             # Check for invalid catch regexes from other nodes (only if in a content-collecting node)
             if node_stack:
@@ -190,7 +199,6 @@ class SyntaxTreeValidatorRequirement(Requirement):
                         return RequirementResult.construct(self, False, {
                             "msg":self._prompt_info
                         })
-                current_content.append(line)
             
             line_index += 1
         

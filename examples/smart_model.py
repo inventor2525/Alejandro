@@ -76,18 +76,23 @@ bash_node = find_syntax_node(
     start_regex=r"^\s*### AI_BASH_START.*$"
 )
 
+script_node = find_syntax_node(
+    assistant_interaction_syntax,
+    start_regex=r"^\s*<AI_RESPONSE>\s*$"
+)
+
 if bash_node:
-    bash_node.requirements.extend([
+    bash_node.requirements = [
         WrittenRequirement(
-            evaluation_model="llama3.3 70b",
-            value=["Do not include git push commands."],
-            positive_examples=["# Comment: User should run 'git push' when ready"],
+            evaluation_model="llama",
+            value=["Do not include git push commands.", "Do not push code to remote repositories in ANY way."],
+            positive_examples=['git commit -m "A commit"'],
             negative_examples=["git push origin main"],
             token_limit=1024,
-            name="No Git Push"
+            name="Never push code to a remote repository!"
         ),
         WrittenRequirement(
-            evaluation_model="llama3.3 70b",
+            evaluation_model="llama",
             value=["Do not source PyEnvironment, pyenv, or run pyenv activate."],
             positive_examples=["pip install numpy"],
             negative_examples=["source ~/.pyenv/bin/activate"],
@@ -95,22 +100,51 @@ if bash_node:
             name="No PyEnvironment"
         ),
         WrittenRequirement(
-            evaluation_model="llama3.3 70b",
-            value=["Do not run the final Python script or code written by the agent."],
+            evaluation_model="llama",
+            value=["Do not run python the application."],
             positive_examples=["echo 'Hello, World!'"],
             negative_examples=["python script.py"],
             token_limit=1024,
-            name="No Run Python"
+            name="Do not run any python file."
+        ),
+        WrittenRequirement(
+            evaluation_model="llama",
+            value=["Do not call tree on any directory."],
+            positive_examples=["echo 'Hello, World!'"],
+            negative_examples=["tree", "ls"],
+            token_limit=1024,
+            name="Never call tree or ls."
         )
-    ])
+    ]
 
+if script_node:
+    script_node.requirements = [
+        WrittenRequirement(
+            evaluation_model="llama",
+            value=["If you need to mkdir, do it before saving any files."],
+            positive_examples=["```txt\n<AI_RESPONSE>\n### AI_BASH_START ###\nmkdir -p /home/charlie/Projects/my_proj\n### AI_BASH_END ###\n### AI_SAVE_START: /home/charlie/Projects/my_proj/app.py ###\n# Do Stuff.\n### AI_SAVE_END ###\n### AI_BASH_START ###\ncd /home/charlie/Projects/my_proj\ngit init\n### AI_BASH_END ###<END_OF_INPUT>\n```"],
+            negative_examples=["```txt\n<AI_RESPONSE>\n### AI_SAVE_START: /home/charlie/Projects/my_proj/app.py ###\n# Do Stuff.\n### AI_SAVE_END ###\n### AI_BASH_START ###\nmkdir -p /home/charlie/Projects/my_proj\ncd /home/charlie/Projects/my_proj\ngit init\n### AI_BASH_END ###<END_OF_INPUT>\n```"],
+            token_limit=1024,
+            name="Don't forget to do some things bash wise that might need to be done up front, before you save files."
+        )
+    ]
+
+llama_model_config = ModelConfig(
+    name="llama",
+    provider="groq",
+    provider_model="qwen/qwen3-32b",#"llama-3.1-8b-instant",#"openai/gpt-oss-20b",#"llama-3.3-70b-versatile",
+    api_key_env="GROQ_API_KEY"
+)
 # Define the SmartModel configuration
 smart_model_config = ModelConfig(
     name="SmartModel",
-    provider="groq",
-    provider_model="llama-3.3-70b-versatile",
-    api_key_env="GROQ_API_KEY",
+    provider="RequiredAI",
+    provider_model="llama",
     requirements=[
+        ContainsRequirement(
+            value=["```txt\n<AI_RESPONSE>"],
+            name="Must have at least 1 ai script *in* a markdown text block."
+        ),
         SyntaxTreeValidatorRequirement(
             nodes=assistant_interaction_syntax,
             name="Assistant Interaction Syntax"
