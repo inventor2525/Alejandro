@@ -21,12 +21,7 @@ class ConversationsScreen(Screen):
                     deactivate_phrases=["end selection"],
                     action=lambda s=self: self._handle_selection()
                 ),
-                Control(
-                    id="back",
-                    text="Back", 
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
+                session.make_back_control()
             ]
         )
         

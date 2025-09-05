@@ -30,12 +30,7 @@ class ConversationScreen(Screen):
                     keyphrases=["send message", "send", "submit"],
                     action=lambda s=self: self._send_message()
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
+                session.make_back_control()
             ],
             conversation_id = conversation_id
         )

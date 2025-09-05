@@ -37,12 +37,7 @@ class TerminalScreen(Screen):
                     keyphrases=["previous terminal", "prev terminal"],
                     action=lambda s=self: s._prev_terminal()
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
+                session.make_back_control()
             ]
         )
     

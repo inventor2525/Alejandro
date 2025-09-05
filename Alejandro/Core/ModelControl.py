@@ -15,11 +15,9 @@ class ModalControl(Control):
     
     deactivate_phrases: List[str]  # Phrases that exit modal state
     
-    def __init__(self, **data):
-        super().__init__(**data)
-        self._state = ModalState.INACTIVE
-        self._collected_words: List[WordNode] = []
-        
+    _state:ModalState = field(default=ModalState.INACTIVE, init=False, metadata=config(exclude=True))
+    _collected_words:List[WordNode] = field(default_factory=list, init=False, metadata=config(exclude=True))
+    
     @property
     def state(self) -> ModalState:
         """Get current state"""

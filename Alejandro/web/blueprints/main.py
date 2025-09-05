@@ -26,12 +26,7 @@ class MainScreen(Screen):
                     keyphrases=["terminal", "open terminal"],
                     action=lambda s=self: s.session().navigate(TerminalScreen)
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
+                session.make_back_control()
             ]
         )
 
