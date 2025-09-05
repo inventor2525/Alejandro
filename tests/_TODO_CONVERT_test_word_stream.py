@@ -1,4 +1,4 @@
-from Alejandro.Core.string_word_stream import StringWordStream
+from Alejandro.Core.StringWordStream import StringWordStream
 
 def test_word_stream():
     """Test the StringWordStream implementation"""

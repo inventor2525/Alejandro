@@ -1,8 +1,8 @@
 from typing import List, Optional, Callable
-from Alejandro.Interfaces.word_stream import WordStream
-from Alejandro.Models.control import Control, ControlResult
-from Alejandro.Models.screen import Screen
-from Alejandro.Core.screen_stack import ScreenStack
+from Alejandro.Core.WordStream import WordStream
+from Alejandro.Core.Control import Control, ControlResult
+from Alejandro.Core.Screen import Screen
+from Alejandro.Core.ScreenStack import ScreenStack
 
 class Application:
     """

@@ -1,9 +1,8 @@
 from typing import List, Callable, Optional
 from enum import Enum
-from pydantic import BaseModel
-from Alejandro.Models.word_node import WordNode
-from Alejandro.Models.word_mapping import WORD_MAP
-import uuid
+from RequiredAI.json_dataclass import *
+from Alejandro.Core.WordNode import WordNode
+from Alejandro.Core.WordMapping import WORD_MAP
 
 class ControlResult(Enum):
     """Result of a control's validate_word() call"""
@@ -11,12 +10,12 @@ class ControlResult(Enum):
     USED = 1        # Word was used and consumed
     HOLD = 2        # Control is now modal and holding future words
 
-class Control(BaseModel):
+@json_dataclass
+class Control:
     """A control that can be activated by voice commands"""
     text: str  # Text shown on button/UI
     keyphrases: List[str]  # Alternative phrases that trigger this control
     action: Optional[Callable[[], None]] = None
-    id: str = str(uuid.uuid4())
     
     def __init__(self, **data):
         super().__init__(**data)
@@ -27,7 +26,7 @@ class Control(BaseModel):
         """Check if word_node completes the given phrase by looking backwards"""
         # Get or create processed word list
         if phrase not in self._processed_phrases:
-            from Alejandro.Interfaces.word_stream import WordStream
+            from Alejandro.Core.WordStream import WordStream
             nodes = WordStream.process_text(phrase)
             self._processed_phrases[phrase] = [n.word for n in nodes]
             

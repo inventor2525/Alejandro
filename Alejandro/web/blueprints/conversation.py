@@ -2,9 +2,9 @@ from flask import Blueprint, render_template, request
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
-from Alejandro.Models.modal_control import ModalControl
+from Alejandro.Core.Screen import Screen
+from Alejandro.Core.Control import Control
+from Alejandro.Core.ModelControl import ModalControl
 
 bp = Blueprint('conversation', __name__)
 

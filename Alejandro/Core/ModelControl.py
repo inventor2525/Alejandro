@@ -1,13 +1,15 @@
 from typing import List, Callable, Optional
 from enum import Enum, auto
-from Alejandro.Models.control import Control, ControlResult
-from Alejandro.Models.word_node import WordNode
+from Alejandro.Core.Control import Control, ControlResult
+from Alejandro.Core.WordNode import WordNode
+from RequiredAI.json_dataclass import *
 
 class ModalState(Enum):
     """State of a modal control"""
     INACTIVE = auto()  # Not activated yet
     HOLDING = auto()   # Activated and collecting words
 
+@json_dataclass
 class ModalControl(Control):
     """A control that can enter a modal state to capture subsequent words"""
     

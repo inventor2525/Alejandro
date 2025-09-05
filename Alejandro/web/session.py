@@ -2,12 +2,12 @@ import uuid
 from typing import Dict, Optional, Type, Union, TypeVar
 from weakref import ref, ReferenceType
 from datetime import datetime, timedelta
-from Alejandro.Models.control import Control
-from Alejandro.Core.application import Application 
-from Alejandro.Core.screen_stack import ScreenStack
-from Alejandro.Core.string_word_stream import StringWordStream
+from Alejandro.Core.Control import Control
+from Alejandro.Core.Application import Application 
+from Alejandro.Core.ScreenStack import ScreenStack
+from Alejandro.Core.StringWordStream import StringWordStream
 from Alejandro.web.events import NavigationEvent, push_event
-from Alejandro.Models.screen import Screen
+from Alejandro.Core.Screen import Screen
 from Alejandro.web.terminal import Terminal
 
 class Session:

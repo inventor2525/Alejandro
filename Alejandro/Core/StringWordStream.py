@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Iterator, List
-from Alejandro.Interfaces.word_stream import WordStream
-from Alejandro.Models.word_node import WordNode
+from Alejandro.Core.WordStream import WordStream
+from Alejandro.Core.WordNode import WordNode
 
 class StringWordStream(WordStream):
     """A WordStream implementation that processes strings for testing"""

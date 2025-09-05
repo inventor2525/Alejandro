@@ -11,7 +11,7 @@ except LookupError:
     nltk.download('punkt')
     nltk.download('punkt_tab')
 
-from Alejandro.Models.word_node import WordNode
+from Alejandro.Core.WordNode import WordNode
 
 class WordStream(ABC):
     """

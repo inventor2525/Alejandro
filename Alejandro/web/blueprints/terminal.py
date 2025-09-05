@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
+from Alejandro.Core.Screen import Screen
+from Alejandro.Core.Control import Control
 from Alejandro.web.terminal import Terminal
 from Alejandro.web.events import TerminalScreenEvent, push_event
 import time

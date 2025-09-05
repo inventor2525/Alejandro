@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Type, Dict, Any
 import queue
-from Alejandro.Models.screen import Screen
+from Alejandro.Core.Screen import Screen
 
 # Global event queue
 event_queue = queue.Queue()
