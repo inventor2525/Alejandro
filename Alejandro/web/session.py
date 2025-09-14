@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 from Alejandro.Core.Control import Control
 from Alejandro.Core.Application import Application 
 from Alejandro.Core.ScreenStack import ScreenStack
-from Alejandro.Core.StringWordStream import StringWordStream
+from Alejandro.Core.FFMpegWordStream import FFmpegWordStream
 from Alejandro.web.events import NavigationEvent, push_event
 from Alejandro.Core.Screen import Screen
 from Alejandro.web.terminal import Terminal
-
+import os
 class Session:
 	"""Manages application state for a browser session"""
 	def __init__(self, welcome_screen_type: Type[Screen]):
@@ -20,7 +20,10 @@ class Session:
 		self.current_terminal_index = 0
 		
 		# Create session-specific word stream and app
-		self.word_stream = StringWordStream()
+		self.word_stream = FFmpegWordStream(
+			os.path.expanduser("~/Documents/Alejandro/Recordings"),
+			session_id=self.id
+		)
 		welcome_screen = self.get_screen(welcome_screen_type)
 		self.app = Application(self.word_stream, welcome_screen)
 		
@@ -72,7 +75,7 @@ class Session:
 			action=lambda s=self: s.go_back() if s else None
 		)
 	
-	def terminate(self):
+	def close(self):
 		'''Closes this session.'''
 		for terminal in self.terminals.values():
 			terminal.close()
@@ -91,7 +94,7 @@ def cleanup_sessions() -> None:
 			to_remove.append((session_id,session))
 			
 	for session_id,session in to_remove:
-		session.terminate()
+		session.close()
 		del sessions[session_id]
 
 def get_or_create_session(session_id: Optional[str] = None) -> Session:
