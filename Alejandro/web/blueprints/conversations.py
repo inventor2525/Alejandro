@@ -65,7 +65,7 @@ def conversations() -> str:
         return "No session ID provided", 400
     
     session = get_or_create_session(session_id)
-    screen = session.screen_stack.current
+    screen = session.app.screen_stack.current
     
     template_data = screen.get_template_data()
     print(f"Rendering conversations with data: {template_data}")

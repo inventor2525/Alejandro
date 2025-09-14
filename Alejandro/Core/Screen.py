@@ -15,7 +15,7 @@ class Screen:
 	session: 'Session' = field(metadata=config(exclude=True))
 	
 	title: str
-	controls: List[Control] = []
+	controls: List[Control] = field(default_factory=list)
 	
 	def get_template_data(self) -> Dict[str, Any]:
 		"""Get any additional template data needed for rendering"""

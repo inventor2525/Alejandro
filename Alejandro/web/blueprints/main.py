@@ -18,13 +18,13 @@ class MainScreen(Screen):
                     id="conversations",
                     text="Conversations",
                     keyphrases=["conversations", "show conversations"],
-                    action=lambda s=self: s.session().navigate(ConversationsScreen)
+                    action=lambda s=self: s.session.navigate(ConversationsScreen)
                 ),
                 Control(
                     id="terminal", 
                     text="Terminal",
                     keyphrases=["terminal", "open terminal"],
-                    action=lambda s=self: s.session().navigate(TerminalScreen)
+                    action=lambda s=self: s.session.navigate(TerminalScreen)
                 ),
                 session.make_back_control()
             ]
@@ -38,7 +38,7 @@ def show_screen() -> str:
         return "No session ID provided", 400
         
     session = get_or_create_session(session_id)
-    screen = session.screen_stack.current
+    screen = session.app.screen_stack.current
     return render_template(
         'base.html',
         screen=screen,

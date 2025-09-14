@@ -87,10 +87,10 @@ def conversation() -> str:
     session = get_or_create_session(session_id)
     
     # Create conversation screen if needed
-    screen = session.screen_stack.current
+    screen = session.app.screen_stack.current
     if not isinstance(screen, ConversationScreen) or screen.conversation_id != conversation_id:
         screen = ConversationScreen(session, conversation_id)
-        session.screen_stack.push(screen)
+        session.app.screen_stack.push(screen)
     
     return render_template(
         'conversation.html',

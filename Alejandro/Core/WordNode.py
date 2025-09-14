@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from RequiredAI.helpers import json_dataclass
+from RequiredAI.json_dataclass import json_dataclass
 
 @json_dataclass
 class WordNode:

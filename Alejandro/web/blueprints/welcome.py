@@ -17,7 +17,7 @@ class WelcomeScreen(Screen):
                     id="activate",
                     text="Hey Alejandro",
                     keyphrases=["hey alejandro", "hello alejandro"],
-                    action=lambda s=self: s.session().navigate(MainScreen)
+                    action=lambda s=self: s.session.navigate(MainScreen)
                 )
             ]
         )
@@ -29,7 +29,7 @@ def welcome() -> str:
     session_id = request.args.get('session')
     
     session = get_or_create_session(session_id)
-    screen = session.screen_stack.current
+    screen = session.app.screen_stack.current
     
     return render_template(
         'base.html',

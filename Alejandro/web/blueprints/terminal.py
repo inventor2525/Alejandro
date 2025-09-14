@@ -43,7 +43,7 @@ class TerminalScreen(Screen):
     
     def _create_new_terminal(self) -> None:
         """Create a new terminal"""
-        session = self.session()
+        session = self.session
         terminal_id = f"terminal_{len(session.terminals) + 1}"
         # Create the new terminal
         new_terminal = Terminal(terminal_id, session.id)
@@ -59,7 +59,7 @@ class TerminalScreen(Screen):
     
     def _next_terminal(self) -> None:
         """Switch to next terminal"""
-        session = self.session()
+        session = self.session
         terminal_names = list(session.terminals.keys())
         if terminal_names:
             session.current_terminal_index = (session.current_terminal_index + 1) % len(terminal_names)
@@ -73,7 +73,7 @@ class TerminalScreen(Screen):
     
     def _prev_terminal(self) -> None:
         """Switch to previous terminal"""
-        session = self.session()
+        session = self.session
         terminal_names = list(session.terminals.keys())
         if terminal_names:
             session.current_terminal_index = (session.current_terminal_index - 1) % len(terminal_names)
@@ -88,7 +88,7 @@ class TerminalScreen(Screen):
     
     def get_template_data(self) -> dict:
         """Get template data for rendering"""
-        session = self.session()
+        session = self.session
         terminal_names = list(session.terminals.keys())
         current_terminal = terminal_names[session.current_terminal_index] if terminal_names else None
         
@@ -108,13 +108,13 @@ def terminal() -> str:
     session = get_or_create_session(session_id)
     
     # Check if we already have a terminal screen in the stack
-    current_screen = session.screen_stack.current
+    current_screen = session.app.screen_stack.current
     if isinstance(current_screen, TerminalScreen):
         screen = current_screen
     else:
         # Create terminal screen and push it to the stack
         screen = TerminalScreen(session)
-        session.screen_stack.push(screen)
+        session.app.screen_stack.push(screen)
     
     # Make sure terminal exists
     if not session.terminals:

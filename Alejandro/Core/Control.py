@@ -14,9 +14,10 @@ class ControlResult(Enum):
 @json_dataclass
 class Control:
 	"""A control that can be activated by voice commands"""
+	id:str
 	text: str  # Text shown on button/UI
 	keyphrases: List[str]  # Alternative phrases that trigger this control
-	action: Optional[Callable[[], None]] = None
+	action: Optional[Callable[[], None]]
 	_phrase_words: Dict[str, List[str]] = field(default_factory=dict, init=False, metadata=config(exclude=True))
 	
 	def _check_phrase(self, phrase: str, streams_current_word: WordNode) -> bool:
