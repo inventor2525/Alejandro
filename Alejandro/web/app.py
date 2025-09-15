@@ -7,6 +7,7 @@ import queue
 import time
 
 from Alejandro.web.events import Event, TerminalScreenEvent, event_queue
+from Alejandro.Core.FFMpegWordStream import FFmpegWordStream
 
 # Create Flask app
 app = Flask(__name__)
@@ -14,6 +15,7 @@ app = Flask(__name__)
 # Register blueprints
 for bp in blueprints:
     app.register_blueprint(bp)
+FFmpegWordStream.init_app(app)
 
 def event_stream(session_id: str) -> Iterator[str]:
     """Server-sent events stream"""

@@ -20,7 +20,7 @@ mime_to_config = {
 
 class FFmpegWordStream(WordStream):
 	bp = Blueprint('FFmpegWordStream', __name__)
-	socketio = SocketIO()#cors_allowed_origins="*")
+	socketio: SocketIO = SocketIO()#cors_allowed_origins="*")
 	streams:Dict[str, 'FFmpegWordStream'] = {}
 	
 	def __init__(self, save_directory:Optional[str], session_id:Optional[str]=None):
@@ -29,6 +29,7 @@ class FFmpegWordStream(WordStream):
 		recordings and their transcriptions will be
 		stored in.
 		'''
+		self.session_id = session_id
 		FFmpegWordStream.streams[session_id] = self
 		
 		self.save_directory = save_directory
@@ -82,7 +83,7 @@ class FFmpegWordStream(WordStream):
 			"-f", input_format,
 			"-c:a", input_codec,
 			"-i", "pipe:0",
-			"-af", f"highpass=f=200,lowpass=f=3000,whisper=model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-base.en.bin:language=en:queue=1000:destination=http\\\\://127.0.0.1\\\\:5000/new_transcription?session_id={self.session_id}:format=json:vad_model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-silero-v5.1.2.bin:vad_min_silence_duration=0.5",
+			"-af", f"highpass=f=200,lowpass=f=3000,whisper=model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-base.en.bin:language=en:queue=4:destination=http\\\\://127.0.0.1\\\\:5000/new_transcription?session_id={self.session_id}:format=json:vad_model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-silero-v5.1.2.bin:vad_min_silence_duration=0.5",
 			"-f", "null",
 			"-"
 		]
@@ -94,6 +95,25 @@ class FFmpegWordStream(WordStream):
 			stderr=subprocess.PIPE,
 			universal_newlines=False,
 		)
+		def log_ffmpeg_output(self=self):
+			print("Begin logging")
+			try:
+				while self.recording_process and self.recording_process.poll() is None:
+					print("process exists")
+					if self.recording_process.stdout:
+						stdout = self.recording_process.stdout.readline()
+						if stdout:
+							print(f"FFmpeg stdout: {stdout}")
+					if self.recording_process.stderr:
+						stderr = self.recording_process.stderr.readline()
+						if stderr:
+							print(f"FFmpeg stderr: {stderr}")
+					print("looping read logs...")
+			except Exception as e:
+				print(f'!!!!!!!!!! log failed !!!!!!!!!!\n{e}')
+				pass
+		from threading import Thread
+		Thread(target=log_ffmpeg_output, daemon=True).start()
 		self.is_recording = True
 
 	def _stop_listening(self) -> None:
@@ -141,16 +161,15 @@ class FFmpegWordStream(WordStream):
 				for node in nodes:
 					self.word_queue.put(node)
 
-@FFmpegWordStream.bp.route('/start_listening', methods=['POST'])
-def _start_listening() -> Response:
-	data = request.get_json()
+@FFmpegWordStream.socketio.on('start_listening')
+def _start_listening(data: dict) -> Response:
 	session_id = data.get('session_id')
 	mime_type = data.get("mime_type", "audio/webm")
 	FFmpegWordStream.streams[session_id]._start_listening(mime_type)
 
-@FFmpegWordStream.bp.route('/stop_listening', methods=['POST'])
-def _stop_listening() -> Response:
-	data = request.get_json()
+@FFmpegWordStream.socketio.on('stop_listening')
+def _stop_listening(data: dict=None) -> Response:
+	print(data)
 	session_id = data.get('session_id')
 	FFmpegWordStream.streams[session_id]._stop_listening()
 
@@ -158,15 +177,22 @@ def _stop_listening() -> Response:
 def _handle_audio_chunk(data):
 	session_id = data.get("session_id")
 	audio_data = data.get("audio_data")
-	
 	FFmpegWordStream.streams[session_id]._handle_audio_chunk(audio_data)
 
 @FFmpegWordStream.bp.route("/new_transcription", methods=["POST"])
 def _receive_transcription():
 	session_id = request.args.get('session_id')
-		
-	line = request.stream.readline().decode('utf-8').strip()
-	print(f"Received transcription line: '{line}'")
-	data = json.loads(line)
+	word_stream = FFmpegWordStream.streams[session_id]
 	
-	FFmpegWordStream.streams[session_id]._receive_transcription(data)
+	while word_stream.is_recording:
+		line = request.stream.readline().decode('utf-8').strip()
+		if len(line):
+			print(f"Received transcription line: '{line}'")
+		try:
+			data = json.loads(line)
+		except:
+			data = None
+		
+		if data:
+			word_stream._receive_transcription(data)
+	return Response(status=200)

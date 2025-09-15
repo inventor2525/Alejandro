@@ -19,6 +19,8 @@
 
     <script>window.initialSessionId = "{{ session_id }}";</script>
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket_io.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/streaming_transcribe.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
