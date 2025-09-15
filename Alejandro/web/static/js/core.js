@@ -79,9 +79,9 @@ eventSource.onmessage = function(event) {
     }
 };
 
-eventSource.onerror = function() {
-    console.log('SSE connection failed, reconnecting...');
-    setTimeout(() => {
-        window.location.reload();
-    }, 1000);
-};
+// eventSource.onerror = function() {
+//     console.log('SSE connection failed, reconnecting...');
+//     setTimeout(() => {
+//         window.location.reload();
+//     }, 1000);
+// };
