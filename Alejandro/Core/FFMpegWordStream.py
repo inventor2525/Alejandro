@@ -1,6 +1,6 @@
 from typing import Optional, Iterator, Dict
 from .WordStream import WordStream, WordNode
-from flask import Blueprint, jsonify, Response, request, Flask
+from flask import Blueprint, jsonify, Response, request, Flask, render_template
 from flask_socketio import SocketIO
 from io import BufferedWriter
 from queue import Queue, Empty
@@ -196,3 +196,19 @@ def _receive_transcription():
 		if data:
 			word_stream._receive_transcription(data)
 	return Response(status=200)
+
+@FFmpegWordStream.socketio.on('manual_transcription')
+def handle_manual_transcription(data: dict):
+    session_id = data.get('session_id')
+    text = data.get('text', '').strip()
+    if session_id and text:
+        word_stream = FFmpegWordStream.streams.get(session_id)
+        if word_stream:
+            word_stream._receive_transcription({'text': text})
+
+@FFmpegWordStream.bp.route('/recorder')
+def recorder():
+    session_id = request.args.get('session')
+    if not session_id:
+        return "No session ID provided", 400
+    return render_template('recorder.html', session_id=session_id)

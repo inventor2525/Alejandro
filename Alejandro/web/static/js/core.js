@@ -3,6 +3,7 @@ if (!localStorage.getItem('sessionId') || window.location.pathname === '/') {
     localStorage.setItem('sessionId', window.initialSessionId);
 }
 window.sessionId = localStorage.getItem('sessionId');
+window.name = 'alejandro_main'; // Used to open this window back up by name from other tabs
 
 // Handle control clicks
 function triggerControl(controlId) {
@@ -85,3 +86,11 @@ eventSource.onmessage = function(event) {
 //         window.location.reload();
 //     }, 1000);
 // };
+
+// Open recorder tab
+function openRecorder() {
+    const sessionId = localStorage.getItem('sessionId');
+    const url = '/recorder?session=' + sessionId;
+    localStorage.setItem('alejandro_main_url', window.location.pathname);
+    openOrFocus(url, 'alejandro_recorder');
+}
