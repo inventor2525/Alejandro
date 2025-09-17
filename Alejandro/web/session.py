@@ -44,7 +44,7 @@ class Session:
 		self.app.screen_stack.push(screen)
 		print(f"Pushing navigation event for screen: {type(screen).__name__} with session: {self.id}")
 		push_event(NavigationEvent(
-			screen_type=type(screen),
+			screen=type(screen),
 			session_id=self.id
 		))
 		
@@ -53,7 +53,7 @@ class Session:
 		if self.app.screen_stack.pop():
 			current = self.app.screen_stack.current
 			push_event(NavigationEvent(
-				screen_type=type(current),
+				screen=type(current),
 				session_id=self.id
 			))
 			
@@ -62,7 +62,7 @@ class Session:
 		if self.app.screen_stack.forward():
 			current = self.app.screen_stack.current
 			push_event(NavigationEvent(
-				screen_type=type(current),
+				screen=type(current),
 				session_id=self.id
 			))
 			

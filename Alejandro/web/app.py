@@ -2,7 +2,6 @@ from flask import Flask, render_template, Response, request
 from typing import Iterator
 from Alejandro.web.session import get_or_create_session
 from Alejandro.web.blueprints import blueprints
-import json
 import queue
 import time
 
@@ -25,7 +24,7 @@ def event_stream(session_id: str) -> Iterator[str]:
             event = event_queue.get_nowait()
             if isinstance(event, Event):
                 if event.session_id == session_id:
-                    event_json = json.dumps(event.to_json())
+                    event_json = event.to_json()
                     # Only log minimal info for terminal events
                     if isinstance(event, TerminalScreenEvent):
                         print(f"Sending terminal event to client")

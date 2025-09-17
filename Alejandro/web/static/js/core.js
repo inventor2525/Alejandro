@@ -49,12 +49,11 @@ eventSource.onmessage = function(event) {
     if (!event.data) {
         return; // Skip keepalive
     }
-    
+
     try {
-        console.log('Core received event data:', event.data);
+        console.log('Received event data:', event.data);
         
         const data = JSON.parse(event.data);
-        console.log('Core parsed event data:', data);
         
         switch(data.type) {
             case 'TranscriptionEvent':
@@ -64,19 +63,15 @@ eventSource.onmessage = function(event) {
                 }
                 break;
             case 'NavigationEvent':
-                console.log('Navigating to:', data.screen);
-                // Always include session parameter
                 const targetUrl = '/' + data.screen + '?session=' + data.session_id;
-                console.log('Target URL:', targetUrl);
-                
-                // Force navigation to ensure proper loading
+                console.log('Navigating to:', data.screen, ' at ', targetUrl);
                 window.location.href = targetUrl;
                 break;
             // Terminal events are handled directly by terminal.js's event listener
             // Don't process them here to avoid duplication
         }
     } catch (e) {
-        console.error('Core error processing event:', e);
+        console.error('Error processing event:', e);
     }
 };
 
