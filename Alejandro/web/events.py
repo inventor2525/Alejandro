@@ -4,6 +4,7 @@ from datetime import datetime
 import queue
 from Alejandro.Core.Screen import Screen
 from flask import Blueprint, Response, request
+from Alejandro.Core.Control import Control
 import time
 
 # Global event queue

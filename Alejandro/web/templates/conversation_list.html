@@ -1,51 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ screen.title }} - Alejandro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}">
-</head>
-<body>
-    <div class="app-container">
-        <div class="content-area">
-            <h1>{{ screen.title }}</h1>
-            <div class="conversation-list">
-                {% if error %}
-                    <div class="error-message">{{ error }}</div>
-                {% endif %}
-                
-                {% if conversations %}
-                    {% for conv in conversations %}
-                    <div class="conversation-item" 
-                         title="{{ conv.description }}"
-                         onclick="openConversation('{{ conv.id }}')">
-                        {{ loop.index }}. {{ conv.name }}
-                        {% if conv.description %}
-                        <div class="conversation-description">{{ conv.description }}</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-conversations">
-                        No conversations found. Start a new one!
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div class="footer">
-            {% include 'menu.html' %}
-        </div>
-    </div>
+{% extends "base.html" %}
 
-    <script>window.initialSessionId = "{{ session_id }}";</script>
-    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
-    <script>
-    function openConversation(convId) {
-        if (convId) {
-            const sessionId = localStorage.getItem('sessionId');
-            window.location.href = '/conversation?conversation_id=' + convId + '&session=' + sessionId;
-        }
+{% block content %}
+<div class="conversation-list">
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
+    
+    {% if conversations %}
+        {% for conv in conversations %}
+        <div class="conversation-item" 
+             title="{{ conv.description }}"
+             onclick="openConversation('{{ conv.id }}')">
+            {{ loop.index }}. {{ conv.name }}
+            {% if conv.description %}
+            <div class="conversation-description">{{ conv.description }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-conversations">
+            No conversations found. Start a new one!
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openConversation(convId) {
+    if (convId) {
+        const sessionId = localStorage.getItem('sessionId');
+        window.location.href = '/conversation?conversation_id=' + convId + '&session=' + sessionId;
     }
-    </script>
-</body>
-</html>
+}
+</script>
+{% endblock %}

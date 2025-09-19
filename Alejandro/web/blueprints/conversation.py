@@ -22,13 +22,13 @@ class ConversationScreen(Screen):
                     text="Start Speaking",
                     keyphrases=["start speaking", "begin speaking"],
                     deactivate_phrases=["stop speaking", "end speaking"],
-                    action=lambda s=self: self._handle_speech()
+                    action=lambda s=self: s._handle_speech()
                 ),
                 Control(
                     id="send",
                     text="Send Message",
                     keyphrases=["send message", "send", "submit"],
-                    action=lambda s=self: self._send_message()
+                    action=lambda s=self: s._send_message()
                 ),
                 session.make_back_control()
             ]
