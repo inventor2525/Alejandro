@@ -31,9 +31,9 @@ class ConversationScreen(Screen):
                     action=lambda s=self: self._send_message()
                 ),
                 session.make_back_control()
-            ],
-            conversation_id = conversation_id
+            ]
         )
+        self.conversation_id = conversation_id
         
     def _handle_speech(self) -> None:
         """Handle speech input from modal control"""

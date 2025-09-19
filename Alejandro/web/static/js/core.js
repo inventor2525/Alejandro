@@ -43,7 +43,7 @@ function simulateButtonClick(button) {
 // Use same host as page for EventSource
 const host = window.location.hostname;
 const port = window.location.port;
-const eventSource = new EventSource(`http://${host}:${port}/stream?session=${window.sessionId}`);
+const eventSource = new EventSource(`http://${host}:${port}/event_stream?session=${window.sessionId}`);
 
 eventSource.onmessage = function(event) {
     if (!event.data) {
