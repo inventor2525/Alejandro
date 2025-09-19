@@ -62,9 +62,6 @@ def event_stream() -> Response:
     """SSE endpoint"""
     session_id = request.args.get('session')
     
-    if not session_id:
-        return Response("No session ID provided", status=400)
-    
     #Ensure the session exists:
     from Alejandro.web.session import get_or_create_session
     get_or_create_session(session_id)
