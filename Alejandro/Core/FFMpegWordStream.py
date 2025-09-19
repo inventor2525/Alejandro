@@ -199,16 +199,16 @@ def _receive_transcription():
 
 @FFmpegWordStream.socketio.on('manual_transcription')
 def handle_manual_transcription(data: dict):
-    session_id = data.get('session_id')
-    text = data.get('text', '').strip()
-    if session_id and text:
-        word_stream = FFmpegWordStream.streams.get(session_id)
-        if word_stream:
-            word_stream._receive_transcription({'text': text})
+	session_id = data.get('session_id')
+	text = data.get('text', '').strip()
+	if session_id and text:
+		word_stream = FFmpegWordStream.streams.get(session_id)
+		if word_stream:
+			word_stream._receive_transcription({'text': text})
 
 @FFmpegWordStream.bp.route('/recorder')
 def recorder():
-    session_id = request.args.get('session')
-    if not session_id:
-        return "No session ID provided", 400
-    return render_template('recorder.html', session_id=session_id)
+	session_id = request.args.get('session')
+	if not session_id:
+		return "No session ID provided", 400
+	return render_template('recorder.html', session_id=session_id)
