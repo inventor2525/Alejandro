@@ -1,11 +1,14 @@
 from RequiredAI.json_dataclass import json_dataclass, config, field
-from typing import Optional, Type, Dict, Any
+from typing import Optional, Type, Dict, Any, Iterator
 from datetime import datetime
 import queue
 from Alejandro.Core.Screen import Screen
+from flask import Blueprint, Response, request
+import time
 
 # Global event queue
 event_queue = queue.Queue()
+events_bp = Blueprint('events', __name__)
 
 @json_dataclass
 class Event:
@@ -52,3 +55,34 @@ def push_event(event: Event) -> None:
         print(f"Pushing event: {event.__class__.__name__} ({event.to_json()}) for session {event.session_id}")
     
     event_queue.put(event)
+
+@events_bp.route('/event_stream')
+def event_stream() -> Response:
+    """SSE endpoint"""
+    session_id = request.args.get('session')
+    
+    if not session_id:
+        return Response("No session ID provided", status=400)
+    
+    #Ensure the session exists:
+    from Alejandro.web.session import get_or_create_session
+    get_or_create_session(session_id)
+    
+    def event_stream(session_id: str) -> Iterator[str]:
+        while True:
+            try:
+                event = event_queue.get_nowait()
+                if isinstance(event, Event):
+                    if event.session_id == session_id:
+                        yield f"data: {event.to_json()}\n\n"
+            except queue.Empty:
+                pass
+            
+            # Keep-alive
+            time.sleep(0.01)
+            yield ": keepalive\n\n"
+            
+    return Response(
+        event_stream(session_id),
+        mimetype='text/event-stream'
+    )
