@@ -10,17 +10,27 @@
         {% for message in messages %}
         <div class="message message-{{ message.role.lower() }}">
             <div class="message-meta">
-                <div class="message-role">{{ message.role }}</div>
                 {% if message.is_model %}
-                <div class="message-model-info">
+                <div class="message-role" style="display: flex; justify-content: space-between;">
+                    <div style="margin-right: auto;">{{ message.role }}</div>
                     {% if message.model_name %}
                     <div class="model-name">{{ message.model_name }}</div>
                     {% endif %}
-                    {% if message.date %}
-                    <div class="message-date">{{ message.date }}</div>
-                    {% endif %}
+                </div>
+                {% else %}
+                <div class="message-role">
+                    {{ message.role }}
                 </div>
                 {% endif %}
+                
+                <div class="message-info">
+                    {% if message.date %}
+                    <div class="message-date-time" style="display: flex; justify-content: space-between;">
+                        <div style="margin-right: auto;">{{ message.date }}</div>
+                        <div>{{ message.time }}</div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
             <div class="message-content">{{ message.content }}</div>
         </div>

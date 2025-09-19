@@ -58,13 +58,15 @@ class ConversationScreen(Screen):
             {
                 "role": "User",
                 "content": "Can you help me with a Python problem?",
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "time": datetime.now().strftime("%H:%M:%S"),
                 "is_model": False
             },
             {
                 "role": "Assistant",
                 "content": "Of course! What's the issue you're having?",
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "time": datetime.now().strftime("%H:%M:%S"),
                 "is_model": True,
                 "model_name": "GPT-4"
             }
