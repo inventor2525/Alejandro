@@ -12,10 +12,6 @@ def trigger_control() -> Response:
     session_id = data.get('session_id')
     print(f"Received control request - control_id: {control_id}, session_id: {session_id}")
     
-    if not control_id or not session_id:
-        print("Error: Missing control_id or session_id")
-        return jsonify({"error": "Missing control_id or session_id"}), 400
-        
     session = get_or_create_session(session_id)
     print(f"Got/created session for control with id: {session.id}")
     current_screen = session.app.screen_stack.current

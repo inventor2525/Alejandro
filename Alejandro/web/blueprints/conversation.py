@@ -81,9 +81,6 @@ def conversation() -> str:
     session_id = request.args.get('session')
     conversation_id = request.args.get('conversation_id')
     
-    if not session_id or not conversation_id:
-        return "Missing session_id or conversation_id", 400
-        
     session = get_or_create_session(session_id)
     
     # Create conversation screen if needed

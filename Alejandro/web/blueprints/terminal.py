@@ -102,9 +102,6 @@ def terminal() -> str:
     session_id = request.args.get('session')
     terminal_id = request.args.get('terminal_id')
     
-    if not session_id:
-        return "No session ID provided", 400
-    
     session = get_or_create_session(session_id)
     
     # Check if we already have a terminal screen in the stack
@@ -153,9 +150,6 @@ def terminal_input():
     terminal_id = data.get('terminal_id')
     input_text = data.get('input')
     
-    if not all([session_id, terminal_id, input_text]):
-        return jsonify({"error": "Missing required parameters"}), 400
-    
     session = get_or_create_session(session_id)
     
     # Create terminal if it doesn't exist
@@ -182,9 +176,6 @@ def terminal_resize():
     terminal_id = data.get('terminal_id')
     cols = data.get('cols')
     rows = data.get('rows')
-    
-    if not all([session_id, terminal_id, cols, rows]):
-        return jsonify({"error": "Missing required parameters"}), 400
     
     session = get_or_create_session(session_id)
     

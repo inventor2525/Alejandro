@@ -34,8 +34,6 @@ class MainScreen(Screen):
 def show_screen() -> str:
     """Generic screen route handler"""
     session_id = request.args.get('session')
-    if not session_id:
-        return "No session ID provided", 400
         
     session = get_or_create_session(session_id)
     screen = session.app.screen_stack.current
