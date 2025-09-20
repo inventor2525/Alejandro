@@ -5,6 +5,90 @@ if (!localStorage.getItem('sessionId') || window.location.pathname === '/') {
 window.sessionId = localStorage.getItem('sessionId');
 window.name = 'alejandro_main'; // Used to open this window back up by name from other tabs
 
+class ReconnectingEventSource {
+    constructor(url) {
+        this.url = url;
+        this.listeners = {};
+        this.reconnectInterval = 1000;
+        this.reconnectAttempts = 0;
+        this.connect();
+    }
+
+    addEventListener(type, listener) {
+        if (!this.listeners[type]) {
+            this.listeners[type] = [];
+        }
+        this.listeners[type].push(listener);
+        if (this.es && this.es.readyState !== 2) { // 2 is CLOSED
+            this.es.addEventListener(type, listener);
+        }
+    }
+
+    removeEventListener(type, listener) {
+        if (this.listeners[type]) {
+            this.listeners[type] = this.listeners[type].filter(l => l !== listener);
+            if (this.es) {
+                this.es.removeEventListener(type, listener);
+            }
+        }
+    }
+
+    syncScreen() {
+        const host = window.location.hostname;
+        const port = window.location.port;
+        let screen_url = window.location.pathname.substring(1);
+        if (screen_url.endsWith('/')) {
+            screen_url = screen_url.slice(0, -1);
+        }
+        return fetch(`http://${host}:${port}/sync_screen`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                session_id: window.sessionId,
+                screen_url: screen_url
+            })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Sync screen failed');
+            }
+            return response.json();
+        });
+    }
+
+    connect() {
+        this.syncScreen()
+            .then(() => {
+                this.es = new EventSource(this.url);
+                
+                this.es.addEventListener('open', () => {
+                    console.log('SSE connected');
+                    this.reconnectAttempts = 0;
+                });
+
+                this.es.addEventListener('error', (err) => {
+                    console.error('SSE error:', err);
+                    this.es.close();
+                    this.reconnectAttempts++;
+                    setTimeout(() => this.connect(), this.reconnectInterval * this.reconnectAttempts);
+                });
+
+                // Re-attach listeners
+                for (const type in this.listeners) {
+                    this.listeners[type].forEach(listener => {
+                        this.es.addEventListener(type, listener);
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('Sync screen error:', err);
+                this.reconnectAttempts++;
+                setTimeout(() => this.connect(), this.reconnectInterval * this.reconnectAttempts);
+            });
+    }
+}
+
 // Handle control clicks
 function triggerControl(controlId) {
     const button = document.getElementById(controlId);
@@ -44,9 +128,9 @@ function simulateButtonClick(button) {
 // Use same host as page for EventSource
 const host = window.location.hostname;
 const port = window.location.port;
-const eventSource = new EventSource(`http://${host}:${port}/event_stream?session=${window.sessionId}`);
+const eventSource = new ReconnectingEventSource(`http://${host}:${port}/event_stream?session=${window.sessionId}`);
 
-eventSource.onmessage = function(event) {
+eventSource.addEventListener('message', function(event) {
     if (!event.data) {
         return; // Skip keepalive
     }
@@ -74,14 +158,7 @@ eventSource.onmessage = function(event) {
     } catch (e) {
         console.error('Error processing event:', e);
     }
-};
-
-// eventSource.onerror = function() {
-//     console.log('SSE connection failed, reconnecting...');
-//     setTimeout(() => {
-//         window.location.reload();
-//     }, 1000);
-// };
+});
 
 // Open recorder tab
 function openRecorder() {

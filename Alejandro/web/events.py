@@ -3,7 +3,7 @@ from typing import Optional, Type, Dict, Any, Iterator
 from datetime import datetime
 import queue
 from Alejandro.Core.Screen import Screen
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, jsonify
 from Alejandro.Core.Control import Control
 import time
 
@@ -57,6 +57,21 @@ def push_event(event: Event) -> None:
     
     event_queue.put(event)
 
+@events_bp.route('/sync_screen', methods=['POST'])
+def sync_screen():
+    data = request.get_json()
+    session_id = data.get('session_id')
+    screen_url = data.get('screen_url')
+
+    from Alejandro.web.session import get_or_create_session
+    session = get_or_create_session(session_id)
+    if screen_url in Screen.types:
+        screen_type = Screen.types[screen_url]
+        session.current_or_get(screen_type)
+        return jsonify({"status": "ok"})
+    else:
+        return jsonify({"error": "Screen not found"}), 404
+    
 @events_bp.route('/event_stream')
 def event_stream() -> Response:
     """SSE endpoint"""
