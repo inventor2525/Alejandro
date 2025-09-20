@@ -92,7 +92,7 @@ def event_stream() -> Response:
                 pass
             
             # Keep-alive
-            time.sleep(0.01)
+            time.sleep(0.1)
             yield ": keepalive\n\n"
             
     return Response(
