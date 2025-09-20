@@ -34,13 +34,11 @@ class ReconnectingEventSource {
     }
 
     syncScreen() {
-        const host = window.location.hostname;
-        const port = window.location.port;
         let screen_url = window.location.pathname.substring(1);
         if (screen_url.endsWith('/')) {
             screen_url = screen_url.slice(0, -1);
         }
-        return fetch(`http://${host}:${port}/sync_screen`, {
+        return fetch(`/sync_screen`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -94,9 +92,7 @@ function triggerControl(controlId) {
     const button = document.getElementById(controlId);
     simulateButtonClick(button);
     
-    const host = window.location.hostname;
-    const port = window.location.port;
-    fetch(`http://${host}:${port}/control`, {
+    fetch(`/control`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -125,10 +121,7 @@ function simulateButtonClick(button) {
 }
 
 // Setup SSE for transcriptions and actions
-// Use same host as page for EventSource
-const host = window.location.hostname;
-const port = window.location.port;
-const eventSource = new ReconnectingEventSource(`http://${host}:${port}/event_stream?session=${window.sessionId}`);
+const eventSource = new ReconnectingEventSource(`/event_stream?session=${window.sessionId}`);
 
 eventSource.addEventListener('message', function(event) {
     if (!event.data) {

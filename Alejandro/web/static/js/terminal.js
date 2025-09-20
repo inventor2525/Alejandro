@@ -172,9 +172,7 @@ if (pendingData.length > 0) {
 
 // Send terminal input to server
 function sendTerminalInput(data) {
-    const host = window.location.hostname;
-    const port = window.location.port;
-    fetch(`http://${host}:${port}/terminal/input`, {
+    fetch(`/terminal/input`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -196,9 +194,7 @@ function sendTerminalInput(data) {
 
 // Send terminal resize to server
 function sendTerminalResize(cols, rows) {
-    const host = window.location.hostname;
-    const port = window.location.port;
-    fetch(`http://${host}:${port}/terminal/resize`, {
+    fetch(`/terminal/resize`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
