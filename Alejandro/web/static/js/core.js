@@ -19,7 +19,8 @@ function triggerControl(controlId) {
         },
         body: JSON.stringify({
             control_id: controlId,
-            session_id: localStorage.getItem('sessionId')
+            session_id: localStorage.getItem('sessionId'),
+            window_path:window.location.pathname
         })
     })
     .then(response => {

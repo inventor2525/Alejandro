@@ -10,10 +10,15 @@ from Alejandro.web.events import NavigationEvent, push_event
 from Alejandro.Core.Screen import Screen
 from Alejandro.web.terminal import Terminal
 import os
+
+sessions: Dict[str, 'Session'] = {}
+
 class Session:
 	"""Manages application state for a browser session"""
-	def __init__(self, welcome_screen_type: Type[Screen]):
-		self.id = str(uuid.uuid4())
+	def __init__(self, welcome_screen_type: Type[Screen], id:Optional[str]=None):
+		if not id:
+			id = str(uuid.uuid4())
+		self.id = id
 		self.last_active = datetime.now()
 		self._screens: Dict[Type[Screen], Screen] = {}
 		self.terminals: Dict[str, 'Terminal'] = {}
@@ -79,9 +84,13 @@ class Session:
 		'''Closes this session.'''
 		for terminal in self.terminals.values():
 			terminal.close()
-
-# Global session store
-sessions: Dict[str, Session] = {}
+	
+	def current_or_get(self, screen_type:Type[Screen]) -> Screen:
+		if isinstance(self.app.screen_stack.current, screen_type):
+			return self.app.screen_stack.current
+		screen = self.get_screen(screen_type)
+		self.app.screen_stack.push(screen)
+		return screen
 
 from datetime import datetime, timedelta
 
@@ -100,20 +109,12 @@ def cleanup_sessions() -> None:
 def get_or_create_session(session_id: Optional[str] = None) -> Session:
 	"""Get existing session or create new one"""    
 	if session_id and session_id in sessions:
-		print(f"Reusing existing session: {session_id}")
 		sessions[session_id].last_active = datetime.now()
 		return sessions[session_id]
 	cleanup_sessions()
 	
 	from Alejandro.web.blueprints.welcome import WelcomeScreen
-	if session_id:
-		print(f"Creating new session with provided ID: {session_id}")
-		session = Session(WelcomeScreen)
-		session.id = session_id  # Use provided ID instead of generating new one
-	else:
-		print("Creating new session with generated ID")
-		session = Session(WelcomeScreen)
-		
+	session = Session(WelcomeScreen, id=session_id)
 	sessions[session.id] = session
 	
 	return session

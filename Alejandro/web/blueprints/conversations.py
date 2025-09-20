@@ -1,12 +1,13 @@
 from flask import Blueprint, render_template, request
 from typing import Dict, Any, List
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Core.Screen import Screen
+from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 from Alejandro.Core.ModelControl import ModalControl
 
 bp = Blueprint('conversations', __name__)
 
+@screen_type
 class ConversationsScreen(Screen):
     """List of conversations"""
     def __init__(self, session: 'Session'):
@@ -63,7 +64,7 @@ def conversations() -> str:
     session_id = request.args.get('session')
     
     session = get_or_create_session(session_id)
-    screen = session.app.screen_stack.current
+    screen = session.current_or_get(ConversationsScreen)
     
     template_data = screen.get_template_data()
     print(f"Rendering conversations with data: {template_data}")

@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Core.Screen import Screen
+from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 
 bp = Blueprint('main', __name__)
 
+@screen_type
 class MainScreen(Screen):
     """Main menu screen"""
     def __init__(self, session: 'Session'):
@@ -36,7 +37,7 @@ def show_screen() -> str:
     session_id = request.args.get('session')
         
     session = get_or_create_session(session_id)
-    screen = session.app.screen_stack.current
+    screen = session.current_or_get(MainScreen)
     return render_template(
         'base.html',
         screen=screen,

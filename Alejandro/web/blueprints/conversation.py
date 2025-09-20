@@ -2,12 +2,13 @@ from flask import Blueprint, render_template, request
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Core.Screen import Screen
+from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 from Alejandro.Core.ModelControl import ModalControl
 
 bp = Blueprint('conversation', __name__)
 
+@screen_type
 class ConversationScreen(Screen):
     """Single conversation view"""
     conversation_id: str

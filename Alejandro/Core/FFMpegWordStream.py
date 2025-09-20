@@ -161,28 +161,33 @@ class FFmpegWordStream(WordStream):
 				for node in nodes:
 					self.word_queue.put(node)
 
+def get_stream(session_id:str) -> FFmpegWordStream:
+	from Alejandro.web.session import get_or_create_session
+	get_or_create_session(session_id)
+	return FFmpegWordStream.streams[session_id]
+
 @FFmpegWordStream.socketio.on('start_listening')
 def _start_listening(data: dict) -> Response:
 	session_id = data.get('session_id')
 	mime_type = data.get("mime_type", "audio/webm")
-	FFmpegWordStream.streams[session_id]._start_listening(mime_type)
+	get_stream(session_id)._start_listening(mime_type)
 
 @FFmpegWordStream.socketio.on('stop_listening')
 def _stop_listening(data: dict=None) -> Response:
 	print(data)
 	session_id = data.get('session_id')
-	FFmpegWordStream.streams[session_id]._stop_listening()
+	get_stream(session_id)._stop_listening()
 
 @FFmpegWordStream.socketio.on("audio_chunk")
 def _handle_audio_chunk(data):
 	session_id = data.get("session_id")
 	audio_data = data.get("audio_data")
-	FFmpegWordStream.streams[session_id]._handle_audio_chunk(audio_data)
+	get_stream(session_id)._handle_audio_chunk(audio_data)
 
 @FFmpegWordStream.bp.route("/new_transcription", methods=["POST"])
 def _receive_transcription():
 	session_id = request.args.get('session_id')
-	word_stream = FFmpegWordStream.streams[session_id]
+	word_stream = get_stream(session_id)
 	
 	while word_stream.is_recording:
 		line = request.stream.readline().decode('utf-8').strip()
@@ -201,8 +206,9 @@ def _receive_transcription():
 def handle_manual_transcription(data: dict):
 	session_id = data.get('session_id')
 	text = data.get('text', '').strip()
+	
 	if session_id and text:
-		word_stream = FFmpegWordStream.streams.get(session_id)
+		word_stream = get_stream(session_id)
 		if word_stream:
 			word_stream._receive_transcription({'text': text})
 

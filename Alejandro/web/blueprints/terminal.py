@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Core.Screen import Screen
+from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 from Alejandro.web.terminal import Terminal
 from Alejandro.web.events import TerminalScreenEvent, push_event
@@ -8,6 +8,7 @@ import time
 
 bp = Blueprint('terminal', __name__)
 
+@screen_type
 class TerminalScreen(Screen):
     """Terminal emulator screen"""
     def __init__(self, session: 'Session'):
@@ -105,7 +106,7 @@ def terminal() -> str:
     session = get_or_create_session(session_id)
     
     # Check if we already have a terminal screen in the stack
-    current_screen = session.app.screen_stack.current
+    current_screen = session.current_or_get(TerminalScreen)
     if isinstance(current_screen, TerminalScreen):
         screen = current_screen
     else:

@@ -1,35 +1,28 @@
 from flask import Blueprint, jsonify, Response, request
-from Alejandro.web.session import get_or_create_session
+from Alejandro.web.session import get_or_create_session, Screen
 
 bp = Blueprint('controls', __name__)
 
 @bp.route('/control', methods=['POST'])
 def trigger_control() -> Response:
     """Handle control activation"""
-    print("\n=== Control Trigger Start ===")
     data = request.get_json()
     control_id = data.get('control_id')
     session_id = data.get('session_id')
-    print(f"Received control request - control_id: {control_id}, session_id: {session_id}")
+    url = data.get('window_path')[1:]
+    screen_type = Screen.types[url]
     
     session = get_or_create_session(session_id)
-    print(f"Got/created session for control with id: {session.id}")
-    current_screen = session.app.screen_stack.current
-    print(f"Current screen: {current_screen.__class__.__name__}")
-    print(f"Available controls: {[c.id for c in current_screen.controls]}")
+    current_screen = session.current_or_get(screen_type)
     
     for control in current_screen.controls:
         if control.id == control_id:
-            print(f"Found matching control: {control_id}")
             if control.action:
-                print("Executing control action...")
                 control.action()
-                print("Action completed")
-                # Return current screen info after action
+                
                 return jsonify({
                     "screen": type(session.app.screen_stack.current).url()
                 })
             return jsonify({})
-    
-    print(f"Error: Control {control_id} not found")        
+       
     return jsonify({"error": "Control not found"}), 404
