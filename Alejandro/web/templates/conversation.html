@@ -50,3 +50,13 @@
     </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    function getMessageInput() {
+        return {
+            message_input: document.getElementById("messageInput").value
+        };
+    }
+</script>
+{% endblock %}

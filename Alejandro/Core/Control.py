@@ -1,4 +1,4 @@
-from typing import List, Callable, Optional, Dict, List
+from typing import List, Callable, Optional, Dict, List, Any
 from enum import Enum
 from RequiredAI.json_dataclass import *
 from Alejandro.Core.WordNode import WordNode
@@ -17,7 +17,10 @@ class Control:
 	id:str
 	text: str  # Text shown on button/UI
 	keyphrases: List[str]  # Alternative phrases that trigger this control
-	action: Optional[Callable[[], None]]
+	action: Optional[callable]
+	js_getter_function: Optional[str] = field(default=None, kw_only=True)
+	js_return_handler: Optional[str] = field(default=None, kw_only=True)
+	
 	_phrase_words: Dict[str, List[str]] = field(default_factory=dict, init=False, metadata=config(exclude=True))
 	
 	def _check_phrase(self, phrase: str, streams_current_word: WordNode) -> bool:

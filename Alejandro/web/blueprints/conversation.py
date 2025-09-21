@@ -37,7 +37,8 @@ class ConversationScreen(Screen):
                     id="send",
                     text="Send Message",
                     keyphrases=["send message", "send", "submit"],
-                    action=lambda s=self: s._send_message()
+                    action=self._send_message,
+                    js_getter_function="getMessageInput"
                 ),
                 session.make_back_control()
             ]
@@ -54,10 +55,13 @@ class ConversationScreen(Screen):
             # TODO: Append to message input
             print(f"Speech input: {text}")
             
-    def _send_message(self) -> None:
+    def _send_message(self, message_input:str) -> None:
         """Send current message"""
-        # TODO: Actually send message
-        print("Sending message")
+        if message_input:
+            self.conversation.add_message(message_input)
+            self.conversation.save()
+        else:
+            print("No message content provided")
         
     def get_messages(self) -> List[Dict[str, Any]]:
         """Get conversation messages"""

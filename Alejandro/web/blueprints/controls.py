@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, Response, request
 from Alejandro.web.session import get_or_create_session, Screen
+import json
 
 bp = Blueprint('controls', __name__)
 
@@ -10,19 +11,22 @@ def trigger_control() -> Response:
     control_id = data.get('control_id')
     session_id = data.get('session_id')
     url = data.get('window_path')[1:]
+    extra_data = data.get('extra_data', {})
     screen_type = Screen.types[url]
     
     session = get_or_create_session(session_id)
     current_screen = session.current_or_get(screen_type)
     
+    response_data = {
+        "screen": type(session.app.screen_stack.current).url()
+    }
+    
     for control in current_screen.controls:
         if control.id == control_id:
             if control.action:
-                control.action()
-                
-                return jsonify({
-                    "screen": type(session.app.screen_stack.current).url()
-                })
-            return jsonify({})
+                result = control.action(**extra_data)
+                if result is not None:
+                    response_data["return_value"] = json.dumps(result)
+            return jsonify(response_data)
        
     return jsonify({"error": "Control not found"}), 404

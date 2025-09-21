@@ -92,6 +92,23 @@ function triggerControl(controlId) {
     const button = document.getElementById(controlId);
     simulateButtonClick(button);
     
+    let extraData = {};
+    const getterName = button.dataset.jsGetter;
+    if (getterName && window[getterName]) {
+        try {
+            extraData = window[getterName]();
+            if (typeof extraData !== 'object' || extraData === null) {
+                throw new Error('Getter function must return an object');
+            }
+        } catch (error) {
+            console.error('Error executing getter function:', error);
+            return;
+        }
+    } else if (getterName) {
+        console.error(`Getter function ${getterName} not found`);
+        return;
+    }
+    
     fetch(`/control`, {
         method: 'POST',
         headers: {
@@ -100,12 +117,22 @@ function triggerControl(controlId) {
         body: JSON.stringify({
             control_id: controlId,
             session_id: localStorage.getItem('sessionId'),
-            window_path:window.location.pathname
+            window_path:window.location.pathname,
+            extra_data: extraData
         })
     })
-    .then(response => {
-        console.log('Control response:', response);
-        return response.json();
+    .then(response => response.json())
+    .then(data => {
+        console.log('Control response:', data);
+        const handlerName = button.dataset.jsReturnHandler;
+        if (handlerName && window[handlerName] && data.return_value) {
+            try {
+                const returnValue = JSON.parse(data.return_value);
+                window[handlerName](returnValue);
+            } catch (error) {
+                console.error('Error handling return value:', error);
+            }
+        }
     })
     .catch(error => {
         console.error('Control error:', error);
