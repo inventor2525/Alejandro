@@ -83,5 +83,28 @@ class Conversation:
 		with open(path, "r") as f:
 			data = f.read()
 		return cls.from_json(data)
+	
+	@property
+	def short_id(self) -> str:
+		def get_short_ids():
+			if hasattr(Conversation, 'short_ids'):
+				return Conversation.short_ids
+			
+			files = [f for f in os.listdir(Conversation.ROOT_DIRECTORY) if f.endswith('.json')]
+			full_ids = [os.path.splitext(f)[0] for f in files]
+			
+			# Find minimal unique L chars for suffixes
+			L = 4
+			while True:
+				suffixes = [id_[-L:] for id_ in full_ids]
+				if len(set(suffixes)) == len(full_ids):
+					break
+				L += 1
+			
+			Conversation.short_ids = {id_: id_[-L:] for id_ in full_ids}
+			return Conversation.short_ids
+		
+		return get_short_ids()[self.id]
+			
 
 os.makedirs(Conversation.ROOT_DIRECTORY, exist_ok=True)

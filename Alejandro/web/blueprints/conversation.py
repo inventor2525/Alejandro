@@ -24,7 +24,7 @@ class ConversationScreen(Screen):
         
         super().__init__(
             session=session,
-            title=f"Conversation {conversation_id}",
+            title=f"Conversation {self.conversation.short_id}",
             controls=[
                 ModalControl(
                     id="speak",
