@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from datetime import datetime
 from Alejandro.web.session import get_or_create_session, Session
 from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 from Alejandro.Core.ModelControl import ModalControl
+from Alejandro.Models.Conversation import Conversation, Message, Roles
 
 bp = Blueprint('conversation', __name__)
 
@@ -12,8 +13,15 @@ bp = Blueprint('conversation', __name__)
 class ConversationScreen(Screen):
     """Single conversation view"""
     conversation_id: str
+    conversation: Conversation
     
     def __init__(self, session: 'Session', conversation_id: str):
+        self.conversation_id = conversation_id
+        try:
+            self.conversation = Conversation.load(conversation_id)
+        except FileNotFoundError:
+            raise ValueError(f"Conversation {conversation_id} does not exist")
+        
         super().__init__(
             session=session,
             title=f"Conversation {conversation_id}",
@@ -34,7 +42,6 @@ class ConversationScreen(Screen):
                 session.make_back_control()
             ]
         )
-        self.conversation_id = conversation_id
         
     def _handle_speech(self) -> None:
         """Handle speech input from modal control"""
@@ -54,24 +61,17 @@ class ConversationScreen(Screen):
         
     def get_messages(self) -> List[Dict[str, Any]]:
         """Get conversation messages"""
-        # TODO: Get from database
-        return [
-            {
-                "role": "User",
-                "content": "Can you help me with a Python problem?",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "is_model": False
-            },
-            {
-                "role": "Assistant",
-                "content": "Of course! What's the issue you're having?",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "is_model": True,
-                "model_name": "GPT-4"
-            }
-        ]
+        messages = []
+        for msg in self.conversation.messages:
+            messages.append({
+                "role": msg.role,
+                "content": msg.content,
+                "date": msg.date_created.strftime("%Y-%m-%d"),
+                "time": msg.date_created.strftime("%H:%M:%S"),
+                "is_model": msg.role == Roles.ASSISTANT,
+                "model_name": msg.model_name if msg.role == Roles.ASSISTANT else None
+            })
+        return messages
         
     def get_template_data(self) -> Dict[str, Any]:
         return {

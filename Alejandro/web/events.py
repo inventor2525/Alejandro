@@ -36,6 +36,7 @@ class NavigationEvent(Event):
     screen: Type[Screen] = field(kw_only=True, metadata=config(
         encoder=lambda s:s.url()
     ))
+    extra_params: Dict[str,str] = field(kw_only=True, default_factory=dict)
 
 @json_dataclass
 class ButtonClickEvent(Event):

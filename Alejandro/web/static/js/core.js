@@ -141,7 +141,12 @@ eventSource.addEventListener('message', function(event) {
                 }
                 break;
             case 'NavigationEvent':
-                const targetUrl = '/' + data.screen + '?session=' + data.session_id;
+                let targetUrl = '/' + data.screen + '?session=' + data.session_id;
+                if (data.extra_params) {
+                    Object.entries(data.extra_params).forEach(([key, value]) => {
+                        targetUrl += (targetUrl.includes('?') ? '&' : '?') + key + '=' + value;
+                    });
+                }
                 console.log('Navigating to:', data.screen, ' at ', targetUrl);
                 window.location.href = targetUrl;
                 break;

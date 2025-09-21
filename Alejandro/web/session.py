@@ -47,10 +47,15 @@ class Session:
 			screen = target_screen
 			
 		self.app.screen_stack.push(screen)
+		from Alejandro.web.blueprints.conversation import ConversationScreen
 		print(f"Pushing navigation event for screen: {type(screen).__name__} with session: {self.id}")
+		extra_params = {}
+		if isinstance(screen, ConversationScreen):
+			extra_params['conversation_id'] = screen.conversation_id
 		push_event(NavigationEvent(
 			screen=type(screen),
-			session_id=self.id
+			session_id=self.id,
+			extra_params=extra_params
 		))
 		
 	def go_back(self) -> None:
