@@ -58,7 +58,7 @@ class FFmpegWordStream(WordStream):
 		self.utterance_thread: Optional[threading.Thread] = None
 		self.chunk_counter = 0
 		
-		self.queue_size = 1
+		self.queue_size = 2
 		self.padding = 1
 	
 	@staticmethod
@@ -233,7 +233,8 @@ class FFmpegWordStream(WordStream):
 				model="whisper-large-v3",
 				response_format="json",
 				language="en",
-				temperature=0.0
+				temperature=0.5,
+				prompt="Utterances should [um], include fillers. Maybe [uh] too: They should always be punctuated, even when it's not really a sentence. Things said, don't always [um]... You know? Have to be sentences right? I did always like computers... When they... When they didn't just speak in all lower case words without marks; I much prefer it when they do! I also, you know, you know I much prefer when they verbatim transcribe me. Even if I say something, maybe I say something, multiple times, it should do that too!"
 			)
 			return transcription.text
 
