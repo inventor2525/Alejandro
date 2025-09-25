@@ -104,29 +104,29 @@ class FFmpegWordStream(WordStream):
 		self.recording_process = subprocess.Popen(
 			cmd,
 			stdin=subprocess.PIPE,
-			stdout=subprocess.PIPE,
-			stderr=subprocess.PIPE,
+			# stdout=subprocess.PIPE,
+			# stderr=subprocess.PIPE,
 			universal_newlines=False,
 		)
-		def log_ffmpeg_output(self=self):
-			print("Begin logging")
-			try:
-				while self.recording_process and self.recording_process.poll() is None:
-					print("process exists")
-					if self.recording_process.stdout:
-						stdout = self.recording_process.stdout.readline()
-						if stdout:
-							print(f"FFmpeg stdout: {stdout}")
-					if self.recording_process.stderr:
-						stderr = self.recording_process.stderr.readline()
-						if stderr:
-							print(f"FFmpeg stderr: {stderr}")
-					print("looping read logs...")
-			except Exception as e:
-				print(f'!!!!!!!!!! log failed !!!!!!!!!!\n{e}')
-				pass
-		from threading import Thread
-		Thread(target=log_ffmpeg_output, daemon=True).start()
+		# def log_ffmpeg_output(self=self):
+		# 	print("Begin logging")
+		# 	try:
+		# 		while self.recording_process and self.recording_process.poll() is None:
+		# 			print("process exists")
+		# 			if self.recording_process.stdout:
+		# 				stdout = self.recording_process.stdout.readline()
+		# 				if stdout:
+		# 					print(f"FFmpeg stdout: {stdout}")
+		# 			if self.recording_process.stderr:
+		# 				stderr = self.recording_process.stderr.readline()
+		# 				if stderr:
+		# 					print(f"FFmpeg stderr: {stderr}")
+		# 			print("looping read logs...")
+		# 	except Exception as e:
+		# 		print(f'!!!!!!!!!! log failed !!!!!!!!!!\n{e}')
+		# 		pass
+		# from threading import Thread
+		# Thread(target=log_ffmpeg_output, daemon=True).start()
 		self.is_recording = True
 
 	def _stop_listening(self) -> None:
