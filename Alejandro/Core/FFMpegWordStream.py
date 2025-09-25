@@ -9,6 +9,9 @@ import datetime
 import signal
 import json
 import os
+import time
+import threading
+from groq import Groq
 
 mime_to_config = {
 	"audio/webm": ("webm", "matroska", "opus"),
@@ -47,6 +50,16 @@ class FFmpegWordStream(WordStream):
 		self.last_node:WordNode = None
 		self.start_time:datetime = None
 		self.end_time:datetime = None
+
+		self.utterance_lock = threading.Lock()
+		self.current_utterance_start_ms: Optional[int] = None
+		self.current_utterance_end_ms: Optional[int] = None
+		self.last_speech_update: Optional[float] = None
+		self.utterance_thread: Optional[threading.Thread] = None
+		self.chunk_counter = 0
+		
+		self.queue_size = 1
+		self.padding = 1
 	
 	@staticmethod
 	def init_app(app:Flask):
@@ -83,7 +96,7 @@ class FFmpegWordStream(WordStream):
 			"-f", input_format,
 			"-c:a", input_codec,
 			"-i", "pipe:0",
-			"-af", f"pan=mono|c0=c0,highpass=f=200,lowpass=f=3000,whisper=model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-tiny.en.bin:language=en:queue=4:destination=http\\\\://127.0.0.1\\\\:5000/new_transcription?session_id={self.session_id}:format=json:vad_model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-silero-v5.1.2.bin:vad_threshold=0.7:vad_min_silence_duration=0.5",
+			"-af", f"pan=mono|c0=c0,highpass=f=200,lowpass=f=3000,whisper=model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-tiny.en.bin:language=en:queue={self.queue_size}:destination=http\\\\://127.0.0.1\\\\:5000/new_transcription?session_id={self.session_id}:format=json:vad_model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-silero-v5.1.2.bin:vad_threshold=0.7:vad_min_silence_duration=0.5",
 			"-f", "null",
 			"-"
 		]
@@ -160,6 +173,69 @@ class FFmpegWordStream(WordStream):
 				self.last_node = nodes[-1]
 				for node in nodes:
 					self.word_queue.put(node)
+
+		with self.utterance_lock:
+			if self.current_utterance_start_ms is None:
+				self.current_utterance_start_ms = data.get("start", 0)
+				self.current_utterance_end_ms = data.get("end", 0)
+			else:
+				if data.get("end", 0) > self.current_utterance_end_ms:
+					self.current_utterance_end_ms = data.get("end", 0)
+			self.last_speech_update = time.time()
+
+		if not self.utterance_thread or not self.utterance_thread.is_alive():
+			self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
+			self.utterance_thread.start()
+
+	def _process_utterances(self):
+		while self.running:
+			time.sleep(0.5)
+			start_sec, end_sec, transcribe_block = 0,0,False
+			with self.utterance_lock:
+				if self.last_speech_update and time.time() - self.last_speech_update > self.queue_size+self.padding:
+					start_sec = max(0, self.current_utterance_start_ms / 1000 - self.padding)
+					end_sec = self.current_utterance_end_ms / 1000 + self.padding
+					self.current_utterance_start_ms = None
+					self.current_utterance_end_ms = None
+					self.last_speech_update = None
+					transcribe_block = True
+			
+			if transcribe_block:
+				chunk_path = self.current_audio_path + f"_chunk{self.chunk_counter}.m4a"
+				self.chunk_counter += 1
+				self._extract_audio_chunk(start_sec, end_sec - start_sec, chunk_path)
+
+				groq_text = self._transcribe_with_groq(chunk_path)
+				print(f"Groq transcription: {groq_text}")
+
+
+	def _extract_audio_chunk(self, start, duration, output_path):
+		cmd = [
+			"/home/charlie/Projects/ffmpeg_whisper/FFmpeg/ffmpeg",
+			"-i", self.current_audio_path,
+			"-ss", str(start),
+			"-t", str(duration),
+			"-af", "pan=mono|c0=c0",
+			"-hide_banner",
+			"-loglevel", "error",
+			"-nostats",
+			"-c:a", "aac",
+			"-y",
+			output_path
+		]
+		subprocess.run(cmd, check=True)
+
+	def _transcribe_with_groq(self, filename):
+		client = Groq()
+		with open(filename, "rb") as file:
+			transcription = client.audio.transcriptions.create(
+				file=(os.path.basename(filename), file.read()),
+				model="whisper-large-v3",
+				response_format="json",
+				language="en",
+				temperature=0.0
+			)
+			return transcription.text
 
 def get_stream(session_id:str) -> FFmpegWordStream:
 	from Alejandro.web.session import get_or_create_session
