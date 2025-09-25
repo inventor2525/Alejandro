@@ -83,7 +83,7 @@ class FFmpegWordStream(WordStream):
 			"-f", input_format,
 			"-c:a", input_codec,
 			"-i", "pipe:0",
-			"-af", f"pan=mono|c0=c0,highpass=f=200,lowpass=f=3000,whisper=model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-base.en.bin:language=en:queue=4:destination=http\\\\://127.0.0.1\\\\:5000/new_transcription?session_id={self.session_id}:format=json:vad_model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-silero-v5.1.2.bin:vad_min_silence_duration=0.5",
+			"-af", f"pan=mono|c0=c0,highpass=f=200,lowpass=f=3000,whisper=model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-tiny.en.bin:language=en:queue=4:destination=http\\\\://127.0.0.1\\\\:5000/new_transcription?session_id={self.session_id}:format=json:vad_model=/home/charlie/Projects/ffmpeg_whisper/whisper-build/whisper.cpp/models/ggml-silero-v5.1.2.bin:vad_threshold=0.7:vad_min_silence_duration=0.5",
 			"-f", "null",
 			"-"
 		]
