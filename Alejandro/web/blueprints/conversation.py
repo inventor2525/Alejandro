@@ -36,7 +36,7 @@ class ConversationScreen(Screen):
                 Control(
                     id="send",
                     text="Send Message",
-                    keyphrases=["send message", "send", "submit"],
+                    keyphrases=["send message"],
                     action=self._send_message,
                     js_getter_function="getMessageInput"
                 ),
