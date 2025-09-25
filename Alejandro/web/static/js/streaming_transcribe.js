@@ -55,13 +55,14 @@ function sendManual() {
     }
 }
 
+// Open main tab with opener check
+function openMain() {
+    const mainUrl = localStorage.getItem('alejandro_main_url');
+    openOrFocus(mainUrl, 'alejandro_main');
+}
+
 // Button listeners
 document.getElementById("startButton").addEventListener("click", startRecording);
 document.getElementById("stopButton").addEventListener("click", stopRecording);
 document.getElementById("sendButton").addEventListener("click", sendManual);
-
-// Open main tab with opener check
-function openMain() {
-    const mainUrl = localStorage.getItem('alejandro_main_url') || '/?session=' + localStorage.getItem('sessionId');
-    openOrFocus(mainUrl, 'alejandro_main');
-}
+document.getElementById("openMainButton").addEventListener("click", openMain);

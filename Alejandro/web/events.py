@@ -110,3 +110,11 @@ def event_stream() -> Response:
         event_stream(session_id),
         mimetype='text/event-stream'
     )
+
+@events_bp.route('/debugOnServer', methods=['POST'])
+def debug():
+    data = request.get_json()
+    session_id = data.get('session_id')
+    msg = data.get('msg')
+    print(f"\nSession {session_id} says:\n{msg}\n")
+    return jsonify({"status": "ok"})

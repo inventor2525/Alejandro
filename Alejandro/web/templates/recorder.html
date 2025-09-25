@@ -4,12 +4,12 @@
     <title>Recorder - Alejandro</title>
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        .controls { padding: 10px; background: #f0f0f0; border-bottom: 1px solid #ddd; display: flex; gap: 10px; }
+        .controls { padding: 10px; background: #f0f0f0; border-bottom: 1px solid #ddd; display: flex; gap: 10px; position: fixed; bottom:0; left:0; right:0; }
         button { padding: 15px 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
         button:hover { background: #45a049; }
         #manualInput { width: 100%; height: calc(100vh - 16px - 24px - 30px); padding: 10px; box-sizing: border-box; font-size: 16px; resize: none; }
         
-        #menuButton { padding: 15px 40px; }
+        #openMainButton { padding: 15px 40px; }
         #sendButton { padding: 15px 30px;  flex-grow: 1; }
         #startButton { padding: 15px 16px; flex-shrink: 0; }
         #stopButton { padding: 15px 16px;  flex-shrink: 0; }
@@ -19,7 +19,7 @@
 <body>
     <textarea id="manualInput" placeholder="Type manual command..."></textarea>
     <div class="controls">
-        <button id="menuButton" onclick="openMain()">Open Main</button>
+        <button id="openMainButton">Open Main</button>
         <button id="sendButton">Send</button>
         <button id="startButton">Start Listening</button>
         <button id="stopButton" class="hidden">Stop Listening</button>

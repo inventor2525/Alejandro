@@ -223,7 +223,7 @@ eventSource.addEventListener('message', function(event) {
 // Open recorder tab
 function openRecorder() {
     const sessionId = localStorage.getItem('sessionId');
-    const url = '/recorder?session=' + sessionId;
-    localStorage.setItem('alejandro_main_url', window.location.pathname);
+    const url = window.location.origin + '/recorder?session=' + sessionId;
+    localStorage.setItem('alejandro_main_url', window.location.href);
     openOrFocus(url, 'alejandro_recorder');
 }
