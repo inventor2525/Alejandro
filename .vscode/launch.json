@@ -11,6 +11,14 @@
 			"program": "${file}",
 			"console": "integratedTerminal",
 			"justMyCode": false
+		},
+		{
+			"name": "Python: app.py",
+			"type": "python",
+			"request": "launch",
+			"program": "/home/charlie/Projects/Alejandro_dev/Alejandro/Alejandro/web/app.py",
+			"console": "integratedTerminal",
+			"justMyCode": false
 		}
 	]
 }

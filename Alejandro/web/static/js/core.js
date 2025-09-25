@@ -38,6 +38,13 @@ class ReconnectingEventSource {
         if (screen_url.endsWith('/')) {
             screen_url = screen_url.slice(0, -1);
         }
+        let url_params = new URLSearchParams(window.location.search);
+        let extra_url_params = {};
+        for (let [key, value] of url_params.entries()) {
+            if (key !== 'session') {
+                extra_url_params[key] = value;
+            }
+        }
         return fetch(`/sync_screen`, {
             method: 'POST',
             headers: {
@@ -45,7 +52,8 @@ class ReconnectingEventSource {
             },
             body: JSON.stringify({
                 session_id: window.sessionId,
-                screen_url: screen_url
+                screen_url: screen_url,
+                extra_url_params: extra_url_params
             })
         }).then(response => {
             if (!response.ok) {
@@ -88,16 +96,16 @@ class ReconnectingEventSource {
 }
 
 // Handle control clicks
-function triggerControl(controlId) {
+function triggerControl(controlId, fromPython = false) {
     const button = document.getElementById(controlId);
     simulateButtonClick(button);
     
-    let extraData = {};
+    let function_arguments = {};
     const getterName = button.dataset.jsGetter;
     if (getterName && window[getterName]) {
         try {
-            extraData = window[getterName]();
-            if (typeof extraData !== 'object' || extraData === null) {
+            function_arguments = window[getterName]();
+            if (typeof function_arguments !== 'object' || function_arguments === null) {
                 throw new Error('Getter function must return an object');
             }
         } catch (error) {
@@ -109,6 +117,14 @@ function triggerControl(controlId) {
         return;
     }
     
+    let url_params = new URLSearchParams(window.location.search);
+    let extra_url_params = {};
+    for (let [key, value] of url_params.entries()) {
+        if (key !== 'session') {
+            extra_url_params[key] = value;
+        }
+    }
+    
     fetch(`/control`, {
         method: 'POST',
         headers: {
@@ -118,7 +134,9 @@ function triggerControl(controlId) {
             control_id: controlId,
             session_id: localStorage.getItem('sessionId'),
             window_path:window.location.pathname,
-            extra_data: extraData
+            extra_url_params: extra_url_params,
+            function_arguments: function_arguments,
+            from_python: fromPython
         })
     })
     .then(response => response.json())
@@ -169,13 +187,30 @@ eventSource.addEventListener('message', function(event) {
                 break;
             case 'NavigationEvent':
                 let targetUrl = '/' + data.screen + '?session=' + data.session_id;
-                if (data.extra_params) {
-                    Object.entries(data.extra_params).forEach(([key, value]) => {
+                if (data.extra_url_params) {
+                    Object.entries(data.extra_url_params).forEach(([key, value]) => {
                         targetUrl += (targetUrl.includes('?') ? '&' : '?') + key + '=' + value;
                     });
                 }
                 console.log('Navigating to:', data.screen, ' at ', targetUrl);
                 window.location.href = targetUrl;
+                break;
+            case 'ControlTriggerEvent':
+                triggerControl(data.control_id, true);
+                break;
+            case 'ControlReturnEvent':
+                const button = document.getElementById(data.control_id);
+                if (button) {
+                    const handlerName = button.dataset.jsReturnHandler;
+                    if (handlerName && window[handlerName] && data.return_value) {
+                        try {
+                            const returnValue = JSON.parse(data.return_value);
+                            window[handlerName](returnValue);
+                        } catch (error) {
+                            console.error('Error handling return value:', error);
+                        }
+                    }
+                }
                 break;
             // Terminal events are handled directly by terminal.js's event listener
             // Don't process them here to avoid duplication

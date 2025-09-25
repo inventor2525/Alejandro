@@ -32,10 +32,10 @@ class Session:
 		welcome_screen = self.get_screen(welcome_screen_type)
 		self.app = Application(self.word_stream, welcome_screen)
 		
-	def get_screen(self, screen_type: Type[Screen]) -> Screen:
+	def get_screen(self, screen_type: Type[Screen], **kwargs) -> Screen:
 		"""Get existing screen instance or create new one"""
 		if screen_type not in self._screens:
-			screen = screen_type(session=self)
+			screen = screen_type(session=self, **kwargs)
 			self._screens[screen_type] = screen
 		return self._screens[screen_type]
 		
@@ -49,13 +49,13 @@ class Session:
 		self.app.screen_stack.push(screen)
 		from Alejandro.web.blueprints.conversation import ConversationScreen
 		print(f"Pushing navigation event for screen: {type(screen).__name__} with session: {self.id}")
-		extra_params = {}
+		extra_url_params = {}
 		if isinstance(screen, ConversationScreen):
-			extra_params['conversation_id'] = screen.conversation_id
+			extra_url_params['conversation_id'] = screen.conversation_id
 		push_event(NavigationEvent(
 			screen=type(screen),
 			session_id=self.id,
-			extra_params=extra_params
+			extra_url_params=extra_url_params
 		))
 		
 	def go_back(self) -> None:
@@ -90,10 +90,10 @@ class Session:
 		for terminal in self.terminals.values():
 			terminal.close()
 	
-	def current_or_get(self, screen_type:Type[Screen]) -> Screen:
+	def current_or_get(self, screen_type:Type[Screen], **kwargs) -> Screen:
 		if isinstance(self.app.screen_stack.current, screen_type):
 			return self.app.screen_stack.current
-		screen = self.get_screen(screen_type)
+		screen = self.get_screen(screen_type, **kwargs)
 		self.app.screen_stack.push(screen)
 		return screen
 

@@ -36,7 +36,7 @@ class NavigationEvent(Event):
     screen: Type[Screen] = field(kw_only=True, metadata=config(
         encoder=lambda s:s.url()
     ))
-    extra_params: Dict[str,str] = field(kw_only=True, default_factory=dict)
+    extra_url_params: Dict[str,str] = field(kw_only=True, default_factory=dict)
 
 @json_dataclass
 class ButtonClickEvent(Event):
@@ -48,6 +48,15 @@ class TerminalScreenEvent(Event):
     """Event for terminal screen updates"""
     terminal_id: str = field(kw_only=True)
     raw_text: str = field(kw_only=True)
+
+@json_dataclass
+class ControlTriggerEvent(Event):
+    control_id: str = field(kw_only=True)
+
+@json_dataclass
+class ControlReturnEvent(Event):
+    control_id: str = field(kw_only=True)
+    return_value: str = field(kw_only=True)
 
 def push_event(event: Event) -> None:
     """Add event to queue"""
@@ -63,12 +72,13 @@ def sync_screen():
     data = request.get_json()
     session_id = data.get('session_id')
     screen_url = data.get('screen_url')
+    extra_url_params = data.get('extra_url_params', {})
 
     from Alejandro.web.session import get_or_create_session
     session = get_or_create_session(session_id)
     if screen_url in Screen.types:
         screen_type = Screen.types[screen_url]
-        session.current_or_get(screen_type)
+        session.current_or_get(screen_type, **extra_url_params)
         return jsonify({"status": "ok"})
     else:
         return jsonify({"error": "Screen not found"}), 404

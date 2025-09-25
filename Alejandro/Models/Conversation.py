@@ -86,12 +86,12 @@ class Conversation:
 	
 	@property
 	def short_id(self) -> str:
-		def get_short_ids():
-			if hasattr(Conversation, 'short_ids'):
-				return Conversation.short_ids
+		def get_short_ids(id:str):
+			if hasattr(Conversation, 'short_ids') and id in Conversation.short_ids:
+				return Conversation.short_ids[id]
 			
 			files = [f for f in os.listdir(Conversation.ROOT_DIRECTORY) if f.endswith('.json')]
-			full_ids = [os.path.splitext(f)[0] for f in files]
+			full_ids = set([os.path.splitext(f)[0] for f in files] + [id])
 			
 			# Find minimal unique L chars for suffixes
 			L = 4
@@ -102,9 +102,9 @@ class Conversation:
 				L += 1
 			
 			Conversation.short_ids = {id_: id_[-L:] for id_ in full_ids}
-			return Conversation.short_ids
+			return Conversation.short_ids[id]
 		
-		return get_short_ids()[self.id]
+		return get_short_ids(self.id)
 			
 
 os.makedirs(Conversation.ROOT_DIRECTORY, exist_ok=True)

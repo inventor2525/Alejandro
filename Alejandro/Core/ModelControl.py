@@ -34,11 +34,9 @@ class ModalControl(Control):
             self._collected_words.append(word_node)
             for phrase in self.deactivate_phrases:
                 if self._check_phrase(phrase, word_node):
-                    phrase_len = len(self._processed_phrases[phrase])
+                    phrase_len = len(self._phrase_words[phrase])
                     self._collected_words = self._collected_words[:-phrase_len]
                     self._state = ModalState.INACTIVE
-                    if self.action:
-                        self.action()
                     return ControlResult.USED
             return ControlResult.HOLD
         

@@ -122,8 +122,6 @@ class Control:
 		
 		# Check if word completes the button text or any keyphrase
 		if self._check_phrase(self.text, streams_current_word) or any(self._check_phrase(phrase, streams_current_word) for phrase in self.keyphrases):
-			if self.action:
-				self.action()
 			return ControlResult.USED
 			
 		return ControlResult.UNUSED
