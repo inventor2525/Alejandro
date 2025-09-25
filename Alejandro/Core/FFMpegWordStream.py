@@ -231,11 +231,13 @@ class FFmpegWordStream(WordStream):
 			transcription = client.audio.transcriptions.create(
 				file=(os.path.basename(filename), file.read()),
 				model="whisper-large-v3",
-				response_format="json",
+				response_format="verbose_json",
 				language="en",
 				temperature=0.5,
+				timestamp_granularities=['word'],
 				prompt="Utterances should [um], include fillers. Maybe [uh] too: They should always be punctuated, even when it's not really a sentence. Things said, don't always [um]... You know? Have to be sentences right? I did always like computers... When they... When they didn't just speak in all lower case words without marks; I much prefer it when they do! I also, you know, you know I much prefer when they verbatim transcribe me. Even if I say something, maybe I say something, multiple times, it should do that too!"
 			)
+			print(json.dumps(transcription.to_dict(),indent=4))
 			return transcription.text
 
 def get_stream(session_id:str) -> FFmpegWordStream:
@@ -295,3 +297,61 @@ def recorder():
 	if not session_id:
 		return "No session ID provided", 400
 	return render_template('recorder.html', session_id=session_id)
+
+# Format of raw transcription json:
+# {"start":894340,"end":896340,"text":">> Hello, everybody."}
+
+# {"start":896340,"end":897580,"text":"that are helping you hear me now."}
+
+# {  
+#     "text": " Hello computer, how can you hear me now?",
+#     "task": "transcribe",
+#     "language": "English",
+#     "duration": 5.24,
+#     "words": [
+#         {
+#             "word": "Hello",
+#             "start": 0,
+#             "end": 2.8
+#         },
+#         {
+#             "word": "computer,",
+#             "start": 2.8,
+#             "end": 3.14
+#         },
+#         {
+#             "word": "how",
+#             "start": 3.14,
+#             "end": 3.28
+#         },
+#         {
+#             "word": "can",
+#             "start": 3.28,
+#             "end": 3.4
+#         },
+#         {
+#             "word": "you",
+#             "start": 3.4,
+#             "end": 3.48
+#         },
+#         {
+#             "word": "hear",
+#             "start": 3.48,
+#             "end": 3.58
+#         },
+#         {
+#             "word": "me",
+#             "start": 3.58,
+#             "end": 3.7
+#         },
+#         {
+#             "word": "now?",
+#             "start": 3.7,
+#             "end": 3.92
+#         }
+#     ],
+#     "segments": null,
+#     "x_groq": {
+#         "id": "req_01k6126z9kes49gdz2z74xawbx"
+#     }
+# }
