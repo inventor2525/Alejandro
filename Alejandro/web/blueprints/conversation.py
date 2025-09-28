@@ -6,6 +6,7 @@ from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 from Alejandro.Core.ModelControl import ModalControl
 from Alejandro.Models.Conversation import Conversation, Message, Roles
+from Alejandro.web.events import ConversationUpdateEvent, push_event
 
 bp = Blueprint('conversation', __name__)
 
@@ -44,6 +45,9 @@ class ConversationScreen(Screen):
             ]
         )
         
+        # Push initial conversation data
+        self._push_update()
+        
     def _handle_speech(self) -> None:
         """Handle speech input from modal control"""
         speak_control = next(c for c in self.controls if c.id == "speak")
@@ -60,27 +64,17 @@ class ConversationScreen(Screen):
         if message_input:
             self.conversation.add_message(message_input)
             self.conversation.save()
+            self._push_update()
         else:
             print("No message content provided")
         
-    def get_messages(self) -> List[Dict[str, Any]]:
-        """Get conversation messages"""
-        messages = []
-        for msg in self.conversation.messages:
-            messages.append({
-                "role": msg.role,
-                "content": msg.content,
-                "date": msg.date_created.strftime("%Y-%m-%d"),
-                "time": msg.date_created.strftime("%H:%M:%S"),
-                "is_model": msg.role == Roles.ASSISTANT,
-                "model_name": msg.model_name if msg.role == Roles.ASSISTANT else None
-            })
-        return messages
-        
-    def get_template_data(self) -> Dict[str, Any]:
-        return {
-            "messages": self.get_messages()
-        }
+    def _push_update(self):
+        """Push conversation update event"""
+        push_event(ConversationUpdateEvent(
+            session_id=self.session.id,
+            conversation_id=self.conversation_id,
+            data=self.conversation.to_dict()
+        ))
 
 @bp.route(f'/{ConversationScreen.url()}')
 def conversation() -> str:
@@ -100,5 +94,5 @@ def conversation() -> str:
         'conversation.html',
         screen=screen,
         session_id=session.id,
-        **screen.get_template_data()
+        conversation_id=conversation_id
     )

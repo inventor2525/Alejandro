@@ -58,6 +58,12 @@ class ControlReturnEvent(Event):
     control_id: str = field(kw_only=True)
     return_value: str = field(kw_only=True)
 
+@json_dataclass
+class ConversationUpdateEvent(Event):
+    """Event for conversation updates"""
+    conversation_id: str = field(kw_only=True)
+    data: Dict[str, Any] = field(kw_only=True)
+
 def push_event(event: Event) -> None:
     """Add event to queue"""
     if isinstance(event, TerminalScreenEvent):
