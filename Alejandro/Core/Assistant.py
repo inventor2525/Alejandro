@@ -53,11 +53,6 @@ class Assistant:
     def set_current_conversation(self, conv: Conversation):
         """Set the current active conversation."""
         self.current_conversation = conv
-        def update_soon(self=self):
-            import time
-            time.sleep(2)
-            self.update_screen()
-        Thread(target=update_soon).start()
     
     def send_message(self, user_message: str):
         """Send a message to AI and get response asynchronously."""
@@ -75,24 +70,22 @@ class Assistant:
     
     def _generate_ai_response(self):
         """Generate AI response using RequiredAI."""
-        print(self.list)
         response = self.client.create_completion(
             model=self.current_model,
             messages=self.list
         )
-        print("done generating\n\n")
+        
         ai_msg = Message(
             role=Roles.ASSISTANT,
             content=response["choices"][0]["message"]["content"],
             model_name=self.current_model,
             extra={"raw": response}
         )
-        print(ai_msg)
+        
         self.current_conversation.add_message(ai_msg)
         self.current_conversation.save()
         
         self.update_screen()
-        print("screen updated")
     
     @property
     def list(self) -> List[Dict[str, str]]:
