@@ -42,9 +42,6 @@ class Assistant:
                 )
             ]
         )
-        
-        self.client.add_model(llama_model_config)
-        self.client.add_model(simple_ai_config)
     
     def update_screen(self):
         if self.current_conversation:
