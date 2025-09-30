@@ -143,12 +143,21 @@ function triggerControl(controlId, fromPython = false) {
     .then(data => {
         console.log('Control response:', data);
         const handlerName = button.dataset.jsReturnHandler;
-        if (handlerName && window[handlerName] && data.return_value) {
-            try {
-                const returnValue = JSON.parse(data.return_value);
-                window[handlerName](returnValue);
-            } catch (error) {
-                console.error('Error handling return value:', error);
+        if (handlerName && window[handlerName]) {
+            if (data.return_value) {
+                try {
+                    const returnValue = JSON.parse(data.return_value);
+                    window[handlerName](returnValue);
+                } catch (error) {
+                    console.error('Error handling return value:', error);
+                }
+            }
+            else {
+                try {
+                    window[handlerName]();
+                } catch (error) {
+                    console.error('Error handling callback function:', error);
+                }
             }
         }
     })

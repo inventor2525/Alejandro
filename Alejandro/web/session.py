@@ -6,7 +6,8 @@ from Alejandro.Core.Control import Control
 from Alejandro.Core.Application import Application 
 from Alejandro.Core.ScreenStack import ScreenStack
 from Alejandro.Core.FFMpegWordStream import FFmpegWordStream
-from Alejandro.web.events import NavigationEvent, push_event
+from Alejandro.Core.Assistant import Assistant,Conversation
+from Alejandro.web.events import NavigationEvent, ConversationUpdateEvent, push_event
 from Alejandro.Core.Screen import Screen
 from Alejandro.web.terminal import Terminal
 import os
@@ -23,6 +24,16 @@ class Session:
 		self._screens: Dict[Type[Screen], Screen] = {}
 		self.terminals: Dict[str, 'Terminal'] = {}
 		self.current_terminal_index = 0
+		
+		self.conversation_manager = Assistant(self.id)
+		def _push_update(session_id:str, conversation:Conversation):
+			"""Push conversation update."""
+			push_event(ConversationUpdateEvent(
+				session_id=session_id,
+				conversation_id=conversation.id,
+				data=conversation.to_dict()
+			))
+		self.conversation_manager.screen_should_update.connect(_push_update)
 		
 		# Create session-specific word stream and app
 		self.word_stream = FFmpegWordStream(

@@ -6,7 +6,7 @@ from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
 from Alejandro.Core.ModelControl import ModalControl
 from Alejandro.Models.Conversation import Conversation, Message, Roles
-from Alejandro.web.events import ConversationUpdateEvent, push_event
+from flask import jsonify
 
 bp = Blueprint('conversation', __name__)
 
@@ -14,18 +14,17 @@ bp = Blueprint('conversation', __name__)
 class ConversationScreen(Screen):
     """Single conversation view"""
     conversation_id: str
-    conversation: Conversation
     
     def __init__(self, session: 'Session', conversation_id: str):
         self.conversation_id = conversation_id
         try:
-            self.conversation = Conversation.load(conversation_id)
+            conversation = Conversation.load(conversation_id)
         except FileNotFoundError:
             raise ValueError(f"Conversation {conversation_id} does not exist")
         
         super().__init__(
             session=session,
-            title=f"Conversation {self.conversation.short_id}",
+            title=f"Conversation {conversation.short_id}",
             controls=[
                 ModalControl(
                     id="speak",
@@ -39,14 +38,13 @@ class ConversationScreen(Screen):
                     text="Send Message",
                     keyphrases=["send message"],
                     action=self._send_message,
-                    js_getter_function="getMessageInput"
+                    js_getter_function="getMessageInput",
+                    js_return_handler="clearMessageInput"
                 ),
                 session.make_back_control()
             ]
         )
-        
-        # Push initial conversation data
-        self._push_update()
+        self.session.conversation_manager.set_current_conversation(conversation)
         
     def _handle_speech(self) -> None:
         """Handle speech input from modal control"""
@@ -62,19 +60,7 @@ class ConversationScreen(Screen):
     def _send_message(self, message_input:str) -> None:
         """Send current message"""
         if message_input:
-            self.conversation.add_message(message_input)
-            self.conversation.save()
-            self._push_update()
-        else:
-            print("No message content provided")
-        
-    def _push_update(self):
-        """Push conversation update event"""
-        push_event(ConversationUpdateEvent(
-            session_id=self.session.id,
-            conversation_id=self.conversation_id,
-            data=self.conversation.to_dict()
-        ))
+            self.session.conversation_manager.send_message(message_input)
 
 @bp.route(f'/{ConversationScreen.url()}')
 def conversation() -> str:
@@ -96,3 +82,12 @@ def conversation() -> str:
         session_id=session.id,
         conversation_id=conversation_id
     )
+
+@bp.route(f'/conversation_data', methods=['POST'])
+def conversation_data() -> str:
+    data = request.get_json()
+    conversation_id = data.get('conversation_id')
+    
+    return jsonify({
+        'data':Conversation.load(conversation_id)
+    })

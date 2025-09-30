@@ -30,6 +30,9 @@
             message_input: document.getElementById("messageInput").value
         };
     }
+    function clearMessageInput() {
+        document.getElementById("messageInput").value = ''
+    }
 
     // Function to render a single message
     function renderMessage(message) {
@@ -148,6 +151,23 @@
         } catch (e) {
             console.error('Error processing conversation update:', e);
         }
+    });
+    
+    fetch(`/conversation_data`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            conversation_id: window.conversationId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateMessages(data.data);
+    })
+    .catch(error => {
+        console.error('Error getting conversation data on page load:', error);
     });
 </script>
 {% endblock %}
