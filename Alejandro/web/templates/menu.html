@@ -2,6 +2,8 @@
     {% for control in screen.controls %}
     <button class="button" 
             id="{{ control.id }}"
+            {% if control.js_getter_function %}data-js-getter="{{ control.js_getter_function }}"{% endif %}
+            {% if control.js_return_handler %}data-js-return-handler="{{ control.js_return_handler }}"{% endif %}
             onclick="triggerControl('{{ control.id }}')">
         {{ control.text }}
     </button>
@@ -9,5 +11,6 @@
 </div>
 
 <div id="transcription">
+    <button class="button" onclick="openRecorder()">Open Recorder</button>
     Last transcription: <span id="transcription-text"></span>
 </div>

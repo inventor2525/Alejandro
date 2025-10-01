@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
+from Alejandro.Core.Screen import Screen, screen_type
+from Alejandro.Core.Control import Control
 
 bp = Blueprint('main', __name__)
 
+@screen_type
 class MainScreen(Screen):
     """Main menu screen"""
     def __init__(self, session: 'Session'):
@@ -18,20 +19,15 @@ class MainScreen(Screen):
                     id="conversations",
                     text="Conversations",
                     keyphrases=["conversations", "show conversations"],
-                    action=lambda s=self: s.session().navigate(ConversationsScreen)
+                    action=lambda s=self: s.session.navigate(ConversationsScreen)
                 ),
                 Control(
                     id="terminal", 
                     text="Terminal",
                     keyphrases=["terminal", "open terminal"],
-                    action=lambda s=self: s.session().navigate(TerminalScreen)
+                    action=lambda s=self: s.session.navigate(TerminalScreen)
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
+                session.make_back_control()
             ]
         )
 
@@ -39,11 +35,9 @@ class MainScreen(Screen):
 def show_screen() -> str:
     """Generic screen route handler"""
     session_id = request.args.get('session')
-    if not session_id:
-        return "No session ID provided", 400
         
     session = get_or_create_session(session_id)
-    screen = session.screen_stack.current
+    screen = session.current_or_get(MainScreen)
     return render_template(
         'base.html',
         screen=screen,

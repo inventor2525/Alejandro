@@ -1,56 +1,173 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ screen.title }} - Alejandro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/conversation.css') }}">
-</head>
-<body>
-    <div class="app-container">
-        <div class="content-area">
-            <h1>{{ screen.title }}</h1>
-            <div class="conversation-view">
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="message message-{{ message.role.lower() }}">
-                        <div class="message-meta">
-                            <div class="message-role">{{ message.role }}</div>
-                            {% if message.is_model %}
-                            <div class="message-model-info">
-                                {% if message.model_name %}
-                                <div class="model-name">{{ message.model_name }}</div>
-                                {% endif %}
-                                {% if message.date %}
-                                <div class="message-date">{{ message.date }}</div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="message-content">{{ message.content }}</div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-messages">
-                        <p>No messages in this conversation yet.</p>
-                    </div>
-                {% endif %}
-                
-                <div class="message-input-container">
-                    <form id="messageForm">
-                        <textarea id="messageInput" name="messageInput" 
-                                class="message-input" 
-                                placeholder="Type your message..."></textarea>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            {% include 'menu.html' %}
-        </div>
-    </div>
+{% extends "base.html" %}
 
-    <script>window.initialSessionId = "{{ session_id }}";</script>
-    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
-</body>
-</html>
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/conversation.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="conversation-view">
+    <div id="messages-container"></div>
+    
+    <div class="message-input-container">
+        <form id="messageForm">
+            <textarea id="messageInput" name="messageInput" 
+                    class="message-input" 
+                    placeholder="Type your message..."></textarea>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.conversationId = "{{ conversation_id }}";
+    
+    let lastScrollPosition = 0;
+    let lastMessageId = null;
+    
+    function getMessageInput() {
+        return {
+            message_input: document.getElementById("messageInput").value
+        };
+    }
+    function clearMessageInput() {
+        document.getElementById("messageInput").value = ''
+    }
+
+    // Function to render a single message
+    function renderMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message message-${message.role.toLowerCase()}`;
+        messageDiv.dataset.messageId = message.id;
+
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'message-meta';
+
+        const roleDiv = document.createElement('div');
+        roleDiv.className = 'message-role';
+        roleDiv.style.display = 'flex';
+        roleDiv.style.justifyContent = 'space-between';
+
+        const roleText = document.createElement('div');
+        roleText.style.marginRight = 'auto';
+        roleText.textContent = message.role;
+        roleDiv.appendChild(roleText);
+
+        if (message.role === 'assistant' && message.model_name) {
+            const modelName = document.createElement('div');
+            modelName.className = 'model-name';
+            modelName.textContent = message.model_name;
+            roleDiv.appendChild(modelName);
+        }
+
+        metaDiv.appendChild(roleDiv);
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'message-info';
+
+        const dateTimeDiv = document.createElement('div');
+        dateTimeDiv.className = 'message-date-time';
+        dateTimeDiv.style.display = 'flex';
+        dateTimeDiv.style.justifyContent = 'space-between';
+
+        const dateCreated = new Date(message.date_created);
+        const dateStr = dateCreated.toISOString().split('T')[0];
+        const timeStr = dateCreated.toTimeString().split(' ')[0];
+
+        const dateElem = document.createElement('div');
+        dateElem.style.marginRight = 'auto';
+        dateElem.textContent = dateStr;
+        dateTimeDiv.appendChild(dateElem);
+
+        const timeElem = document.createElement('div');
+        timeElem.textContent = timeStr;
+        dateTimeDiv.appendChild(timeElem);
+
+        infoDiv.appendChild(dateTimeDiv);
+        metaDiv.appendChild(infoDiv);
+
+        messageDiv.appendChild(metaDiv);
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = message.content;
+        messageDiv.appendChild(contentDiv);
+
+        return messageDiv;
+    }
+
+    // Function to update messages
+    function updateMessages(newData) {
+        const container = document.getElementById('messages-container');
+        const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+
+        const newMessages = newData.messages;
+
+        // If no messages yet, render all
+        if (container.children.length === 0) {
+            newMessages.forEach(msg => {
+                container.appendChild(renderMessage(msg));
+            });
+            lastMessageId = newMessages[newMessages.length - 1]?.id;
+            return;
+        }
+
+        // Find new messages
+        let foundLast = false;
+        const messagesToAdd = [];
+        newMessages.forEach(msg => {
+            if (foundLast) {
+                messagesToAdd.push(msg);
+            } else if (msg.id === lastMessageId) {
+                foundLast = true;
+            }
+        });
+
+        // Append new messages
+        messagesToAdd.forEach(msg => {
+            container.appendChild(renderMessage(msg));
+        });
+
+        // Update last message id
+        if (newMessages.length > 0) {
+            lastMessageId = newMessages[newMessages.length - 1].id;
+        }
+
+        // Restore scroll if was at bottom
+        if (wasAtBottom) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+
+    // Add event listener for ConversationUpdateEvent
+    eventSource.addEventListener('message', function(event) {
+        if (!event.data) return;
+        
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'ConversationUpdateEvent' && data.conversation_id === window.conversationId) {
+                updateMessages(data.data);
+            }
+        } catch (e) {
+            console.error('Error processing conversation update:', e);
+        }
+    });
+    
+    fetch(`/conversation_data`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            conversation_id: window.conversationId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateMessages(data.data);
+    })
+    .catch(error => {
+        console.error('Error getting conversation data on page load:', error);
+    });
+</script>
+{% endblock %}

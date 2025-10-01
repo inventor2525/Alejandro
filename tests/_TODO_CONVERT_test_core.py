@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import List
 import pytest
-from Alejandro.Models.control import Control, ControlResult
-from Alejandro.Models.screen import Screen
-from Alejandro.Core.screen_stack import ScreenStack
-from Alejandro.Core.application import Application
-from Alejandro.Models.word_node import WordNode
-from Alejandro.Core.string_word_stream import StringWordStream
-from Alejandro.Models.modal_control import ModalControl, ModalState
+from Alejandro.Core.Control import Control, ControlResult
+from Alejandro.Core.Screen import Screen
+from Alejandro.Core.ScreenStack import ScreenStack
+from Alejandro.Core.Application import Application
+from Alejandro.Core.WordNode import WordNode
+from Alejandro.Core.StringWordStream import StringWordStream
+from Alejandro.Core.ModelControl import ModalControl, ModalState
 
 class TestScreen(Screen):
     """Test screen implementation"""

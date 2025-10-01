@@ -1,44 +1,50 @@
 from flask import Blueprint, render_template, request
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from datetime import datetime
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
-from Alejandro.Models.modal_control import ModalControl
+from Alejandro.Core.Screen import Screen, screen_type
+from Alejandro.Core.Control import Control
+from Alejandro.Core.ModelControl import ModalControl
+from Alejandro.Models.Conversation import Conversation, Message, Roles
+from flask import jsonify
 
 bp = Blueprint('conversation', __name__)
 
+@screen_type
 class ConversationScreen(Screen):
     """Single conversation view"""
     conversation_id: str
     
     def __init__(self, session: 'Session', conversation_id: str):
+        self.conversation_id = conversation_id
+        try:
+            conversation = Conversation.load(conversation_id)
+        except FileNotFoundError:
+            raise ValueError(f"Conversation {conversation_id} does not exist")
+        
         super().__init__(
             session=session,
-            title=f"Conversation {conversation_id}",
+            title=f"Conversation {conversation.short_id}",
             controls=[
                 ModalControl(
                     id="speak",
                     text="Start Speaking",
                     keyphrases=["start speaking", "begin speaking"],
                     deactivate_phrases=["stop speaking", "end speaking"],
-                    action=lambda s=self: self._handle_speech()
+                    action=lambda s=self: s._handle_speech()
                 ),
                 Control(
                     id="send",
                     text="Send Message",
-                    keyphrases=["send message", "send", "submit"],
-                    action=lambda s=self: self._send_message()
+                    keyphrases=["send message"],
+                    action=self._send_message,
+                    js_getter_function="getMessageInput",
+                    js_return_handler="clearMessageInput"
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
-            ],
-            conversation_id = conversation_id
+                session.make_back_control()
+            ]
         )
+        self.session.conversation_manager.set_current_conversation(conversation)
         
     def _handle_speech(self) -> None:
         """Handle speech input from modal control"""
@@ -51,34 +57,10 @@ class ConversationScreen(Screen):
             # TODO: Append to message input
             print(f"Speech input: {text}")
             
-    def _send_message(self) -> None:
+    def _send_message(self, message_input:str) -> None:
         """Send current message"""
-        # TODO: Actually send message
-        print("Sending message")
-        
-    def get_messages(self) -> List[Dict[str, Any]]:
-        """Get conversation messages"""
-        # TODO: Get from database
-        return [
-            {
-                "role": "User",
-                "content": "Can you help me with a Python problem?",
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "is_model": False
-            },
-            {
-                "role": "Assistant",
-                "content": "Of course! What's the issue you're having?",
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "is_model": True,
-                "model_name": "GPT-4"
-            }
-        ]
-        
-    def get_template_data(self) -> Dict[str, Any]:
-        return {
-            "messages": self.get_messages()
-        }
+        if message_input:
+            self.session.conversation_manager.send_message(message_input)
 
 @bp.route(f'/{ConversationScreen.url()}')
 def conversation() -> str:
@@ -86,20 +68,26 @@ def conversation() -> str:
     session_id = request.args.get('session')
     conversation_id = request.args.get('conversation_id')
     
-    if not session_id or not conversation_id:
-        return "Missing session_id or conversation_id", 400
-        
     session = get_or_create_session(session_id)
     
     # Create conversation screen if needed
-    screen = session.screen_stack.current
+    screen = session.app.screen_stack.current
     if not isinstance(screen, ConversationScreen) or screen.conversation_id != conversation_id:
         screen = ConversationScreen(session, conversation_id)
-        session.screen_stack.push(screen)
+        session.app.screen_stack.push(screen)
     
     return render_template(
         'conversation.html',
         screen=screen,
         session_id=session.id,
-        **screen.get_template_data()
+        conversation_id=conversation_id
     )
+
+@bp.route(f'/conversation_data', methods=['POST'])
+def conversation_data() -> str:
+    data = request.get_json()
+    conversation_id = data.get('conversation_id')
+    
+    return jsonify({
+        'data':Conversation.load(conversation_id)
+    })

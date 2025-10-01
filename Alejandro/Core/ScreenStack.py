@@ -1,5 +1,5 @@
 from typing import List, Optional
-from Alejandro.Models.screen import Screen
+from Alejandro.Core.Screen import Screen
 
 class ScreenStack:
     """

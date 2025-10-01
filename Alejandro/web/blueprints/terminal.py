@@ -1,13 +1,14 @@
 from flask import Blueprint, render_template, request, jsonify
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
+from Alejandro.Core.Screen import Screen, screen_type
+from Alejandro.Core.Control import Control
 from Alejandro.web.terminal import Terminal
 from Alejandro.web.events import TerminalScreenEvent, push_event
 import time
 
 bp = Blueprint('terminal', __name__)
 
+@screen_type
 class TerminalScreen(Screen):
     """Terminal emulator screen"""
     def __init__(self, session: 'Session'):
@@ -37,18 +38,13 @@ class TerminalScreen(Screen):
                     keyphrases=["previous terminal", "prev terminal"],
                     action=lambda s=self: s._prev_terminal()
                 ),
-                Control(
-                    id="back",
-                    text="Back",
-                    keyphrases=["back", "go back", "return"],
-                    action=lambda s=self: s.session().go_back()
-                )
+                session.make_back_control()
             ]
         )
     
     def _create_new_terminal(self) -> None:
         """Create a new terminal"""
-        session = self.session()
+        session = self.session
         terminal_id = f"terminal_{len(session.terminals) + 1}"
         # Create the new terminal
         new_terminal = Terminal(terminal_id, session.id)
@@ -64,7 +60,7 @@ class TerminalScreen(Screen):
     
     def _next_terminal(self) -> None:
         """Switch to next terminal"""
-        session = self.session()
+        session = self.session
         terminal_names = list(session.terminals.keys())
         if terminal_names:
             session.current_terminal_index = (session.current_terminal_index + 1) % len(terminal_names)
@@ -78,7 +74,7 @@ class TerminalScreen(Screen):
     
     def _prev_terminal(self) -> None:
         """Switch to previous terminal"""
-        session = self.session()
+        session = self.session
         terminal_names = list(session.terminals.keys())
         if terminal_names:
             session.current_terminal_index = (session.current_terminal_index - 1) % len(terminal_names)
@@ -93,7 +89,7 @@ class TerminalScreen(Screen):
     
     def get_template_data(self) -> dict:
         """Get template data for rendering"""
-        session = self.session()
+        session = self.session
         terminal_names = list(session.terminals.keys())
         current_terminal = terminal_names[session.current_terminal_index] if terminal_names else None
         
@@ -107,19 +103,16 @@ def terminal() -> str:
     session_id = request.args.get('session')
     terminal_id = request.args.get('terminal_id')
     
-    if not session_id:
-        return "No session ID provided", 400
-    
     session = get_or_create_session(session_id)
     
     # Check if we already have a terminal screen in the stack
-    current_screen = session.screen_stack.current
+    current_screen = session.current_or_get(TerminalScreen)
     if isinstance(current_screen, TerminalScreen):
         screen = current_screen
     else:
         # Create terminal screen and push it to the stack
         screen = TerminalScreen(session)
-        session.screen_stack.push(screen)
+        session.app.screen_stack.push(screen)
     
     # Make sure terminal exists
     if not session.terminals:
@@ -158,9 +151,6 @@ def terminal_input():
     terminal_id = data.get('terminal_id')
     input_text = data.get('input')
     
-    if not all([session_id, terminal_id, input_text]):
-        return jsonify({"error": "Missing required parameters"}), 400
-    
     session = get_or_create_session(session_id)
     
     # Create terminal if it doesn't exist
@@ -187,9 +177,6 @@ def terminal_resize():
     terminal_id = data.get('terminal_id')
     cols = data.get('cols')
     rows = data.get('rows')
-    
-    if not all([session_id, terminal_id, cols, rows]):
-        return jsonify({"error": "Missing required parameters"}), 400
     
     session = get_or_create_session(session_id)
     

@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request
 from Alejandro.web.session import get_or_create_session, Session
-from Alejandro.Models.screen import Screen
-from Alejandro.Models.control import Control
+from Alejandro.Core.Screen import Screen, screen_type
+from Alejandro.Core.Control import Control
 
 bp = Blueprint('welcome', __name__)
 
+@screen_type
 class WelcomeScreen(Screen):
     """Initial welcome screen"""
     def __init__(self, session: 'Session'):
@@ -17,10 +18,11 @@ class WelcomeScreen(Screen):
                     id="activate",
                     text="Hey Alejandro",
                     keyphrases=["hey alejandro", "hello alejandro"],
-                    action=lambda s=self: s.session().navigate(MainScreen)
+                    action=lambda s=self: s.session.navigate(MainScreen)
                 )
             ]
         )
+Screen.types[''] = WelcomeScreen
 
 @bp.route('/')
 @bp.route(f'/{WelcomeScreen.url()}')
@@ -29,7 +31,7 @@ def welcome() -> str:
     session_id = request.args.get('session')
     
     session = get_or_create_session(session_id)
-    screen = session.screen_stack.current
+    screen = session.current_or_get(WelcomeScreen)
     
     return render_template(
         'base.html',
