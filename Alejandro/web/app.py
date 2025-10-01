@@ -8,9 +8,9 @@ app = Flask(__name__)
 
 # Register blueprints
 for bp in blueprints:
-    app.register_blueprint(bp)
+	app.register_blueprint(bp)
 app.register_blueprint(events_bp)
 FFmpegWordStream.init_app(app)
 
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True)
+	app.run(debug=True, threaded=True)

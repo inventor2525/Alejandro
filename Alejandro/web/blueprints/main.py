@@ -7,40 +7,40 @@ bp = Blueprint('main', __name__)
 
 @screen_type
 class MainScreen(Screen):
-    """Main menu screen"""
-    def __init__(self, session: 'Session'):
-        from Alejandro.web.blueprints.conversations import ConversationsScreen
-        from Alejandro.web.blueprints.terminal import TerminalScreen
-        super().__init__(
-            session=session,
-            title="Main Menu",
-            controls=[
-                Control(
-                    id="conversations",
-                    text="Conversations",
-                    keyphrases=["conversations", "show conversations"],
-                    action=lambda s=self: s.session.navigate(ConversationsScreen)
-                ),
-                Control(
-                    id="terminal", 
-                    text="Terminal",
-                    keyphrases=["terminal", "open terminal"],
-                    action=lambda s=self: s.session.navigate(TerminalScreen)
-                ),
-                session.make_back_control()
-            ]
-        )
+	"""Main menu screen"""
+	def __init__(self, session: 'Session'):
+		from Alejandro.web.blueprints.conversations import ConversationsScreen
+		from Alejandro.web.blueprints.terminal import TerminalScreen
+		super().__init__(
+			session=session,
+			title="Main Menu",
+			controls=[
+				Control(
+					id="conversations",
+					text="Conversations",
+					keyphrases=["conversations", "show conversations"],
+					action=lambda s=self: s.session.navigate(ConversationsScreen)
+				),
+				Control(
+					id="terminal", 
+					text="Terminal",
+					keyphrases=["terminal", "open terminal"],
+					action=lambda s=self: s.session.navigate(TerminalScreen)
+				),
+				session.make_back_control()
+			]
+		)
 
 @bp.route(f'/{MainScreen.url()}')
 def show_screen() -> str:
-    """Generic screen route handler"""
-    session_id = request.args.get('session')
-        
-    session = get_or_create_session(session_id)
-    screen = session.current_or_get(MainScreen)
-    return render_template(
-        'base.html',
-        screen=screen,
-        session_id=session.id,
-        **screen.get_template_data()
-    )
+	"""Generic screen route handler"""
+	session_id = request.args.get('session')
+		
+	session = get_or_create_session(session_id)
+	screen = session.current_or_get(MainScreen)
+	return render_template(
+		'base.html',
+		screen=screen,
+		session_id=session.id,
+		**screen.get_template_data()
+	)
