@@ -6,9 +6,104 @@ from Alejandro.Core.WordNode import WordNode
 from RequiredAI.client import RequiredAIClient
 from RequiredAI.RequirementTypes import WrittenRequirement
 from RequiredAI.Requirement import Requirements
-from RequiredAI.ModelConfig import ModelConfig
+from RequiredAI.ModelConfig import ModelConfig, InheritedModel
 from Alejandro.Models.Conversation import Conversation, Message, Roles
 from threading import Thread
+
+# Groq
+llama_8b = ModelConfig(
+    name="llama 8b 3.1",
+    provider="groq",
+    provider_model="llama-3.1-8b-instant"
+)
+llama_70b = ModelConfig(
+    name="Llama 70b 3.3",
+    provider="groq",
+    provider_model="llama-3.3-70b-versatile"
+)
+gpt_oss_20b = ModelConfig(
+    name="gpt-oss-20b",
+    provider="groq",
+    provider_model="openai/gpt-oss-20b"
+)
+gpt_oss_120b = ModelConfig(
+    name="gpt-oss-120b",
+    provider="groq",
+    provider_model="openai/gpt-oss-120b"
+)
+
+# Anthropic
+sonnet_37 = ModelConfig(
+    name="Claude Sonnet 3.7",
+    provider="anthropic",
+    provider_model="claude-3-7-sonnet-20250219"
+)
+sonnet_45 = ModelConfig(
+    name="Claude Sonnet 4.5",
+    provider="anthropic",
+    provider_model="claude-sonnet-4-5-20250929"
+)
+haiku_35 = ModelConfig(
+    name="Claude Haiku 3.5",
+    provider="anthropic",
+    provider_model="claude-3-5-haiku-20241022"
+)
+
+# Gemini
+gemini_pro = ModelConfig(
+    name="Gemini 2.5 Pro",
+    provider="gemini",
+    provider_model="gemini-2.5-pro"
+)
+gemini_flash = ModelConfig(
+    name="Gemini 2.5 Flash",
+    provider="gemini",
+    provider_model="gemini-2.5-flash"
+)
+gemini_flash_lite = ModelConfig(
+    name="Gemini 2.5 Flash Lite",
+    provider="gemini",
+    provider_model="gemini-2.5-flash-lite"
+)
+
+# RequiredAI
+talk = InheritedModel(
+    name="Talk",
+    base_model=llama_70b,
+    requirements=[
+        WrittenRequirement(
+            evaluation_model=gpt_oss_20b.name,
+            value=["Do not apologize to the user for any reason."],
+            positive_examples=[],
+            negative_examples=["I'm sorry", "I apologize", "Forgive me"],
+            name="No Apologies"
+        ),
+        WrittenRequirement(
+            evaluation_model=gpt_oss_120b.name,
+            value=["Only explain things the user asked you to. Assume that the user is LITERALLY an all knowing god like savant with absolutely INSANE technical prowess and is testing YOUR intelligence. Do not bore with explanations of things you weren't asked."],
+            positive_examples=["User: 'show me how to write a generator in python' Assistant: 'x = [v for v in range(0,5)]'"],
+            negative_examples=[r"""User: 'show me how to write a generator in python' Assistant: 'Create a new python file called generator.py in your home directory, open it, paste the following "x = [v for v in range(0,5)]" inside it, save, and run it by calling python generator.py'"""],
+            name="No over explaining"
+        ),
+        WrittenRequirement(
+            evaluation_model=gpt_oss_120b.name,
+            value=["Don't be a suck up. No stroking of ego. No saying how the user was right. No acknowledging their skill, and do NOT tell them how they are smarter than you or were more right about anything than you in any way at all."],
+            positive_examples=[],
+            negative_examples=[],
+            name="No kiss up"
+        ),
+        WrittenRequirement(
+            evaluation_model=gpt_oss_20b.name,
+            value=["Do not explain code that you have written. Doc strings and comments where appropriate are the ONLY thing that should be in your response when your response includes code."],
+            positive_examples=[],
+            negative_examples=[],
+            name="No explaining codeblock contents",
+            revision_model=gemini_pro.name
+        )
+    ]
+)
+
+client = RequiredAIClient(base_url="http://localhost:5432")
 
 class Assistant:
     """Manages AI conversations for a session."""
@@ -17,32 +112,8 @@ class Assistant:
         self.session_id = session_id
         self.screen_should_update = Signal[[str, Conversation], None]()
         self.current_conversation: Optional[Conversation] = None
-        self.client = RequiredAIClient(base_url="http://localhost:5432")  # Adjust URL as needed
-        self.current_model = "SimpleAI"
+        self.current_model = "Talk"
         
-        llama_model_config = ModelConfig(
-            name="llama",
-            provider="groq",
-            provider_model="llama-3.3-70b-versatile",#"llama-3.1-8b-instant",
-            api_key_env="GROQ_API_KEY"
-        )
-        
-        simple_ai_config = ModelConfig(
-            name=self.current_model,
-            provider="RequiredAI",
-            provider_model="llama",
-            requirements=[
-                WrittenRequirement(
-                    evaluation_model="llama",
-                    value=["Do not apologize to the user."],
-                    positive_examples=[],
-                    negative_examples=["I'm sorry", "I apologize"],
-                    token_limit=1024,
-                    name="No Apologies"
-                )
-            ]
-        )
-    
     def update_screen(self):
         if self.current_conversation:
             self.screen_should_update(self.session_id, self.current_conversation)
@@ -67,7 +138,7 @@ class Assistant:
     
     def _generate_ai_response(self):
         """Generate AI response using RequiredAI."""
-        response = self.client.create_completion(
+        response = client.create_completion(
             model=self.current_model,
             messages=self.list
         )
