@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 from Alejandro.web.session import get_or_create_session, Session
 from Alejandro.Core.Screen import Screen, screen_type
 from Alejandro.Core.Control import Control
-from Alejandro.Core.ModelControl import ModalControl
+from Alejandro.Core.ModalControl import ModalControl
 from Alejandro.Models.Conversation import Conversation, Message, Roles
 import os
 import uuid

@@ -7,7 +7,7 @@ from Alejandro.Core.ScreenStack import ScreenStack
 from Alejandro.Core.Application import Application
 from Alejandro.Core.WordNode import WordNode
 from Alejandro.Core.StringWordStream import StringWordStream
-from Alejandro.Core.ModelControl import ModalControl, ModalState
+from Alejandro.Core.ModalControl import ModalControl, ModalState
 
 class TestScreen(Screen):
     """Test screen implementation"""
