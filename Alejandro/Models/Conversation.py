@@ -19,6 +19,10 @@ class Message:
 	extra: Dict[str, Any] = field(default_factory=dict)
 	parent: Optional["Message"] = None
 	children: List["Message"] = field(default_factory=list)
+	
+	def tag(self, tag:str):
+		raise NotImplemented("tags not implemented alejandro side")
+		# TODO: tags can not be assigned in a way that makes it's way into required ai from here
 
 class Roles:
 	SYSTEM = "system"

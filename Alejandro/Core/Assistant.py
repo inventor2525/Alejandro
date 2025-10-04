@@ -6,9 +6,15 @@ from Alejandro.Core.WordNode import WordNode
 from RequiredAI.client import RequiredAIClient
 from RequiredAI.RequirementTypes import WrittenRequirement
 from RequiredAI.Requirement import Requirements
-from RequiredAI.ModelConfig import ModelConfig, InheritedModel
+from RequiredAI.json_dataclass import json_dataclass
+from RequiredAI.ModelConfig import ModelConfig, InheritedModel, InputConfig
 from Alejandro.Models.Conversation import Conversation, Message, Roles
+from Alejandro.Core.ModalControl import ModalControl
+from Alejandro.Core.Control import Control
+from Alejandro.Core.app_path import app_path
 from threading import Thread
+import json
+import os
 
 # Groq
 llama_8b = ModelConfig(
@@ -79,7 +85,7 @@ talk = InheritedModel(
 			name="No Apologies"
 		),
 		WrittenRequirement(
-			evaluation_model=gpt_oss_120b.name,
+			evaluation_model=gpt_oss_120b.name, #TODO: input config
 			value=["Only explain things the user asked you to. Assume that the user is LITERALLY an all knowing god like savant with absolutely INSANE technical prowess and is testing YOUR intelligence. Do not bore with explanations of things you weren't asked."],
 			positive_examples=["User: 'show me how to write a generator in python' Assistant: 'x = [v for v in range(0,5)]'"],
 			negative_examples=[r"""User: 'show me how to write a generator in python' Assistant: 'Create a new python file called generator.py in your home directory, open it, paste the following "x = [v for v in range(0,5)]" inside it, save, and run it by calling python generator.py'"""],
@@ -103,8 +109,61 @@ talk = InheritedModel(
 	]
 )
 
+browse = InheritedModel(
+	name="Browse",
+	base_model=llama_70b,
+	requirements=[
+		WrittenRequirement(
+			evaluation_model=gpt_oss_20b.name,
+			value=["Do not apologize to the user for any reason."],
+			positive_examples=[],
+			negative_examples=["I'm sorry", "I apologize", "Forgive me"],
+			name="No Apologies"
+		)
+	],
+	input_config=InputConfig(
+		messages_to_include=[
+			(0,-1),
+			""
+		],
+		filter_tags=['browse']
+	)
+)
+
 client = RequiredAIClient(base_url="http://localhost:5432")
 
+@json_dataclass
+class Note:
+	name:str
+	description:str
+	contents:str
+	
+	@property
+	def absolute_path(self):
+		return app_path("notes", self.name+'.json')
+	
+	@staticmethod
+	def load_note(note_name:str) -> Optional['Note']:
+		note_path = app_path("notes", note_name+'.json')
+		try:
+			d = json.load(open(note_path))
+			return Note(note_name, d['description'], d['content'])
+		except:
+			return None
+	
+	@staticmethod
+	def list_notes() -> List[str]:
+		notes_dir = app_path("notes")
+		return [
+			os.path.splitext(f)[0] for f in os.listdir(notes_dir)
+			if os.path.isfile(os.path.join(notes_dir, f))
+			and f.endswith('.json')
+		]
+	
+	def save(self):
+		with open(self.absolute_path, 'w') as f:
+			json.dump(self.to_dict(), f)
+	
 class Assistant:
 	"""Manages AI conversations for a session."""
 	
@@ -113,7 +172,39 @@ class Assistant:
 		self.screen_should_update = Signal[[str, Conversation], None]()
 		self.current_conversation: Optional[Conversation] = None
 		self.current_model = "Talk"
-		
+	
+	def generate_controls(self) -> List[Control]:
+		self.controls = [
+			ModalControl( # Loads a note when the user speaks "Load Note <name> finished", "Open a note <note>, load", or "Open note <note> done", etc
+				id="note.load",
+				text="Load Note",
+				keyphrases=["open a note", "load a note", "open note"],
+				deactivate_phrases=['finished', 'done', 'load'],
+				action=self._load_note
+			),
+			ModalControl(
+				id='note.save',
+				text="New Note",
+				keyphrases=["add a note", 'make a note'],
+				deactivate_phrases=['finished', 'done', 'save'],
+				action=self._new_note
+			),
+		]
+		return self.controls
+	
+	def _load_note(self, name:str):
+		#TODO: if a note was not found of certain name, use a note searching model to read the user input and find it umungst list of notes
+		note = Note.load_note(name)
+		msg = Message(
+			Roles.USER,
+			f"# User Note '{note.name}'\n> Description: {note.description})\n{note.contents}"
+		)
+		msg.tag('notes')
+		self.current_conversation.add_message(msg)
+	
+	def _new_note(self):
+		#TODO: use a note description model to create a description of the note and save the user's full spoken word to the note along with the ai description
+		pass
 	def update_screen(self):
 		if self.current_conversation:
 			self.screen_should_update(self.session_id, self.current_conversation)
