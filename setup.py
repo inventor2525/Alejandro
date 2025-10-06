@@ -22,9 +22,9 @@ setup(
         "groq",
         "dataclasses-json",
         "nltk",
-        "git+https://github.com/inventor2525/RequiredAI.git@main#egg=RequiredAI",
-        "git+https://github.com/inventor2525/assistant_merger.git@main#egg=assistant_merger",
-        "git+https://github.com/inventor2525/assistant_interaction.git@main#egg=assistant_interaction",
+		"RequiredAI @ git+https://github.com/inventor2525/RequiredAI.git@master",
+		"assistant_merger @ git+https://github.com/inventor2525/assistant_merger.git@master",
+		"assistant_interaction @ git+https://github.com/inventor2525/assistant_interaction.git@master",
     ],
     extras_require={
         "dev": ["unittest"],
