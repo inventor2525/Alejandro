@@ -1,4 +1,17 @@
 from setuptools import setup, find_packages
+from importlib import import_module
+
+def my_dependency(dep_name:str) -> str:
+	'''
+	Creates a install_requires link to one of my other
+	dependencies that respects any existing install of a
+	dependency with pip install -e
+	'''
+	try:
+		import_module(dep_name)
+		return dep_name
+	except:
+		return f"{dep_name} @ git+https://github.com/Inventor2525/{dep_name}@master"
 
 setup(
 	name="Alejandro",
@@ -22,9 +35,9 @@ setup(
 		"groq",
 		"dataclasses-json",
 		"nltk",
-		"RequiredAI @ git+https://github.com/inventor2525/RequiredAI.git@master",
-		"assistant_merger @ git+https://github.com/inventor2525/assistant_merger.git@master",
-		"assistant_interaction @ git+https://github.com/inventor2525/assistant_interaction.git@master",
+		my_dependency("RequiredAI"),
+		my_dependency("assistant_merger"),
+		my_dependency("assistant_interaction"),
 	],
 	extras_require={
 		"dev": ["unittest"],
