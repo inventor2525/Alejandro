@@ -23,13 +23,13 @@ class ConversationsScreen(Screen):
 					text="Select Conversation",
 					keyphrases=["select conversation", "choose conversation"],
 					deactivate_phrases=["end selection"],
-					action=lambda s=self: self._handle_selection()
+					action=self._handle_selection
 				),
 				Control(
 					id="new",
 					text="New Conversation",
 					keyphrases=["new conversation", "create conversation"],
-					action=lambda s=self: self._create_new_conversation()
+					action=self._create_new_conversation
 				),
 				session.make_back_control()
 			]

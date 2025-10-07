@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, Optional, Type, Union, TypeVar, Tuple, List
+from typing import Dict, Optional, Type, Union, TypeVar, Tuple, List, Callable
 from weakref import ref, ReferenceType
 from datetime import datetime, timedelta
 from Alejandro.Core.Control import Control
@@ -10,6 +10,7 @@ from Alejandro.Core.Assistant import Assistant,Conversation
 from Alejandro.web.events import NavigationEvent, ConversationUpdateEvent, push_event
 from Alejandro.Core.Screen import Screen
 from Alejandro.web.terminal import Terminal
+from functools import partial
 import os
 
 sessions: Dict[str, 'Session'] = {}
@@ -68,7 +69,11 @@ class Session:
 			session_id=self.id,
 			extra_url_params=extra_url_params
 		))
-		
+	
+	def navigator(self, target_screen: Union[Type[Screen], Screen]) -> Callable[[],None]:
+		'''Returns a function that will navigate to the passed screen when called'''
+		return partial(self.navigate, target_screen)
+	
 	def go_back(self) -> None:
 		"""Pop current screen and return to previous"""
 		if self.app.screen_stack.pop():

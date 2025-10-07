@@ -31,7 +31,7 @@ class ConversationScreen(Screen):
 					text="Start Speaking",
 					keyphrases=["start speaking", "begin speaking"],
 					deactivate_phrases=["stop speaking", "end speaking"],
-					action=lambda s=self: s._handle_speech()
+					action=self._handle_speech
 				),
 				Control(
 					id="send",

@@ -24,19 +24,19 @@ class TerminalScreen(Screen):
 					id="new",
 					text="New Terminal",
 					keyphrases=["new terminal", "create terminal"],
-					action=lambda s=self: s._create_new_terminal()
+					action=self._create_new_terminal
 				),
 				Control(
 					id="next",
 					text="Next Terminal",
 					keyphrases=["next terminal"],
-					action=lambda s=self: s._next_terminal()
+					action=self._next_terminal
 				),
 				Control(
 					id="prev",
 					text="Previous Terminal",
 					keyphrases=["previous terminal", "prev terminal"],
-					action=lambda s=self: s._prev_terminal()
+					action=self._prev_terminal
 				),
 				session.make_back_control()
 			]

@@ -19,13 +19,13 @@ class MainScreen(Screen):
 					id="conversations",
 					text="Conversations",
 					keyphrases=["conversations", "show conversations"],
-					action=lambda s=self: s.session.navigate(ConversationsScreen)
+					action=self.session.navigator(ConversationsScreen)
 				),
 				Control(
 					id="terminal", 
 					text="Terminal",
 					keyphrases=["terminal", "open terminal"],
-					action=lambda s=self: s.session.navigate(TerminalScreen)
+					action=self.session.navigator(TerminalScreen)
 				),
 				session.make_back_control()
 			]
