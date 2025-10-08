@@ -18,7 +18,7 @@ class WelcomeScreen(Screen):
 					id="activate",
 					text="Hey Alejandro",
 					keyphrases=["hey alejandro", "hello alejandro"],
-					action=self.session.navigator(MainScreen)
+					action=session.navigator(MainScreen)
 				)
 			]
 		)
