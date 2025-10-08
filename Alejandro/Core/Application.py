@@ -54,16 +54,18 @@ class Application:
 	def call_control(self, control: Control) -> None:
 		screen = self.screen_stack.current
 		session = screen.session
-		if control.action:
-			if control.js_getter_function:
-				self.waiting_controls.add(control.id)
-				push_event(ControlTriggerEvent(session_id=session.id, control_id=control.id))
-			else:
-				no_return_annotation = object()
-				return_type = control.action.__annotations__.get('return',no_return_annotation)
-				result = control.action()
-				if control.js_return_handler and (result is not None or return_type is not no_return_annotation):
-					push_event(ControlReturnEvent(session_id=session.id, control_id=control.id, return_value=json.dumps(result)))
+		if control.js_getter_function:
+			self.waiting_controls.add(control.id)
+			push_event(ControlTriggerEvent(session_id=session.id, control_id=control.id))
+		elif control.action:
+			no_return_annotation = object()
+			return_type = control.action.__annotations__.get('return',no_return_annotation)
+			
+			result = control.action()
+			if control.js_return_handler and (result is not None or return_type is not no_return_annotation):
+				push_event(ControlReturnEvent(session_id=session.id, control_id=control.id, return_value=json.dumps(result)))
+		elif control.js_return_handler:
+			push_event(ControlReturnEvent(session_id=session.id, control_id=control.id, return_value=json.dumps({})))
 	
 	def notify_control_complete(self, control_id: str):
 		self.waiting_controls.discard(control_id)
