@@ -4,6 +4,7 @@ from RequiredAI.json_dataclass import *
 from Alejandro.Core.WordNode import WordNode
 from Alejandro.Core.WordMapping import WORD_MAP
 from Alejandro.Core.WordStream import WordStream
+import inspect
 
 class ControlResult(Enum):
 	"""Result of a Control's validate_word() call."""
@@ -125,3 +126,25 @@ class Control:
 			return ControlResult.USED
 			
 		return ControlResult.UNUSED
+	
+	def get_action_control_arg(self, excluded_field_names:List[str]=[]) -> Optional[str]:
+		'''
+		If there is an action, this will get the first argument
+		of type Control or named control that is not excluded.
+		
+		Returns none if no action or such field.
+		'''
+		if self.action:
+			args = dict(self.action.__annotations__)
+			args.pop('return',None)
+			for e in excluded_field_names:
+				args.pop(e,None)
+			for field_name, field_type in args.items():
+				if issubclass(field_type, Control):
+					return field_name
+			
+			if 'control' not in excluded_field_names:
+				param = inspect.signature(self.action).parameters.get('control',None)
+				if param and param.annotation is inspect._empty:
+					return 'control'
+		return None

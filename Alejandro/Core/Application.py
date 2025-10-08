@@ -60,8 +60,11 @@ class Application:
 		elif control.action:
 			no_return_annotation = object()
 			return_type = control.action.__annotations__.get('return',no_return_annotation)
-			
-			result = control.action()
+			control_arg_name = control.get_action_control_arg()
+			if control_arg_name:
+				result = control.action(control)
+			else:
+				result = control.action()
 			if control.js_return_handler and (result is not None or return_type is not no_return_annotation):
 				push_event(ControlReturnEvent(session_id=session.id, control_id=control.id, return_value=json.dumps(result)))
 		elif control.js_return_handler:
