@@ -4,6 +4,7 @@ from RequiredAI.json_dataclass import *
 from Alejandro.Core.WordNode import WordNode
 from Alejandro.Core.WordMapping import WORD_MAP
 from Alejandro.Core.WordStream import WordStream
+import functools
 import inspect
 
 class ControlResult(Enum):
@@ -136,6 +137,8 @@ class Control:
 		'''
 		if self.action:
 			args = dict(self.action.__annotations__)
+			#TODO: replace with inspect.signature(self.action);  isinstance(partial_func, functools.partial);  inspect.signature(partial_func.func)
+			#__annotations__ gets replaced by navigator calls
 			args.pop('return',None)
 			for e in excluded_field_names:
 				args.pop(e,None)
