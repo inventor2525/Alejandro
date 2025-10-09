@@ -31,7 +31,8 @@ class ConversationScreen(Screen):
 					text="Start Speaking",
 					keyphrases=["start speaking", "begin speaking"],
 					deactivate_phrases=["stop speaking", "end speaking"],
-					action=self._handle_speech
+					action=self._handle_speech,
+					js_return_handler="inputSpokenText"
 				),
 				Control(
 					id="send",
@@ -46,16 +47,8 @@ class ConversationScreen(Screen):
 		)
 		self.session.conversation_manager.set_current_conversation(conversation)
 		
-	def _handle_speech(self) -> None:
-		"""Handle speech input from modal control"""
-		speak_control = next(c for c in self.controls if c.id == "speak")
-		if not isinstance(speak_control, ModalControl):
-			return
-			
-		text = " ".join(w.word for w in speak_control.collected_words)
-		if text:
-			# TODO: Append to message input
-			print(f"Speech input: {text}")
+	def _handle_speech(self, control:ModalControl) -> str:
+		return control.collected_words
 			
 	def _send_message(self, message_input:str) -> None:
 		"""Send current message"""
