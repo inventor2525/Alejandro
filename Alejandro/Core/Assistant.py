@@ -238,7 +238,8 @@ class Assistant:
 			role=Roles.ASSISTANT,
 			content=response["choices"][0]["message"]["content"],
 			model_name=self.current_model,
-			extra={"raw": response}
+			extra={"raw": response},
+			tags=response.get('tags',[])
 		)
 		
 		self.current_conversation.add_message(ai_msg)
@@ -249,10 +250,13 @@ class Assistant:
 	@property
 	def list(self) -> List[Dict[str, str]]:
 		"""Convert Conversation to RequiredAI message format."""
-		return [
-			{
+		msg_list = []
+		for msg in self.current_conversation.messages:
+			md = {
 				"role": msg.role.lower(),
 				"content": msg.content
 			}
-			for msg in self.current_conversation.messages
-		]
+			if msg.tags:
+				md['tags'] = msg.tags
+			msg_list.append(md)
+		return msg_list
