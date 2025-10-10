@@ -182,10 +182,11 @@ class FFmpegWordStream(WordStream):
 				if data.get("end", 0) > self.current_utterance_end_ms:
 					self.current_utterance_end_ms = data.get("end", 0)
 			self.last_speech_update = time.time()
-
-		if not self.utterance_thread or not self.utterance_thread.is_alive():
-			self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
-			self.utterance_thread.start()
+		
+		if self.is_recording:
+			if not self.utterance_thread or not self.utterance_thread.is_alive():
+				self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
+				self.utterance_thread.start()
 
 	def _process_utterances(self):
 		while self.running:
