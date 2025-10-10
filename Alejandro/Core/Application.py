@@ -5,6 +5,7 @@ from Alejandro.Core.Screen import Screen
 from Alejandro.Core.ScreenStack import ScreenStack
 from threading import Thread
 from Alejandro.web.events import ControlTriggerEvent, ControlReturnEvent, push_event
+import inspect
 import time
 import queue
 import json
@@ -58,14 +59,13 @@ class Application:
 			self.waiting_controls.add(control.id)
 			push_event(ControlTriggerEvent(session_id=session.id, control_id=control.id))
 		elif control.action:
-			no_return_annotation = object()
-			return_type = control.action.__annotations__.get('return',no_return_annotation)
+			return_type = inspect.signature(control.underlying_action).return_annotation
 			control_arg_name = control.get_action_control_arg()
 			if control_arg_name:
 				result = control.action(control)
 			else:
 				result = control.action()
-			if control.js_return_handler and (result is not None or return_type is not no_return_annotation):
+			if control.js_return_handler and (result is not None or return_type is not inspect._empty):
 				push_event(ControlReturnEvent(session_id=session.id, control_id=control.id, return_value=json.dumps(result)))
 		elif control.js_return_handler:
 			push_event(ControlReturnEvent(session_id=session.id, control_id=control.id, return_value=json.dumps({})))

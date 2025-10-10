@@ -128,6 +128,15 @@ class Control:
 			
 		return ControlResult.UNUSED
 	
+	@property
+	def underlying_action(self):
+		'''
+		Resolves the underlying callable of 'action'
+		'''
+		if isinstance(self.action, functools.partial):
+			return self.action.func
+		return self.action
+		
 	def get_action_control_arg(self, excluded_field_names:List[str]=[]) -> Optional[str]:
 		'''
 		If there is an action, this will get the first argument
@@ -135,19 +144,24 @@ class Control:
 		
 		Returns none if no action or such field.
 		'''
-		if self.action:
-			args = dict(self.action.__annotations__)
-			#TODO: replace with inspect.signature(self.action);  isinstance(partial_func, functools.partial);  inspect.signature(partial_func.func)
-			#__annotations__ gets replaced by navigator calls
-			args.pop('return',None)
-			for e in excluded_field_names:
-				args.pop(e,None)
-			for field_name, field_type in args.items():
-				if issubclass(field_type, Control):
-					return field_name
-			
-			if 'control' not in excluded_field_names:
-				param = inspect.signature(self.action).parameters.get('control',None)
-				if param and param.annotation is inspect._empty:
-					return 'control'
+		if not self.action:
+			return None
+		
+		# Get the params other than excluded names and return:
+		params = {
+			n: p for n, p in inspect.signature(self.underlying_action).parameters.items()
+			if n not in excluded_field_names and n != "return"
+		}
+
+		# First pass: look for a ``Control``‑typed argument
+		for name, param in params.items():
+			if param.annotation is not inspect._empty:
+				if isinstance(param.annotation, type) and issubclass(param.annotation, Control):
+					return name
+
+		# Second pass: fallback to an un‑annotated ``control`` parameter
+		fallback = params.get("control", None)
+		if fallback and fallback.annotation is inspect._empty:
+			return "control"
+		
 		return None
