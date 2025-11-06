@@ -50,7 +50,7 @@ function stopRecording() {
 function sendManual() {
     const text = document.getElementById('manualInput').value.trim();
     if (text) {
-        socket.emit('manual_transcription', { session_id: localStorage.getItem('sessionId'), text: text });
+        socket.emit('manual_text_entry', { session_id: localStorage.getItem('sessionId'), text: text });
         document.getElementById('manualInput').value = '';
     }
 }

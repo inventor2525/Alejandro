@@ -32,25 +32,35 @@ class FFmpegWordStream(WordStream):
 		recordings and their transcriptions will be
 		stored in.
 		'''
+		# Setup a word stream for each session:
 		self.session_id = session_id
 		FFmpegWordStream.streams[session_id] = self
 		
+		# Setup save directory (All client audio should be saved here as a primary feature, for future re-training.):
 		self.save_directory = save_directory
 		if save_directory:
 			os.makedirs(save_directory, exist_ok=True)
 		
-		self.running = True
+		# State:
+		self._running = True
+		'''Used only once to close the client session.'''
 		self.is_recording = False
+		'''Toggled on start_listening and stop_listening.'''
 		self.word_queue = Queue()
+		'''All words that we have transcribed but that have not yet been consumed by the 'words' iterator.'''
 		
+		# For saving & processing the current audio:
 		self.current_audio_path:str = None
 		self.current_audio_file:BufferedWriter = None
 		self.recording_process:subprocess.Popen[bytes] = None
-		
-		self.last_node:WordNode = None
 		self.start_time:datetime = None
 		self.end_time:datetime = None
-
+		
+		# For getting a stream of 'utterances' transcribed
+		# using the local model inside ffmpeg so that they
+		# can be re-translated on another thread by a larger
+		# model:
+		self.last_node:WordNode = None
 		self.utterance_lock = threading.Lock()
 		self.current_utterance_start_ms: Optional[int] = None
 		self.current_utterance_end_ms: Optional[int] = None
@@ -58,8 +68,12 @@ class FFmpegWordStream(WordStream):
 		self.utterance_thread: Optional[threading.Thread] = None
 		self.chunk_counter = 0
 		
+		# Settings:
 		self.queue_size = 2
+		'''How many seconds of audio that will be locally transcribed at a time.'''
+		
 		self.padding = 1
+		'''How much audio (seconds) will be included to the remote (larger model) before and after the local model detects nothing.'''
 	
 	@staticmethod
 	def init_app(app:Flask):
@@ -67,7 +81,14 @@ class FFmpegWordStream(WordStream):
 		app.register_blueprint(FFmpegWordStream.bp)
 	
 	def words(self) -> Iterator[WordNode]:
-		while self.running:
+		'''
+		Iterates all words produced by this live
+		transcription of the client's microphone.
+		
+		Words are in the form of a linked list with
+		time stamps to do rule based verbal UI control.
+		'''
+		while self._running:
 			try:
 				yield self.word_queue.get(block=True, timeout=0.5)
 			except Empty as e:
@@ -76,13 +97,17 @@ class FFmpegWordStream(WordStream):
 	
 	def close(self):
 		'''
-		Stops any iterator (or thread iterating it).
+		Stops any 'self.words' iterator (or thread iterating it).
 		'''
 		self._stop_listening()
-		self.running = False
+		self._running = False
 		del FFmpegWordStream.streams[self.session_id]
 	
 	def _start_listening(self, mime_type:str) -> None:
+		'''
+		Start recording client audio chunks to file, 
+		and running transcriptions live via ffmpeg locally.
+		'''
 		self.start_time = datetime.datetime.now()
 		timestamp = self.start_time.strftime("%Y%m%d_%H%M%S")
 	
@@ -104,32 +129,14 @@ class FFmpegWordStream(WordStream):
 		self.recording_process = subprocess.Popen(
 			cmd,
 			stdin=subprocess.PIPE,
-			# stdout=subprocess.PIPE,
-			# stderr=subprocess.PIPE,
 			universal_newlines=False,
 		)
-		# def log_ffmpeg_output(self=self):
-		# 	print("Begin logging")
-		# 	try:
-		# 		while self.recording_process and self.recording_process.poll() is None:
-		# 			print("process exists")
-		# 			if self.recording_process.stdout:
-		# 				stdout = self.recording_process.stdout.readline()
-		# 				if stdout:
-		# 					print(f"FFmpeg stdout: {stdout}")
-		# 			if self.recording_process.stderr:
-		# 				stderr = self.recording_process.stderr.readline()
-		# 				if stderr:
-		# 					print(f"FFmpeg stderr: {stderr}")
-		# 			print("looping read logs...")
-		# 	except Exception as e:
-		# 		print(f'!!!!!!!!!! log failed !!!!!!!!!!\n{e}')
-		# 		pass
-		# from threading import Thread
-		# Thread(target=log_ffmpeg_output, daemon=True).start()
 		self.is_recording = True
 
 	def _stop_listening(self) -> None:
+		'''
+		Shut down ffmpeg and name the finished audio recording.
+		'''
 		self.end_time = datetime.datetime.now()
 		
 		if self.current_audio_file:
@@ -157,9 +164,8 @@ class FFmpegWordStream(WordStream):
 		if self.recording_process and self.recording_process.poll() is None and self.recording_process.stdin:
 			self.recording_process.stdin.write(data)
 			self.recording_process.stdin.flush()
-			
-	def _receive_transcription(self, data:dict):
-		text = data.get("text", "")
+	
+	def add_text_to_queue(self, text:str):
 		if text:
 			nodes = self.process_text(text)
 			now = datetime.datetime.now()
@@ -173,29 +179,36 @@ class FFmpegWordStream(WordStream):
 				self.last_node = nodes[-1]
 				for node in nodes:
 					self.word_queue.put(node)
-
+	
+	def _process_local_transcription(self, text:str, start:int, end:int):
+		self.add_text_to_queue(text)
 		with self.utterance_lock:
 			if self.current_utterance_start_ms is None:
-				self.current_utterance_start_ms = data.get("start", 0)
-				self.current_utterance_end_ms = data.get("end", 0)
+				self.current_utterance_start_ms = start
+				self.current_utterance_end_ms = end
 			else:
-				if data.get("end", 0) > self.current_utterance_end_ms:
-					self.current_utterance_end_ms = data.get("end", 0)
+				if end > self.current_utterance_end_ms:
+					self.current_utterance_end_ms = end
 			self.last_speech_update = time.time()
 		
-		if self.is_recording:
-			if not self.utterance_thread or not self.utterance_thread.is_alive():
-				self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
-				self.utterance_thread.start()
+		# Start transcribing any utterances using a smarter model in the background:
+		if not self.utterance_thread or not self.utterance_thread.is_alive():
+			self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
+			self.utterance_thread.start()
 
 	def _process_utterances(self):
-		while self.running:
-			time.sleep(0.5)
+		while self._running:
+			# Wait for some period so we can at least get 'an utterance':
+			time.sleep(0.1)
 			start_sec, end_sec, transcribe_block = 0,0,False
 			with self.utterance_lock:
+				# If it's been at least 'padding' seconds since the last time uttering was detected using the local model:
 				if self.last_speech_update and time.time() - self.last_speech_update > self.queue_size+self.padding:
+					# Get the start and end time of this utterance:
 					start_sec = max(0, self.current_utterance_start_ms / 1000 - self.padding)
 					end_sec = self.current_utterance_end_ms / 1000 + self.padding
+					
+					# Clear state for next utterance to be collected:
 					self.current_utterance_start_ms = None
 					self.current_utterance_end_ms = None
 					self.last_speech_update = None
@@ -242,30 +255,53 @@ class FFmpegWordStream(WordStream):
 			return transcription.text
 
 def get_stream(session_id:str) -> FFmpegWordStream:
+	'''
+	Gets the word stream for the given session.
+	'''
 	from Alejandro.web.session import get_or_create_session
 	get_or_create_session(session_id)
 	return FFmpegWordStream.streams[session_id]
 
 @FFmpegWordStream.socketio.on('start_listening')
 def _start_listening(data: dict) -> Response:
+	'''
+	Receive the client command to start listening.
+	
+	This will spin up an ffmpeg instance that will
+	receive audio chunks from the client, and automatically
+	attempt to transcribe them, then passing those
+	transcribed chunks to _receive_transcription.
+	'''
 	session_id = data.get('session_id')
 	mime_type = data.get("mime_type", "audio/webm")
 	get_stream(session_id)._start_listening(mime_type)
 
 @FFmpegWordStream.socketio.on('stop_listening')
 def _stop_listening(data: dict=None) -> Response:
-	print(data)
+	'''
+	Receive the client command to stop listening.
+	'''
 	session_id = data.get('session_id')
 	get_stream(session_id)._stop_listening()
 
 @FFmpegWordStream.socketio.on("audio_chunk")
 def _handle_audio_chunk(data):
+	'''
+	Receive a live audio chunk from the client microphone.
+	'''
 	session_id = data.get("session_id")
 	audio_data = data.get("audio_data")
 	get_stream(session_id)._handle_audio_chunk(audio_data)
 
 @FFmpegWordStream.bp.route("/new_transcription", methods=["POST"])
 def _receive_transcription():
+	'''
+	Receive streaming transcriptions from the live transcription
+	model being run inside ffmpeg.
+	
+	These transcriptions are usually poor and do not contain
+	word level time stamps.
+	'''
 	session_id = request.args.get('session_id')
 	word_stream = get_stream(session_id)
 	
@@ -274,26 +310,39 @@ def _receive_transcription():
 		if len(line):
 			print(f"Received transcription line: '{line}'")
 		try:
-			data = json.loads(line)
+			data:dict = json.loads(line)
 		except:
 			data = None
 		
 		if data:
-			word_stream._receive_transcription(data)
+			word_stream._process_local_transcription(
+				data.get('text',''),
+				data.get('start',0),
+				data.get('end',  0)
+			)
 	return Response(status=200)
 
-@FFmpegWordStream.socketio.on('manual_transcription')
-def handle_manual_transcription(data: dict):
+@FFmpegWordStream.socketio.on('manual_text_entry')
+def handle_manual_text_entry(data: dict):
+	'''
+	Input manually typed text into the word queue
+	as though it had been transcribed from speech.
+	'''
 	session_id = data.get('session_id')
-	text = data.get('text', '').strip()
+	text = data.get('text', '')
 	
 	if session_id and text:
 		word_stream = get_stream(session_id)
 		if word_stream:
-			word_stream._receive_transcription({'text': text})
+			word_stream.add_text_to_queue(text)
 
 @FFmpegWordStream.bp.route('/recorder')
 def recorder():
+	'''
+	Render a page meant to let the user start & stop recording
+	as well as manually input typed text to the word queue as
+	though it had been live transcribed from spoken word.
+	'''
 	session_id = request.args.get('session')
 	if not session_id:
 		return "No session ID provided", 400
