@@ -1,17 +1,18 @@
-from typing import Optional, Iterator, Dict
+from typing import Optional, Iterator, Dict, List
 from .WordStream import WordStream, WordNode
 from flask import Blueprint, jsonify, Response, request, Flask, render_template
 from flask_socketio import SocketIO
 from io import BufferedWriter
 from queue import Queue, Empty
 import subprocess
-import datetime
+from datetime import datetime, timedelta
 import signal
 import json
 import os
 import time
 import threading
 from groq import Groq
+import string
 
 mime_to_config = {
 	"audio/webm": ("webm", "matroska", "opus"),
@@ -66,6 +67,10 @@ class FFmpegWordStream(WordStream):
 		self.current_utterance_end_ms: Optional[int] = None
 		self.last_speech_update: Optional[float] = None
 		self.utterance_thread: Optional[threading.Thread] = None
+		try:
+			self.groq_client = Groq()
+		except:
+			self.groq_client = None
 		self.chunk_counter = 0
 		
 		# Settings:
@@ -108,7 +113,7 @@ class FFmpegWordStream(WordStream):
 		Start recording client audio chunks to file, 
 		and running transcriptions live via ffmpeg locally.
 		'''
-		self.start_time = datetime.datetime.now()
+		self.start_time = datetime.now()
 		timestamp = self.start_time.strftime("%Y%m%d_%H%M%S")
 	
 		self.file_ext = mime_to_config.get(mime_type, ("webm", "matroska", "opus"))[0]
@@ -137,7 +142,7 @@ class FFmpegWordStream(WordStream):
 		'''
 		Shut down ffmpeg and name the finished audio recording.
 		'''
-		self.end_time = datetime.datetime.now()
+		self.end_time = datetime.now()
 		
 		if self.current_audio_file:
 			self.current_audio_file.close()
@@ -165,36 +170,43 @@ class FFmpegWordStream(WordStream):
 			self.recording_process.stdin.write(data)
 			self.recording_process.stdin.flush()
 	
-	def add_text_to_queue(self, text:str):
-		if text:
-			nodes = self.process_text(text)
-			now = datetime.datetime.now()
-			for node in nodes:
-				node.start_time = now
-				node.end_time = now
-			if nodes:
+	def add_words_to_queue(self, word_nodes:List[WordNode]):
+		if word_nodes:
+			if word_nodes:
 				if self.last_node:
-					self.last_node.next = nodes[0]
-					nodes[0].prev = self.last_node
-				self.last_node = nodes[-1]
-				for node in nodes:
+					self.last_node.set_next(word_nodes[0])
+				self.last_node = word_nodes[-1]
+				for node in word_nodes:
 					self.word_queue.put(node)
 	
 	def _process_local_transcription(self, text:str, start:int, end:int):
-		self.add_text_to_queue(text)
-		with self.utterance_lock:
-			if self.current_utterance_start_ms is None:
-				self.current_utterance_start_ms = start
-				self.current_utterance_end_ms = end
-			else:
-				if end > self.current_utterance_end_ms:
-					self.current_utterance_end_ms = end
-			self.last_speech_update = time.time()
+		word_nodes = self.process_text(text)
 		
-		# Start transcribing any utterances using a smarter model in the background:
-		if not self.utterance_thread or not self.utterance_thread.is_alive():
-			self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
-			self.utterance_thread.start()
+		if self.groq_client is None:
+			# Estimate time stamps because the local model doesn't give them:
+			estimated_word_length = (end - start)/1000.0 / len(word_nodes)
+			estimated_word_length = timedelta(seconds=min(estimated_word_length, 0.5))
+			for index, node in enumerate(word_nodes):
+				node.start_time = self.start_time + index*estimated_word_length
+				node.end_time = node.start_time + estimated_word_length
+			
+			# Add the local models output to the queue directly:
+			self.add_words_to_queue(word_nodes)
+		else:
+			# Determine the current utterance's time range:
+			with self.utterance_lock:
+				if self.current_utterance_start_ms is None:
+					self.current_utterance_start_ms = start
+					self.current_utterance_end_ms = end
+				else:
+					if end > self.current_utterance_end_ms:
+						self.current_utterance_end_ms = end
+				self.last_speech_update = time.time()
+			
+			# Ensure we're transcribing any utterances using a smarter model in the background:
+			if not self.utterance_thread or not self.utterance_thread.is_alive():
+				self.utterance_thread = threading.Thread(target=self._process_utterances, daemon=True)
+				self.utterance_thread.start()
 
 	def _process_utterances(self):
 		while self._running:
@@ -219,9 +231,8 @@ class FFmpegWordStream(WordStream):
 				self.chunk_counter += 1
 				self._extract_audio_chunk(start_sec, end_sec - start_sec, chunk_path)
 
-				groq_text = self._transcribe_with_groq(chunk_path)
+				groq_text = self._transcribe_with_groq(chunk_path, self.start_time + timedelta(seconds=start_sec))
 				print(f"Groq transcription: {groq_text}")
-
 
 	def _extract_audio_chunk(self, start, duration, output_path):
 		cmd = [
@@ -239,20 +250,43 @@ class FFmpegWordStream(WordStream):
 		]
 		subprocess.run(cmd, check=True)
 
-	def _transcribe_with_groq(self, filename):
-		client = Groq()
-		with open(filename, "rb") as file:
-			transcription = client.audio.transcriptions.create(
-				file=(os.path.basename(filename), file.read()),
-				model="whisper-large-v3",
-				response_format="verbose_json",
-				language="en",
-				temperature=0.5,
-				timestamp_granularities=['word'],
-				prompt="Utterances should [um], include fillers. Maybe [uh] too: They should always be punctuated, even when it's not really a sentence. Things said, don't always [um]... You know? Have to be sentences right? I did always like computers... When they... When they didn't just speak in all lower case words without marks; I much prefer it when they do! I also, you know, you know I much prefer when they verbatim transcribe me. Even if I say something, maybe I say something, multiple times, it should do that too!"
-			)
-			print(json.dumps(transcription.to_dict(),indent=4))
-			return transcription.text
+	def _transcribe_with_groq(self, filename:str, recording_start_time:datetime):
+		try:
+			with open(filename, "rb") as file:
+				transcription = self.groq_client.audio.transcriptions.create(
+					file=(os.path.basename(filename), file.read()),
+					model="whisper-large-v3",
+					response_format="verbose_json",
+					language="en",
+					temperature=0.5,
+					timestamp_granularities=['word'],
+					prompt="Utterances should [um], include fillers. Maybe [uh] too: They should always be punctuated, even when it's not really a sentence. Things said, don't always [um]... You know? Have to be sentences right? I did always like computers... When they... When they didn't just speak in all lower case words without marks; I much prefer it when they do! I also, you know, you know I much prefer when they verbatim transcribe me. Even if I say something, maybe I say something, multiple times, it should do that too!"
+				)
+				transcription_dict = transcription.to_dict()
+				words:List[dict] = transcription_dict.get('words', [])
+				for word in words:
+					word_start:float = word.get('start', 0)
+					word_end:float = word.get('end', 0)
+					word_text:str = word.get('text','')
+					
+					cleaned_text = word_text.strip()
+					cleaned_text = cleaned_text.rstrip(string.punctuation)
+					cleaned_text = cleaned_text.lstrip(string.punctuation)
+					
+					self.last_node = WordNode.join_returning_next(
+						prev=self.last_node,
+						next=WordNode(
+							cleaned_text,
+							recording_start_time + timedelta(seconds=word_start),
+							recording_start_time + timedelta(seconds=word_end),
+						)
+					)
+					self.word_queue.put(self.last_node)
+					
+				return transcription.text
+		except:
+			self.groq_client = None
+			return None
 
 def get_stream(session_id:str) -> FFmpegWordStream:
 	'''
@@ -334,7 +368,8 @@ def handle_manual_text_entry(data: dict):
 	if session_id and text:
 		word_stream = get_stream(session_id)
 		if word_stream:
-			word_stream.add_text_to_queue(text)
+			words = word_stream.process_text(text)
+			word_stream.add_words_to_queue(words)
 
 @FFmpegWordStream.bp.route('/recorder')
 def recorder():
@@ -347,61 +382,3 @@ def recorder():
 	if not session_id:
 		return "No session ID provided", 400
 	return render_template('recorder.html', session_id=session_id)
-
-# Format of raw transcription json:
-# {"start":894340,"end":896340,"text":">> Hello, everybody."}
-
-# {"start":896340,"end":897580,"text":"that are helping you hear me now."}
-
-# {  
-#     "text": " Hello computer, how can you hear me now?",
-#     "task": "transcribe",
-#     "language": "English",
-#     "duration": 5.24,
-#     "words": [
-#         {
-#             "word": "Hello",
-#             "start": 0,
-#             "end": 2.8
-#         },
-#         {
-#             "word": "computer,",
-#             "start": 2.8,
-#             "end": 3.14
-#         },
-#         {
-#             "word": "how",
-#             "start": 3.14,
-#             "end": 3.28
-#         },
-#         {
-#             "word": "can",
-#             "start": 3.28,
-#             "end": 3.4
-#         },
-#         {
-#             "word": "you",
-#             "start": 3.4,
-#             "end": 3.48
-#         },
-#         {
-#             "word": "hear",
-#             "start": 3.48,
-#             "end": 3.58
-#         },
-#         {
-#             "word": "me",
-#             "start": 3.58,
-#             "end": 3.7
-#         },
-#         {
-#             "word": "now?",
-#             "start": 3.7,
-#             "end": 3.92
-#         }
-#     ],
-#     "segments": null,
-#     "x_groq": {
-#         "id": "req_01k6126z9kes49gdz2z74xawbx"
-#     }
-# }

@@ -13,3 +13,13 @@ class WordNode:
 
 	def __str__(self) -> str:
 		return self.word
+	
+	def set_next(self, node:'WordNode'):
+		node.next = node
+		node.prev = self
+	
+	@staticmethod
+	def join_returning_next(prev:'WordNode', next:'WordNode'):
+		if prev:
+			prev.set_next(next)
+		return next
