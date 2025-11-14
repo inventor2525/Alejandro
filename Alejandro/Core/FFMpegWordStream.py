@@ -74,10 +74,10 @@ class FFmpegWordStream(WordStream):
 		self.chunk_counter = 0
 		
 		# Settings:
-		self.queue_size = 2
+		self.queue_size = 1
 		'''How many seconds of audio that will be locally transcribed at a time.'''
 		
-		self.padding = 1
+		self.padding = .8
 		'''How much audio (seconds) will be included to the remote (larger model) before and after the local model detects nothing.'''
 	
 	@staticmethod
@@ -264,14 +264,16 @@ class FFmpegWordStream(WordStream):
 				)
 				transcription_dict = transcription.to_dict()
 				words:List[dict] = transcription_dict.get('words', [])
+				print(f"Groq words:\n{json.dumps(words,indent=4)}")
 				for word in words:
 					word_start:float = word.get('start', 0)
 					word_end:float = word.get('end', 0)
-					word_text:str = word.get('text','')
+					word_text:str = word.get('word','')
 					
 					cleaned_text = word_text.strip()
 					cleaned_text = cleaned_text.rstrip(string.punctuation)
 					cleaned_text = cleaned_text.lstrip(string.punctuation)
+					print(word_text, word_start, word_end, cleaned_text)
 					
 					self.last_node = WordNode.join_returning_next(
 						prev=self.last_node,

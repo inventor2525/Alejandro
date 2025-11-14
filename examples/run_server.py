@@ -14,4 +14,4 @@ if __name__ == "__main__":
 	
 	# Create and run the server
 	server = RequiredAIServer(config_path)
-	server.run(host="0.0.0.0", port=5000, debug=True)
+	server.run(host="0.0.0.0", port=5432, debug=True)
