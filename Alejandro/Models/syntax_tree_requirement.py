@@ -1,4 +1,4 @@
-from RequiredAI.helpers import json_dataclass, field
+from RequiredAI.json_dataclass import json_dataclass, field
 from dataclasses_json import config
 from typing import List, Optional, Set, Dict
 import re

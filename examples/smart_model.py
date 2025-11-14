@@ -88,7 +88,7 @@ if bash_node:
 			value=["Do not include git push commands.", "Do not push code to remote repositories in ANY way."],
 			positive_examples=['git commit -m "A commit"'],
 			negative_examples=["git push origin main"],
-			token_limit=1024,
+			max_example_tokens=1024,
 			name="Never push code to a remote repository!"
 		),
 		WrittenRequirement(
@@ -96,7 +96,7 @@ if bash_node:
 			value=["Do not source PyEnvironment, pyenv, or run pyenv activate."],
 			positive_examples=["pip install numpy"],
 			negative_examples=["source ~/.pyenv/bin/activate"],
-			token_limit=1024,
+			max_example_tokens=1024,
 			name="No PyEnvironment"
 		),
 		WrittenRequirement(
@@ -104,7 +104,7 @@ if bash_node:
 			value=["Do not run python the application."],
 			positive_examples=["echo 'Hello, World!'"],
 			negative_examples=["python script.py"],
-			token_limit=1024,
+			max_example_tokens=1024,
 			name="Do not run any python file."
 		),
 		WrittenRequirement(
@@ -112,7 +112,7 @@ if bash_node:
 			value=["Do not call tree on any directory."],
 			positive_examples=["echo 'Hello, World!'"],
 			negative_examples=["tree", "ls"],
-			token_limit=1024,
+			max_example_tokens=1024,
 			name="Never call tree or ls."
 		)
 	]
@@ -124,7 +124,7 @@ if script_node:
 			value=["If you need to mkdir, do it before saving any files."],
 			positive_examples=["```txt\n<AI_RESPONSE>\n### AI_BASH_START ###\nmkdir -p /home/charlie/Projects/my_proj\n### AI_BASH_END ###\n### AI_SAVE_START: /home/charlie/Projects/my_proj/app.py ###\n# Do Stuff.\n### AI_SAVE_END ###\n### AI_BASH_START ###\ncd /home/charlie/Projects/my_proj\ngit init\n### AI_BASH_END ###<END_OF_INPUT>\n```"],
 			negative_examples=["```txt\n<AI_RESPONSE>\n### AI_SAVE_START: /home/charlie/Projects/my_proj/app.py ###\n# Do Stuff.\n### AI_SAVE_END ###\n### AI_BASH_START ###\nmkdir -p /home/charlie/Projects/my_proj\ncd /home/charlie/Projects/my_proj\ngit init\n### AI_BASH_END ###<END_OF_INPUT>\n```"],
-			token_limit=1024,
+			max_example_tokens=1024,
 			name="Don't forget to do some things bash wise that might need to be done up front, before you save files."
 		)
 	]
@@ -132,7 +132,8 @@ if script_node:
 llama_model_config = ModelConfig(
 	name="llama",
 	provider="groq",
-	provider_model="qwen/qwen3-32b",#"llama-3.1-8b-instant",#"openai/gpt-oss-20b",#"llama-3.3-70b-versatile",
+	# provider_model="qwen/qwen3-32b",#"llama-3.1-8b-instant",#"openai/gpt-oss-20b",#"llama-3.3-70b-versatile",
+	provider_model="openai/gpt-oss-120b",#"llama-3.1-8b-instant",#"openai/gpt-oss-20b",#"llama-3.3-70b-versatile",
 	api_key_env="GROQ_API_KEY"
 )
 # Define the SmartModel configuration
