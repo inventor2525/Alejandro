@@ -41,7 +41,7 @@ def screen_type(cls:Type[T]) -> Type[T]:
 	return cls
 
 def control(text: Optional[str] = None, keyphrases: List[str] = [], deactivate_phrases: List[str] = [], js_getter_function: Optional[str] = None, js_return_handler: Optional[str] = None):
-	def decorator(method):
+	def decorator(method, text=text, keyphrases=keyphrases, deactivate_phrases=deactivate_phrases, js_getter_function=js_getter_function, js_return_handler=js_return_handler):
 		if not text:
 			assert len(keyphrases)>0, 'Must have at least 1 key phrase if text is not passed'
 			text = keyphrases[0]
