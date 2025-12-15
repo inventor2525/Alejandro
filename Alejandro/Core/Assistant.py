@@ -1,22 +1,11 @@
-from typing import List, Optional, Callable, Dict
-from enum import Enum, auto
+from typing import List, Optional, Dict
 from Alejandro.Core.Signal import Signal
-from Alejandro.Core.Control import Control, ControlResult
-from Alejandro.Core.WordNode import WordNode
 from RequiredAI.helpers import get_msg_content
 from RequiredAI.client import RequiredAIClient
 from RequiredAI.RequirementTypes import WrittenRequirement
-from RequiredAI.Requirement import Requirements
-from RequiredAI.json_dataclass import json_dataclass
 from RequiredAI.ModelConfig import ModelConfig, InheritedModel, InputConfig
-from Alejandro.Core.Screen import control
 from Alejandro.Models.Conversation import Conversation, Message, Roles
-from Alejandro.Core.ModalControl import ModalControl
-from Alejandro.Core.Control import Control
-from Alejandro.Core.app_path import app_path
 from threading import Thread
-import json
-import os
 
 # Groq
 llama_8b = ModelConfig(
@@ -134,40 +123,14 @@ browse = InheritedModel(
 
 client = RequiredAIClient(base_url="http://localhost:5432")
 
-@json_dataclass
-class Note:
-	name:str
-	description:str
-	contents:str
-	
-	@property
-	def absolute_path(self):
-		return app_path("notes", self.name+'.json')
-	
-	@staticmethod
-	def load_note(note_name:str) -> Optional['Note']:
-		note_path = app_path("notes", note_name+'.json')
-		try:
-			d = json.load(open(note_path))
-			return Note(note_name, d['description'], d['content'])
-		except:
-			return None
-	
-	@staticmethod
-	def list_notes() -> List[str]:
-		notes_dir = app_path("notes")
-		return [
-			os.path.splitext(f)[0] for f in os.listdir(notes_dir)
-			if os.path.isfile(os.path.join(notes_dir, f))
-			and f.endswith('.json')
-		]
-	
-	def save(self):
-		with open(self.absolute_path, 'w') as f:
-			json.dump(self.to_dict(), f)
-	
 class Assistant:
-	"""Manages AI conversations for a session."""
+	"""
+	Manages AI conversations for a session.
+	
+	This was a hap hazard idea for a sort of global manager
+	that would be conversable across the application state from
+	any screen.
+	"""
 	
 	def __init__(self, session_id: str):
 		self.session_id = session_id
@@ -230,118 +193,3 @@ class Assistant:
 				md['tags'] = msg.tags
 			msg_list.append(md)
 		return msg_list
-
-#WIP global controls.... get them with the get_controls method in Screen.py:
-	@control(keyphrases=["open a note", "load a note", "open note"], deactivate_phrases=['finished', 'done', 'load'])
-	def load_note(self, control: ModalControl):
-		name = control.collected_words
-		note = Note.load_note(name)
-		if note:
-			msg = Message(
-				Roles.USER,
-				f"# User Note '{note.name}'\n> Description: {note.description}\n{note.contents}"
-			)
-			msg.tag('notes')
-			self.current_conversation.add_message(msg)
-			self.update_screen()
-
-	@control(keyphrases=["add a note", 'make a note'], deactivate_phrases=['finished', 'done', 'save'])
-	def save_note(self, control: ModalControl):
-		collected_text = control.collected_words
-		name_model = client.model(requirements=[
-			WrittenRequirement(
-				evaluation_model=llama_8b.name,
-				value=["Generate a concise, unique filename for the note based on its content. Output only the filename."],
-				name="Note Name Generator"
-			)
-		])
-		desc_model = client.model(requirements=[
-			WrittenRequirement(
-				evaluation_model=llama_8b.name,
-				value=["Generate a short description of the note content. Output only the description."],
-				name="Note Description Generator"
-			)
-		])
-
-		name_response = name_model([{"role": "user", "content": collected_text}])
-		note_name = get_msg_content(name_response).strip()
-
-		desc_response = desc_model([{"role": "user", "content": collected_text}])
-		note_desc = get_msg_content(desc_response).strip()
-
-		note = Note(name=note_name, description=note_desc, contents=collected_text)
-		note.save()
-
-	@control(keyphrases=["search notes"], deactivate_phrases=['finished', 'done'])
-	def search_notes(self, control: ModalControl):
-		search_text = control.collected_words
-		notes = Note.list_notes()
-		compare_model = client.model(requirements=[
-			WrittenRequirement(
-				evaluation_model=llama_8b.name,
-				value=["Determine if the note matches the search query. Respond with 'yes' or 'no' only."],
-				name="Note Comparator"
-			)
-		])
-		rank_model = client.model(requirements=[
-			WrittenRequirement(
-				evaluation_model=llama_8b.name,
-				value=["Rank the notes by relevance to the query, output sorted list of note names only, one per line."],
-				name="Note Ranker"
-			)
-		])
-
-		matching_notes = []
-		for note_name in notes:
-			note = Note.load_note(note_name)
-			compare_response = compare_model([{"role": "user", "content": f"Query: {search_text}\nNote: {note.contents}"}])
-			if "yes" in get_msg_content(compare_response).lower():
-				matching_notes.append(note)
-
-		if not matching_notes:
-			return
-
-		note_contents = "\n".join([f"{note.name}: {note.contents}" for note in matching_notes])
-		rank_response = rank_model([{"role": "user", "content": f"Query: {search_text}\nNotes:\n{note_contents}"}])
-		ranked_names = [line.strip() for line in get_msg_content(rank_response).split("\n") if line.strip()]
-
-		if ranked_names:
-			top_note_name = ranked_names[0]
-			self.load_note(top_note_name)
-
-	@control(keyphrases=["find note"], deactivate_phrases=['finished', 'done'])
-	def find_note(self, control: ModalControl):
-		search_text = control.collected_words
-		notes = Note.list_notes()
-		compare_model = client.model(requirements=[
-			WrittenRequirement(
-				evaluation_model=llama_8b.name,
-				value=["Determine if the note name or description matches the search query. Respond with 'yes' or 'no' only."],
-				name="Note Finder Comparator"
-			)
-		])
-		rank_model = client.model(requirements=[
-			WrittenRequirement(
-				evaluation_model=llama_8b.name,
-				value=["Rank the notes by relevance to the query based on name and description, output sorted list of note names only, one per line."],
-				name="Note Finder Ranker"
-			)
-		])
-
-		matching_notes = []
-		for note_name in notes:
-			note = Note.load_note(note_name)
-			compare_response = compare_model([{"role": "user", "content": f"Query: {search_text}\nName: {note.name}\nDescription: {note.description}"}])
-			if "yes" in get_msg_content(compare_response).lower():
-				matching_notes.append(note)
-
-		if not matching_notes:
-			return
-
-		note_info = "\n".join([f"{note.name}: {note.description}" for note in matching_notes])
-		rank_response = rank_model([{"role": "user", "content": f"Query: {search_text}\nNotes:\n{note_info}"}])
-		ranked_names = [line.strip() for line in get_msg_content(rank_response).split("\n") if line.strip()]
-
-		if ranked_names:
-			top_note_name = ranked_names[0]
-			self.load_note(top_note_name)

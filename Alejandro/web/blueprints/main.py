@@ -11,6 +11,7 @@ class MainScreen(Screen):
 	def __init__(self, session: 'Session'):
 		from Alejandro.web.blueprints.conversations import ConversationsScreen
 		from Alejandro.web.blueprints.terminal import TerminalScreen
+		from Alejandro.web.blueprints.notes import NotesScreen
 		super().__init__(
 			session=session,
 			title="Main Menu",
@@ -26,6 +27,12 @@ class MainScreen(Screen):
 					text="Terminal",
 					keyphrases=["terminal", "open terminal"],
 					action=session.navigator(TerminalScreen)
+				),
+				Control(
+					id="notes", 
+					text="Notes",
+					keyphrases=["note", "open notes"],
+					action=session.navigator(NotesScreen)
 				),
 				session.make_back_control()
 			]
