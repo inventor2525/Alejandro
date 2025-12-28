@@ -23,7 +23,7 @@ mime_to_config = {
 
 class WhisperLiveKitWordStream(WordStream):
 	bp = Blueprint('WhisperLiveKitWordStream', __name__)
-	socketio: SocketIO = SocketIO()
+	socketio: SocketIO = SocketIO(async_mode='threading', cors_allowed_origins='*')
 	streams: Dict[str, 'WhisperLiveKitWordStream'] = {}
 
 	def __init__(
@@ -31,7 +31,7 @@ class WhisperLiveKitWordStream(WordStream):
 		save_directory: Optional[str],
 		session_id: Optional[str] = None,
 		wlk_host: str = "localhost",
-		wlk_port: int = 8765,
+		wlk_port: int = 8000,
 		language: str = "en"
 	):
 		'''
