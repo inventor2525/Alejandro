@@ -79,8 +79,11 @@ class WhisperLiveKitWordStream(WordStream):
 
 	@staticmethod
 	def init_app(app: Flask):
+		print("[INIT] Initializing WhisperLiveKitWordStream with Flask app")
 		WhisperLiveKitWordStream.socketio.init_app(app)
 		app.register_blueprint(WhisperLiveKitWordStream.bp)
+		print(f"[INIT] SocketIO instance: {WhisperLiveKitWordStream.socketio}")
+		print(f"[INIT] Registered handlers: {WhisperLiveKitWordStream.socketio.server.handlers}")
 
 	def words(self) -> Iterator[WordNode]:
 		'''
@@ -397,6 +400,16 @@ def get_stream(session_id: str) -> WhisperLiveKitWordStream:
 	return WhisperLiveKitWordStream.streams[session_id]
 
 
+@WhisperLiveKitWordStream.socketio.on('connect')
+def handle_connect():
+	print("[SOCKETIO] Client connected!")
+
+
+@WhisperLiveKitWordStream.socketio.on('disconnect')
+def handle_disconnect():
+	print("[SOCKETIO] Client disconnected!")
+
+
 @WhisperLiveKitWordStream.socketio.on('start_listening')
 def _start_listening(data: dict) -> Response:
 	'''
@@ -405,6 +418,7 @@ def _start_listening(data: dict) -> Response:
 	This will establish a connection to WhisperLiveKit
 	and start streaming audio for transcription.
 	'''
+	print(f"[EVENT] start_listening event received with data: {data}")
 	session_id = data.get('session_id')
 	mime_type = data.get("mime_type", "audio/webm")
 	print(f"[START] Starting listening for session={session_id}, mime_type={mime_type}")
