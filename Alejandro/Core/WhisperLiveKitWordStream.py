@@ -23,7 +23,7 @@ mime_to_config = {
 
 class WhisperLiveKitWordStream(WordStream):
 	bp = Blueprint('WhisperLiveKitWordStream', __name__)
-	socketio: SocketIO = SocketIO(async_mode='threading', cors_allowed_origins='*')
+	socketio: SocketIO = SocketIO()
 	streams: Dict[str, 'WhisperLiveKitWordStream'] = {}
 
 	def __init__(
@@ -112,9 +112,11 @@ class WhisperLiveKitWordStream(WordStream):
 		'''
 		try:
 			wlk_url = f"ws://{self.wlk_host}:{self.wlk_port}"
+			print(f"Connecting to WLK at {wlk_url}")
 
 			def on_message(ws, message):
 				'''Handle transcription results from WhisperLiveKit'''
+				print(f"WLK message: {message}")
 				try:
 					data = json.loads(message)
 					self._process_wlk_transcription(data)
@@ -124,12 +126,13 @@ class WhisperLiveKitWordStream(WordStream):
 					print(f"Error processing WLK transcription: {e}")
 
 			def on_error(ws, error):
-				pass
+				print(f"WLK error: {error}")
 
 			def on_close(ws, close_status_code, close_msg):
-				pass
+				print(f"WLK closed: {close_status_code} - {close_msg}")
 
 			def on_open(ws):
+				print("WLK connection opened")
 				try:
 					config = {
 						"type": "config",
@@ -137,8 +140,9 @@ class WhisperLiveKitWordStream(WordStream):
 						"task": "transcribe"
 					}
 					ws.send(json.dumps(config))
-				except:
-					pass
+					print(f"Sent config: {config}")
+				except Exception as e:
+					print(f"Error sending config: {e}")
 
 			self.wlk_ws = websocket.WebSocketApp(
 				wlk_url,
@@ -153,7 +157,8 @@ class WhisperLiveKitWordStream(WordStream):
 				daemon=True
 			)
 			self.wlk_thread.start()
-		except:
+		except Exception as e:
+			print(f"Failed to connect to WLK: {e}")
 			self.wlk_ws = None
 			self.wlk_thread = None
 
@@ -232,6 +237,7 @@ class WhisperLiveKitWordStream(WordStream):
 		# Send to WhisperLiveKit for transcription
 		if self.wlk_ws and self.is_recording:
 			try:
+				print(f"Sending {len(data)} bytes to WLK")
 				# Encode audio data as base64 for JSON transmission
 				audio_b64 = base64.b64encode(data).decode('utf-8')
 				message = {
@@ -241,6 +247,8 @@ class WhisperLiveKitWordStream(WordStream):
 				self.wlk_ws.send(json.dumps(message))
 			except Exception as e:
 				print(f"Error sending audio to WLK: {e}")
+		else:
+			print(f"Not sending audio: wlk_ws={self.wlk_ws is not None}, is_recording={self.is_recording}")
 
 	def _process_wlk_transcription(self, data: dict):
 		'''
