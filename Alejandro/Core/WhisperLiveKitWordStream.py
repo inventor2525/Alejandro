@@ -193,22 +193,26 @@ class WhisperLiveKitWordStream(WordStream):
 			self.save_directory,
 			f"raw_recording_{timestamp}.{self.file_ext}"
 		)
+		print(f"[FILE] Opening audio file: {self.current_audio_path}")
 		self.current_audio_file = open(self.current_audio_path, "wb")
 
 		# Connect to WhisperLiveKit
 		self._connect_to_wlk()
 
 		self.is_recording = True
+		print(f"[START] Recording started, is_recording={self.is_recording}")
 
 	def _stop_listening(self) -> None:
 		'''
 		Disconnect from WhisperLiveKit and finalize audio recording.
 		'''
+		print(f"[STOP] Stopping recording...")
 		self.end_time = datetime.now()
 
 		# Close audio file
 		if self.current_audio_file:
 			self.current_audio_file.close()
+			print(f"[FILE] Closed audio file")
 
 		# Disconnect from WhisperLiveKit
 		self._disconnect_from_wlk()
@@ -222,8 +226,10 @@ class WhisperLiveKitWordStream(WordStream):
 				f"recording_{start_str}__{end_str}.{self.file_ext}"
 			)
 			os.rename(self.current_audio_path, new_raw)
+			print(f"[FILE] Renamed recording to: {new_raw}")
 
 		self.is_recording = False
+		print(f"[STOP] Recording stopped")
 
 	def _handle_audio_chunk(self, data: bytes):
 		"""
@@ -273,14 +279,17 @@ class WhisperLiveKitWordStream(WordStream):
 		}
 		'''
 		msg_type = data.get('type', '')
+		print(f"[WLK] Processing message type: {msg_type}")
 
 		# Handle different message types
 		if msg_type == 'transcription' or msg_type == 'segment':
+			print(f"[WLK] TRANSCRIPTION RECEIVED: {data}")
 			with self.transcription_lock:
 				# Check if we have word-level timestamps
 				words_data = data.get('words', [])
 
 				if words_data:
+					print(f"[WLK] Processing {len(words_data)} words with timestamps")
 					# Process word-level transcription
 					self._process_word_level_transcription(words_data)
 				else:
@@ -288,6 +297,7 @@ class WhisperLiveKitWordStream(WordStream):
 					text = data.get('text', '')
 					start_offset = data.get('start', 0.0)
 					end_offset = data.get('end', 0.0)
+					print(f"[WLK] Processing text-level: '{text}' ({start_offset}-{end_offset})")
 
 					if text:
 						self._process_text_level_transcription(
@@ -296,7 +306,9 @@ class WhisperLiveKitWordStream(WordStream):
 							end_offset
 						)
 		elif msg_type == 'error':
-			print(f"WhisperLiveKit error: {data.get('message', 'Unknown error')}")
+			print(f"[WLK] ERROR: {data.get('message', 'Unknown error')}")
+		else:
+			print(f"[WLK] NON-TRANSCRIPTION MESSAGE: type={msg_type}, data={data}")
 
 	def _process_word_level_transcription(self, words_data: List[dict]):
 		'''
@@ -328,6 +340,7 @@ class WhisperLiveKitWordStream(WordStream):
 
 				# Add to queue for consumption
 				self.word_queue.put(self.last_node)
+				print(f"[WLK] Added word to queue: '{cleaned_text}'")
 
 	def _process_text_level_transcription(
 		self,
@@ -339,10 +352,14 @@ class WhisperLiveKitWordStream(WordStream):
 		Process text-level transcription without word timestamps.
 		Estimates word boundaries using NLTK tokenization.
 		'''
+		print(f"[WLK] Text-level transcription: '{text}'")
 		word_nodes = self.process_text(text)
 
 		if not word_nodes:
+			print(f"[WLK] No words extracted from text")
 			return
+
+		print(f"[WLK] Extracted {len(word_nodes)} words from text")
 
 		# Estimate timestamps for each word
 		duration = end_offset - start_offset
@@ -358,6 +375,7 @@ class WhisperLiveKitWordStream(WordStream):
 	def add_words_to_queue(self, word_nodes: List[WordNode]):
 		'''Add a list of word nodes to the queue'''
 		if word_nodes:
+			print(f"[WLK] Adding {len(word_nodes)} words to queue: {[n.word for n in word_nodes]}")
 			# Link to previous node
 			if self.last_node:
 				self.last_node.set_next(word_nodes[0])
@@ -389,6 +407,7 @@ def _start_listening(data: dict) -> Response:
 	'''
 	session_id = data.get('session_id')
 	mime_type = data.get("mime_type", "audio/webm")
+	print(f"[START] Starting listening for session={session_id}, mime_type={mime_type}")
 	get_stream(session_id)._start_listening(mime_type)
 
 
@@ -398,6 +417,7 @@ def _stop_listening(data: dict = None) -> Response:
 	Receive the client command to stop listening.
 	'''
 	session_id = data.get('session_id')
+	print(f"[STOP] Stopping listening for session={session_id}")
 	get_stream(session_id)._stop_listening()
 
 
@@ -409,6 +429,7 @@ def _handle_audio_chunk(data):
 	'''
 	session_id = data.get("session_id")
 	audio_data = data.get("audio_data")
+	print(f"[AUDIO] Received audio chunk from client, session={session_id}, size={len(audio_data) if audio_data else 0}")
 	get_stream(session_id)._handle_audio_chunk(audio_data)
 
 
