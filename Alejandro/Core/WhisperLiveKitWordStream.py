@@ -467,6 +467,49 @@ def handle_manual_text_entry(data: dict):
 			word_stream.add_words_to_queue(words)
 
 
+@WhisperLiveKitWordStream.bp.route('/start_listening', methods=['POST'])
+def http_start_listening():
+	'''
+	HTTP endpoint for starting listening session.
+	Avoids SocketIO to bypass rate limits.
+	'''
+	data = request.get_json()
+	session_id = data.get('session_id')
+	mime_type = data.get('mime_type', 'audio/webm')
+
+	if not session_id:
+		return jsonify({"error": "Missing session_id"}), 400
+
+	try:
+		print(f"[HTTP] start_listening for session={session_id}, mime={mime_type}")
+		get_stream(session_id)._start_listening(mime_type)
+		return jsonify({"status": "ok"}), 200
+	except Exception as e:
+		print(f"[HTTP] Error starting listening: {e}")
+		return jsonify({"error": str(e)}), 500
+
+
+@WhisperLiveKitWordStream.bp.route('/stop_listening', methods=['POST'])
+def http_stop_listening():
+	'''
+	HTTP endpoint for stopping listening session.
+	Avoids SocketIO to bypass rate limits.
+	'''
+	data = request.get_json()
+	session_id = data.get('session_id')
+
+	if not session_id:
+		return jsonify({"error": "Missing session_id"}), 400
+
+	try:
+		print(f"[HTTP] stop_listening for session={session_id}")
+		get_stream(session_id)._stop_listening()
+		return jsonify({"status": "ok"}), 200
+	except Exception as e:
+		print(f"[HTTP] Error stopping listening: {e}")
+		return jsonify({"error": str(e)}), 500
+
+
 @WhisperLiveKitWordStream.bp.route('/audio_chunk', methods=['POST'])
 def http_audio_chunk():
 	'''
