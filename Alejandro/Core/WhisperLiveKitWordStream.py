@@ -160,10 +160,17 @@ class WhisperLiveKitWordStream(WordStream):
 			)
 
 			self.wlk_thread = threading.Thread(
-				target=self.wlk_ws.run_forever,
+				target=lambda: self.wlk_ws.run_forever(
+					ping_interval=20,
+					ping_timeout=10,
+					skip_utf8_validation=True
+				),
 				daemon=True
 			)
 			self.wlk_thread.start()
+			# Give the connection time to establish
+			import time
+			time.sleep(0.5)
 		except Exception as e:
 			print(f"Failed to connect to WLK: {e}")
 			self.wlk_ws = None
