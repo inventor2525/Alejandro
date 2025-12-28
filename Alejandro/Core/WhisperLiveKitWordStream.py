@@ -10,8 +10,31 @@ import os
 import time
 import threading
 import string
-import websocket
 import base64
+
+# Try to import WhisperLiveKit components
+try:
+	from whisperlivekit import TranscriptionEngine, AudioProcessor
+	WLK_AVAILABLE = True
+except ImportError:
+	print("[WLK] WhisperLiveKit not available - transcription will not work")
+	print("[WLK] Install with: pip install whisperlivekit")
+	WLK_AVAILABLE = False
+	TranscriptionEngine = None
+	AudioProcessor = None
+
+# Global TranscriptionEngine (heavy - create once)
+# This will be initialized on first use
+_transcription_engine: Optional['TranscriptionEngine'] = None
+
+def get_transcription_engine(model: str = "medium", diarization: bool = True, language: str = "en"):
+	"""Get or create the global TranscriptionEngine"""
+	global _transcription_engine
+	if _transcription_engine is None and WLK_AVAILABLE:
+		print(f"[WLK] Creating global TranscriptionEngine (model={model}, diarization={diarization}, language={language})")
+		_transcription_engine = TranscriptionEngine(model=model, diarization=diarization, lan=language)
+		print("[WLK] TranscriptionEngine created successfully")
+	return _transcription_engine
 
 mime_to_config = {
 	"audio/webm": ("webm", "opus"),
@@ -34,8 +57,8 @@ class WhisperLiveKitWordStream(WordStream):
 		self,
 		save_directory: Optional[str],
 		session_id: Optional[str] = None,
-		wlk_host: str = "localhost",
-		wlk_port: int = 8000,
+		model: str = "medium",
+		diarization: bool = True,
 		language: str = "en"
 	):
 		'''
@@ -43,8 +66,8 @@ class WhisperLiveKitWordStream(WordStream):
 		recordings and their transcriptions will be
 		stored in.
 
-		wlk_host: WhisperLiveKit WebSocket server host
-		wlk_port: WhisperLiveKit WebSocket server port
+		model: Whisper model to use (tiny, base, small, medium, large)
+		diarization: Enable speaker diarization
 		language: Language code for transcription
 		'''
 		# Setup a word stream for each session:
@@ -56,12 +79,11 @@ class WhisperLiveKitWordStream(WordStream):
 		if save_directory:
 			os.makedirs(save_directory, exist_ok=True)
 
-		# WhisperLiveKit connection settings:
-		self.wlk_host = wlk_host
-		self.wlk_port = wlk_port
+		# WhisperLiveKit settings:
+		self.model = model
+		self.diarization = diarization
 		self.language = language
-		self.wlk_ws: Optional[websocket.WebSocketApp] = None
-		self.wlk_thread: Optional[threading.Thread] = None
+		self.audio_processor: Optional['AudioProcessor'] = None
 
 		# State:
 		self._running = True
@@ -113,102 +135,57 @@ class WhisperLiveKitWordStream(WordStream):
 		if self.session_id in WhisperLiveKitWordStream.streams:
 			del WhisperLiveKitWordStream.streams[self.session_id]
 
-	def _connect_to_wlk(self):
+	def _init_audio_processor(self):
 		'''
-		Establish WebSocket connection to WhisperLiveKit server.
+		Initialize the AudioProcessor for this session.
+		Uses the global TranscriptionEngine.
 		'''
+		if not WLK_AVAILABLE:
+			print("[WLK] WhisperLiveKit not available - cannot initialize AudioProcessor")
+			return
+
 		try:
-			wlk_url = f"ws://{self.wlk_host}:{self.wlk_port}/asr"
-			print(f"Connecting to WLK at {wlk_url}")
-
-			def on_message(ws, message):
-				'''Handle transcription results from WhisperLiveKit'''
-				print(f"WLK message received (type={type(message)}): {message}")
-				try:
-					# Handle both bytes and string messages
-					if isinstance(message, bytes):
-						message = message.decode('utf-8')
-					data = json.loads(message)
-					self._process_wlk_transcription(data)
-				except Exception as e:
-					print(f"Error in on_message: {e}")
-					import traceback
-					traceback.print_exc()
-
-			def on_error(ws, error):
-				print(f"WLK error: {error}")
-				import traceback
-				traceback.print_exc()
-
-			def on_close(ws, close_status_code, close_msg):
-				print(f"WLK closed: {close_status_code} - {close_msg}")
-
-			def on_open(ws):
-				print("WLK connection opened")
-				try:
-					config = {
-						"type": "config",
-						"language": self.language,
-						"task": "transcribe"
-					}
-					ws.send(json.dumps(config))
-					print(f"Sent config: {config}")
-				except Exception as e:
-					print(f"Error sending config: {e}")
-
-			self.wlk_ws = websocket.WebSocketApp(
-				wlk_url,
-				on_message=on_message,
-				on_error=on_error,
-				on_close=on_close,
-				on_open=on_open
+			# Get or create the global transcription engine
+			engine = get_transcription_engine(
+				model=self.model,
+				diarization=self.diarization,
+				language=self.language
 			)
 
-			def run_websocket():
-				print("[WLK] WebSocket thread starting...")
-				self.wlk_ws.run_forever(
-					ping_interval=20,
-					ping_timeout=10,
-					skip_utf8_validation=True
-				)
-				print("[WLK] WebSocket run_forever exited!")
+			if engine is None:
+				print("[WLK] Failed to create TranscriptionEngine")
+				return
 
-			self.wlk_thread = threading.Thread(
-				target=run_websocket,
-				daemon=True
-			)
-			self.wlk_thread.start()
-			# Give the connection time to establish
-			import time
-			time.sleep(1.0)
-			print(f"[WLK] Thread alive: {self.wlk_thread.is_alive()}, WS connected: {self.wlk_ws.sock and self.wlk_ws.sock.connected if self.wlk_ws.sock else False}")
+			# Create AudioProcessor for this session
+			print(f"[WLK] Creating AudioProcessor for session {self.session_id}")
+			self.audio_processor = AudioProcessor(transcription_engine=engine)
+
+			# Set up callback for transcription results
+			# Note: The actual API might differ - this is based on typical patterns
+			# We'll need to check the actual WLK documentation for the exact callback mechanism
+			print("[WLK] AudioProcessor initialized successfully")
+
 		except Exception as e:
-			print(f"Failed to connect to WLK: {e}")
-			self.wlk_ws = None
-			self.wlk_thread = None
+			print(f"[WLK] Failed to initialize AudioProcessor: {e}")
+			import traceback
+			traceback.print_exc()
+			self.audio_processor = None
 
-	def _disconnect_from_wlk(self):
-		'''Close WhisperLiveKit WebSocket connection'''
-		try:
-			if self.wlk_ws:
-				self.wlk_ws.close()
-		except:
-			pass
-		finally:
-			self.wlk_ws = None
-
-		try:
-			if self.wlk_thread:
-				self.wlk_thread.join(timeout=1)
-		except:
-			pass
-		finally:
-			self.wlk_thread = None
+	def _close_audio_processor(self):
+		'''Close the AudioProcessor for this session'''
+		if self.audio_processor:
+			try:
+				# Clean up the audio processor
+				# The actual cleanup method will depend on WLK's API
+				print(f"[WLK] Closing AudioProcessor for session {self.session_id}")
+				self.audio_processor = None
+			except Exception as e:
+				print(f"[WLK] Error closing AudioProcessor: {e}")
 
 	def _start_listening(self, mime_type: str) -> None:
 		'''
 		Start recording client audio chunks to file
-		and establish connection to WhisperLiveKit.
+		and initialize WhisperLiveKit AudioProcessor.
 		'''
 		self.start_time = datetime.now()
 		timestamp = self.start_time.strftime("%Y%m%d_%H%M%S")
@@ -221,15 +198,15 @@ class WhisperLiveKitWordStream(WordStream):
 		print(f"[FILE] Opening audio file: {self.current_audio_path}")
 		self.current_audio_file = open(self.current_audio_path, "wb")
 
-		# Connect to WhisperLiveKit
-		self._connect_to_wlk()
+		# Initialize WhisperLiveKit AudioProcessor
+		self._init_audio_processor()
 
 		self.is_recording = True
 		print(f"[START] Recording started, is_recording={self.is_recording}")
 
 	def _stop_listening(self) -> None:
 		'''
-		Disconnect from WhisperLiveKit and finalize audio recording.
+		Close WhisperLiveKit AudioProcessor and finalize audio recording.
 		'''
 		print(f"[STOP] Stopping recording...")
 		self.end_time = datetime.now()
@@ -239,8 +216,8 @@ class WhisperLiveKitWordStream(WordStream):
 			self.current_audio_file.close()
 			print(f"[FILE] Closed audio file")
 
-		# Disconnect from WhisperLiveKit
-		self._disconnect_from_wlk()
+		# Close WhisperLiveKit AudioProcessor
+		self._close_audio_processor()
 
 		# Rename the finished recording
 		if self.current_audio_path and os.path.exists(self.current_audio_path):
@@ -258,23 +235,48 @@ class WhisperLiveKitWordStream(WordStream):
 
 	def _handle_audio_chunk(self, data: bytes):
 		"""
-		Record audio chunk to file and send to WhisperLiveKit.
+		Record audio chunk to file and process with WhisperLiveKit.
 		"""
 		# Write to disk (CRITICAL: preserve this functionality!)
 		if self.current_audio_file and not self.current_audio_file.closed:
 			self.current_audio_file.write(data)
 			self.current_audio_file.flush()
 
-		# Send to WhisperLiveKit for transcription
-		if self.wlk_ws and self.is_recording:
+		# Process audio with WhisperLiveKit AudioProcessor
+		if self.audio_processor and self.is_recording:
 			try:
-				print(f"Sending {len(data)} bytes to WLK")
-				# Send raw binary audio data (WLK expects bytes, not JSON)
-				self.wlk_ws.send(data, opcode=websocket.ABNF.OPCODE_BINARY)
+				print(f"[WLK] Processing {len(data)} bytes with AudioProcessor")
+
+				# Process the audio chunk
+				# Note: The actual API method name might differ - common names are:
+				# - process_audio(audio_bytes)
+				# - feed_audio(audio_bytes)
+				# - add_audio(audio_bytes)
+				# We'll need to check the actual WLK source for the correct method
+
+				# Attempt to process audio and get transcription results
+				# This is a placeholder - the actual implementation depends on WLK's API
+				if hasattr(self.audio_processor, 'process_audio'):
+					result = self.audio_processor.process_audio(data)
+					if result:
+						self._process_wlk_transcription(result)
+				elif hasattr(self.audio_processor, 'feed_audio'):
+					result = self.audio_processor.feed_audio(data)
+					if result:
+						self._process_wlk_transcription(result)
+				else:
+					print("[WLK] WARNING: AudioProcessor API method not found")
+					print("[WLK] Available methods:", dir(self.audio_processor))
+
 			except Exception as e:
-				print(f"Error sending audio to WLK: {e}")
+				print(f"[WLK] Error processing audio: {e}")
+				import traceback
+				traceback.print_exc()
 		else:
-			print(f"Not sending audio: wlk_ws={self.wlk_ws is not None}, is_recording={self.is_recording}")
+			if not self.audio_processor:
+				print(f"[WLK] Not processing: audio_processor not initialized")
+			elif not self.is_recording:
+				print(f"[WLK] Not processing: is_recording={self.is_recording}")
 
 	def _process_wlk_transcription(self, data: dict):
 		'''

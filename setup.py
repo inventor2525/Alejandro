@@ -35,6 +35,7 @@ setup(
 		"groq",
 		"dataclasses-json",
 		"nltk",
+		"websocket-client",
 		my_dependency("RequiredAI"),
 		my_dependency("assistant_merger"),
 		my_dependency("assistant_interaction"),
