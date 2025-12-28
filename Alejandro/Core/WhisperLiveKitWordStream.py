@@ -23,7 +23,11 @@ mime_to_config = {
 
 class WhisperLiveKitWordStream(WordStream):
 	bp = Blueprint('WhisperLiveKitWordStream', __name__)
-	socketio: SocketIO = SocketIO()
+	socketio: SocketIO = SocketIO(
+		ping_interval=25,  # Increase from default 25s to reduce polling
+		ping_timeout=60,   # Increase timeout
+		max_http_buffer_size=10000000  # 10MB for larger chunks
+	)
 	streams: Dict[str, 'WhisperLiveKitWordStream'] = {}
 
 	def __init__(

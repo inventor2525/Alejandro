@@ -25,7 +25,7 @@ async function startRecording() {
     mediaRecorder.onstop = () => {
         toggleButtons(false);
     };
-    mediaRecorder.start(500); // Send chunks every 500ms
+    mediaRecorder.start(2000); // Send chunks every 2000ms
     socket.emit("start_listening", {
         session_id:localStorage.getItem('sessionId'),
         mime_type: mediaRecorder.mimeType
