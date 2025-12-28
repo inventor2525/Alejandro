@@ -251,13 +251,8 @@ class WhisperLiveKitWordStream(WordStream):
 		if self.wlk_ws and self.is_recording:
 			try:
 				print(f"Sending {len(data)} bytes to WLK")
-				# Encode audio data as base64 for JSON transmission
-				audio_b64 = base64.b64encode(data).decode('utf-8')
-				message = {
-					"type": "audio",
-					"data": audio_b64
-				}
-				self.wlk_ws.send(json.dumps(message))
+				# Send raw binary audio data (WLK expects bytes, not JSON)
+				self.wlk_ws.send(data, opcode=websocket.ABNF.OPCODE_BINARY)
 			except Exception as e:
 				print(f"Error sending audio to WLK: {e}")
 		else:
