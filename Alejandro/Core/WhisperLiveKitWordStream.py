@@ -1,6 +1,6 @@
 from typing import Optional, Iterator, Dict, List
 from .WordStream import WordStream, WordNode
-from flask import Blueprint, jsonify, Response, request, Flask
+from flask import Blueprint, jsonify, Response, request, Flask, render_template
 from flask_socketio import SocketIO
 from io import BufferedWriter
 from queue import Queue, Empty
@@ -110,59 +110,69 @@ class WhisperLiveKitWordStream(WordStream):
 		'''
 		Establish WebSocket connection to WhisperLiveKit server.
 		'''
-		wlk_url = f"ws://{self.wlk_host}:{self.wlk_port}"
+		try:
+			wlk_url = f"ws://{self.wlk_host}:{self.wlk_port}"
 
-		def on_message(ws, message):
-			'''Handle transcription results from WhisperLiveKit'''
-			try:
-				data = json.loads(message)
-				self._process_wlk_transcription(data)
-			except json.JSONDecodeError as e:
-				print(f"Error decoding WLK message: {e}")
-			except Exception as e:
-				print(f"Error processing WLK transcription: {e}")
+			def on_message(ws, message):
+				'''Handle transcription results from WhisperLiveKit'''
+				try:
+					data = json.loads(message)
+					self._process_wlk_transcription(data)
+				except json.JSONDecodeError as e:
+					print(f"Error decoding WLK message: {e}")
+				except Exception as e:
+					print(f"Error processing WLK transcription: {e}")
 
-		def on_error(ws, error):
-			print(f"WhisperLiveKit WebSocket error: {error}")
+			def on_error(ws, error):
+				pass
 
-		def on_close(ws, close_status_code, close_msg):
-			print(f"WhisperLiveKit WebSocket closed: {close_status_code} - {close_msg}")
+			def on_close(ws, close_status_code, close_msg):
+				pass
 
-		def on_open(ws):
-			print(f"Connected to WhisperLiveKit at {wlk_url}")
-			# Send initial configuration
-			config = {
-				"type": "config",
-				"language": self.language,
-				"task": "transcribe"
-			}
-			ws.send(json.dumps(config))
+			def on_open(ws):
+				try:
+					config = {
+						"type": "config",
+						"language": self.language,
+						"task": "transcribe"
+					}
+					ws.send(json.dumps(config))
+				except:
+					pass
 
-		self.wlk_ws = websocket.WebSocketApp(
-			wlk_url,
-			on_message=on_message,
-			on_error=on_error,
-			on_close=on_close,
-			on_open=on_open
-		)
+			self.wlk_ws = websocket.WebSocketApp(
+				wlk_url,
+				on_message=on_message,
+				on_error=on_error,
+				on_close=on_close,
+				on_open=on_open
+			)
 
-		# Run WebSocket in separate thread
-		self.wlk_thread = threading.Thread(
-			target=self.wlk_ws.run_forever,
-			daemon=True
-		)
-		self.wlk_thread.start()
-
-		# Wait a moment for connection to establish
-		time.sleep(0.5)
+			self.wlk_thread = threading.Thread(
+				target=self.wlk_ws.run_forever,
+				daemon=True
+			)
+			self.wlk_thread.start()
+		except:
+			self.wlk_ws = None
+			self.wlk_thread = None
 
 	def _disconnect_from_wlk(self):
 		'''Close WhisperLiveKit WebSocket connection'''
-		if self.wlk_ws:
-			self.wlk_ws.close()
+		try:
+			if self.wlk_ws:
+				self.wlk_ws.close()
+		except:
+			pass
+		finally:
 			self.wlk_ws = None
-		if self.wlk_thread:
-			self.wlk_thread.join(timeout=2)
+
+		try:
+			if self.wlk_thread:
+				self.wlk_thread.join(timeout=1)
+		except:
+			pass
+		finally:
 			self.wlk_thread = None
 
 	def _start_listening(self, mime_type: str) -> None:
