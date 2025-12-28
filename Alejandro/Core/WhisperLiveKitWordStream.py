@@ -118,7 +118,7 @@ class WhisperLiveKitWordStream(WordStream):
 		Establish WebSocket connection to WhisperLiveKit server.
 		'''
 		try:
-			wlk_url = f"ws://{self.wlk_host}:{self.wlk_port}"
+			wlk_url = f"ws://{self.wlk_host}:{self.wlk_port}/asr"
 			print(f"Connecting to WLK at {wlk_url}")
 
 			def on_message(ws, message):
