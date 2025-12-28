@@ -467,6 +467,28 @@ def handle_manual_text_entry(data: dict):
 			word_stream.add_words_to_queue(words)
 
 
+@WhisperLiveKitWordStream.bp.route('/audio_chunk', methods=['POST'])
+def http_audio_chunk():
+	'''
+	HTTP endpoint for receiving audio chunks.
+	This avoids SocketIO payload size limits for large audio blobs.
+	'''
+	session_id = request.form.get('session_id')
+	audio_file = request.files.get('audio_data')
+
+	if not session_id or not audio_file:
+		return jsonify({"error": "Missing session_id or audio_data"}), 400
+
+	try:
+		audio_data = audio_file.read()
+		print(f"[AUDIO] HTTP received audio chunk, session={session_id}, size={len(audio_data)}")
+		get_stream(session_id)._handle_audio_chunk(audio_data)
+		return jsonify({"status": "ok"}), 200
+	except Exception as e:
+		print(f"[AUDIO] Error processing audio chunk: {e}")
+		return jsonify({"error": str(e)}), 500
+
+
 @WhisperLiveKitWordStream.bp.route('/recorder')
 def recorder():
 	'''

@@ -14,12 +14,21 @@ async function startRecording() {
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-    mediaRecorder.ondataavailable = (event) => {
+    mediaRecorder.ondataavailable = async (event) => {
         if (event.data.size > 0) {
-            socket.emit("audio_chunk", {
-                session_id:localStorage.getItem('sessionId'),
-                audio_data:event.data
-            });
+            // Send audio via HTTP POST instead of SocketIO to avoid payload limits
+            const formData = new FormData();
+            formData.append('session_id', localStorage.getItem('sessionId'));
+            formData.append('audio_data', event.data);
+
+            try {
+                await fetch('/audio_chunk', {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (error) {
+                console.error("Failed to send audio chunk:", error);
+            }
         }
     };
     mediaRecorder.onstop = () => {
