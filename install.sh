@@ -28,15 +28,12 @@ if [ ! -d "assistant_interaction" ]; then
 fi
 cd assistant_interaction && pip install -e . && cd ..
 
-# Clone and install WhisperLiveKit
-if [ ! -d "WhisperLiveKit" ]; then
-    echo "Cloning WhisperLiveKit..."
-    git clone https://github.com/QuentinFuxa/WhisperLiveKit.git
-fi
-cd WhisperLiveKit && pip install -e . && cd ..
-
 # Install Alejandro in editable mode
 echo "Installing Alejandro..."
 cd Alejandro && pip install -e .
+
+# Install WhisperLiveKit from PyPI
+echo "Installing WhisperLiveKit..."
+pip install whisperlivekit
 
 echo "Installation complete!"

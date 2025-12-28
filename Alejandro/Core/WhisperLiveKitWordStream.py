@@ -27,7 +27,7 @@ except ImportError:
 # This will be initialized on first use
 _transcription_engine: Optional['TranscriptionEngine'] = None
 
-def get_transcription_engine(model: str = "medium", diarization: bool = True, language: str = "en"):
+def get_transcription_engine(model: str = "large-v3", diarization: bool = True, language: str = "en"):
 	"""Get or create the global TranscriptionEngine"""
 	global _transcription_engine
 	if _transcription_engine is None and WLK_AVAILABLE:
@@ -57,7 +57,7 @@ class WhisperLiveKitWordStream(WordStream):
 		self,
 		save_directory: Optional[str],
 		session_id: Optional[str] = None,
-		model: str = "medium",
+		model: str = "large-v3",
 		diarization: bool = True,
 		language: str = "en"
 	):
@@ -66,7 +66,7 @@ class WhisperLiveKitWordStream(WordStream):
 		recordings and their transcriptions will be
 		stored in.
 
-		model: Whisper model to use (tiny, base, small, medium, large)
+		model: Whisper model to use (tiny, base, small, medium, large, large-v3)
 		diarization: Enable speaker diarization
 		language: Language code for transcription
 		'''
