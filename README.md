@@ -14,7 +14,7 @@ A voice-controlled interface framework that enables natural language interaction
 ## Installation
 
 ```bash
-pip install -e .
+wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/claude/add-wlk-word-stream-iKKKo/install.sh | bash
 ```
 
 ## Development
