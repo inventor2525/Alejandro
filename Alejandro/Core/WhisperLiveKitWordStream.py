@@ -31,11 +31,20 @@ _transcription_engine: Optional['TranscriptionEngine'] = None
 def get_transcription_engine(model: str = "large-v3", diarization: bool = True, language: str = "en"):
 	"""Get or create the global TranscriptionEngine"""
 	global _transcription_engine
-	if _transcription_engine is None and WLK_AVAILABLE:
-		print(f"[WLK] Creating global TranscriptionEngine (model={model}, diarization={diarization}, language={language})")
-		_transcription_engine = TranscriptionEngine(model=model, diarization=diarization, lan=language)
-		print("[WLK] TranscriptionEngine created successfully")
-	return _transcription_engine
+	try:
+		print(f"[WLK] get_transcription_engine: start, _transcription_engine={_transcription_engine is not None}, WLK_AVAILABLE={WLK_AVAILABLE}", flush=True)
+		if _transcription_engine is None and WLK_AVAILABLE:
+			print(f"[WLK] Creating global TranscriptionEngine (model={model}, diarization={diarization}, language={language})", flush=True)
+			_transcription_engine = TranscriptionEngine(model=model, diarization=diarization, lan=language)
+			print(f"[WLK] TranscriptionEngine constructor returned: {_transcription_engine}", flush=True)
+			print("[WLK] TranscriptionEngine created successfully", flush=True)
+		print(f"[WLK] get_transcription_engine: returning {_transcription_engine}", flush=True)
+		return _transcription_engine
+	except Exception as e:
+		print(f"[WLK] EXCEPTION in get_transcription_engine: {e}", flush=True)
+		import traceback
+		traceback.print_exc()
+		raise
 
 mime_to_config = {
 	"audio/webm": ("webm", "opus"),
