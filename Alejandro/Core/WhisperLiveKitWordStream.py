@@ -349,59 +349,33 @@ class WhisperLiveKitWordStream(WordStream):
 			elif not self.is_recording:
 				print(f"[WLK] Not processing: is_recording={self.is_recording}")
 
-	def _process_wlk_transcription(self, data: dict):
+	def _process_wlk_transcription(self, front_data):
 		'''
 		Process transcription results from WhisperLiveKit.
 
-		Expected data format (typical for real-time transcription):
-		{
-			"type": "transcription",
-			"text": "full transcription text",
-			"words": [
-				{"word": "hello", "start": 0.0, "end": 0.5},
-				{"word": "world", "start": 0.5, "end": 1.0}
-			]
-		}
-
-		Or simpler format without word-level timestamps:
-		{
-			"type": "transcription",
-			"text": "transcribed text",
-			"start": 0.0,
-			"end": 2.0
-		}
+		front_data is a FrontData object with fields:
+		- status: str (e.g., 'active_transcription', 'no_audio_detected')
+		- lines: List[str] - committed/final transcription lines
+		- buffer_transcription: str - in-progress/buffered text
+		- buffer_diarization: str - speaker info (we don't use)
+		- buffer_translation: str - translation (we don't use)
+		- error: str - error message if any
 		'''
-		msg_type = data.get('type', '')
-		print(f"[WLK] Processing message type: {msg_type}")
+		print(f"[WLK] FrontData: status={front_data.status}, lines={front_data.lines}, buffer='{front_data.buffer_transcription}'")
 
-		# Handle different message types
-		if msg_type == 'transcription' or msg_type == 'segment':
-			print(f"[WLK] TRANSCRIPTION RECEIVED: {data}")
+		# Process committed lines (final transcriptions)
+		if front_data.lines:
 			with self.transcription_lock:
-				# Check if we have word-level timestamps
-				words_data = data.get('words', [])
+				for line in front_data.lines:
+					if line.strip():
+						print(f"[WLK] Processing committed line: '{line}'")
+						# Process as text (no word-level timestamps from WLK)
+						word_nodes = self.process_text(line)
+						self.add_words_to_queue(word_nodes)
 
-				if words_data:
-					print(f"[WLK] Processing {len(words_data)} words with timestamps")
-					# Process word-level transcription
-					self._process_word_level_transcription(words_data)
-				else:
-					# Process text-level transcription
-					text = data.get('text', '')
-					start_offset = data.get('start', 0.0)
-					end_offset = data.get('end', 0.0)
-					print(f"[WLK] Processing text-level: '{text}' ({start_offset}-{end_offset})")
-
-					if text:
-						self._process_text_level_transcription(
-							text,
-							start_offset,
-							end_offset
-						)
-		elif msg_type == 'error':
-			print(f"[WLK] ERROR: {data.get('message', 'Unknown error')}")
-		else:
-			print(f"[WLK] NON-TRANSCRIPTION MESSAGE: type={msg_type}, data={data}")
+		# Process buffer (in-progress transcription)
+		if front_data.buffer_transcription and front_data.buffer_transcription.strip():
+			print(f"[WLK] In-progress: '{front_data.buffer_transcription}'")
 
 	def _process_word_level_transcription(self, words_data: List[dict]):
 		'''
