@@ -212,6 +212,8 @@ class WhisperLiveKitWordStream(WordStream):
 				language=self.language
 			)
 
+			print(f"[WLK] get_transcription_engine returned: {engine} (type: {type(engine)})", flush=True)
+
 			if engine is None:
 				print("[WLK] Failed to create TranscriptionEngine", flush=True)
 				return
@@ -234,6 +236,7 @@ class WhisperLiveKitWordStream(WordStream):
 			print("[WLK] Results handler task started", flush=True)
 
 			print("[WLK] AudioProcessor initialized, processing audio chunks...", flush=True)
+			print(f"[WLK] Initial state: is_recording={self.is_recording}, queue_size={self.audio_chunk_queue.qsize()}", flush=True)
 
 			# Process audio chunks from queue
 			while self.is_recording or not self.audio_chunk_queue.empty():
