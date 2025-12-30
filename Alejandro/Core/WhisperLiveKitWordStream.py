@@ -178,20 +178,25 @@ class WhisperLiveKitWordStream(WordStream):
 		This method runs in a separate thread.
 		'''
 		try:
+			print("[WLK] _run_async_processor: Starting...", flush=True)
 			# Create new event loop for this thread
 			self.processing_loop = asyncio.new_event_loop()
 			asyncio.set_event_loop(self.processing_loop)
+			print("[WLK] _run_async_processor: Event loop created", flush=True)
 
 			# Run the async processing
 			self.processing_loop.run_until_complete(self._async_process_audio())
+			print("[WLK] _run_async_processor: Completed normally", flush=True)
 
 		except Exception as e:
-			print(f"[WLK] Error in async processor thread: {e}")
+			print(f"[WLK] Error in async processor thread: {e}", flush=True)
 			import traceback
 			traceback.print_exc()
 		finally:
+			print("[WLK] _run_async_processor: Cleaning up event loop...", flush=True)
 			if self.processing_loop:
 				self.processing_loop.close()
+			print("[WLK] _run_async_processor: Thread exiting", flush=True)
 
 	async def _async_process_audio(self):
 		'''
@@ -199,6 +204,7 @@ class WhisperLiveKitWordStream(WordStream):
 		This is the main async processing loop.
 		'''
 		try:
+			print("[WLK] _async_process_audio: Starting...", flush=True)
 			# Get or create the global transcription engine
 			engine = get_transcription_engine(
 				model=self.model,
@@ -207,23 +213,27 @@ class WhisperLiveKitWordStream(WordStream):
 			)
 
 			if engine is None:
-				print("[WLK] Failed to create TranscriptionEngine")
+				print("[WLK] Failed to create TranscriptionEngine", flush=True)
 				return
 
 			# Create AudioProcessor for this session
-			print(f"[WLK] Creating AudioProcessor for session {self.session_id}")
+			print(f"[WLK] Creating AudioProcessor for session {self.session_id}", flush=True)
 			self.audio_processor = AudioProcessor(transcription_engine=engine)
+			print(f"[WLK] AudioProcessor created successfully", flush=True)
 
 			# Create tasks and get results generator
-			print("[WLK] Creating AudioProcessor tasks...")
+			print("[WLK] Calling create_tasks()...", flush=True)
 			results_generator = await self.audio_processor.create_tasks()
+			print(f"[WLK] create_tasks() returned: {type(results_generator)}", flush=True)
 
 			# Start results handler task
+			print("[WLK] Starting results handler task...", flush=True)
 			self.results_task = asyncio.create_task(
 				self._handle_transcription_results(results_generator)
 			)
+			print("[WLK] Results handler task started", flush=True)
 
-			print("[WLK] AudioProcessor initialized, processing audio chunks...")
+			print("[WLK] AudioProcessor initialized, processing audio chunks...", flush=True)
 
 			# Process audio chunks from queue
 			while self.is_recording or not self.audio_chunk_queue.empty():
@@ -233,8 +243,9 @@ class WhisperLiveKitWordStream(WordStream):
 						audio_chunk = self.audio_chunk_queue.get_nowait()
 
 						# Process the audio chunk
+						print(f"[WLK] Processing {len(audio_chunk)} bytes...", flush=True)
 						await self.audio_processor.process_audio(audio_chunk)
-						print(f"[WLK] Processed {len(audio_chunk)} bytes")
+						print(f"[WLK] Processed {len(audio_chunk)} bytes successfully", flush=True)
 					else:
 						# Small sleep to avoid busy waiting
 						await asyncio.sleep(0.01)
@@ -242,18 +253,20 @@ class WhisperLiveKitWordStream(WordStream):
 				except Empty:
 					await asyncio.sleep(0.01)
 				except Exception as e:
-					print(f"[WLK] Error processing audio chunk: {e}")
+					print(f"[WLK] Error processing audio chunk: {e}", flush=True)
 					import traceback
 					traceback.print_exc()
 
-			print("[WLK] Audio processing loop finished")
+			print("[WLK] Audio processing loop finished", flush=True)
 
 			# Wait for results handler to finish
 			if self.results_task:
+				print("[WLK] Waiting for results handler to finish...", flush=True)
 				await self.results_task
+				print("[WLK] Results handler finished", flush=True)
 
 		except Exception as e:
-			print(f"[WLK] Error in async audio processing: {e}")
+			print(f"[WLK] Error in async audio processing: {e}", flush=True)
 			import traceback
 			traceback.print_exc()
 
