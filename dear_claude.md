@@ -1,5 +1,114 @@
 Your interface wouln't let you load this, and it wouldn't let me paste it.... so.... Here is .... "most" of the code for wlk.... I Include some here just to try and keep it smaller but hopefully it gives you the just.... let me know if you need something else specific out of it:
 
+
+
+But.... heres the problem:
+(main) root@C.29331389:~/Projects/Alejandro_dev/Alejandro$ python Alejandro/web/app.py 
+[INIT] Initializing WhisperLiveKitWordStream with Flask app
+[INIT] SocketIO instance: <flask_socketio.SocketIO object at 0x7fd336f99370>
+[INIT] Registered handlers: {'/': {'connect': <function handle_connect at 0x7fd32f9e23e0>, 'disconnect': <function handle_disconnect at 0x7fd32f9e2520>, 'start_listening': <function _start_listening at 0x7fd32f9e2660>, 'stop_listening': <function _stop_listening at 0x7fd32f9e27a0>, 'audio_chunk': <function _handle_audio_chunk at 0x7fd32f9e28e0>, 'manual_text_entry': <function handle_manual_text_entry at 0x7fd32f9e2a20>}}
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.17.0.4:5000
+INFO:werkzeug:Press CTRL+C to quit
+INFO:werkzeug: * Restarting with stat
+[INIT] Initializing WhisperLiveKitWordStream with Flask app
+[INIT] SocketIO instance: <flask_socketio.SocketIO object at 0x7f4bbe996690>
+[INIT] Registered handlers: {'/': {'connect': <function handle_connect at 0x7f4bbe9da340>, 'disconnect': <function handle_disconnect at 0x7f4bbe9da480>, 'start_listening': <function _start_listening at 0x7f4bbe9da5c0>, 'stop_listening': <function _stop_listening at 0x7f4bbe9da700>, 'audio_chunk': <function _handle_audio_chunk at 0x7f4bbe9da840>, 'manual_text_entry': <function handle_manual_text_entry at 0x7f4bbe9da980>}}
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 233-711-092
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:01] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6HHE HTTP/1.1" 200 -
+[SOCKETIO] Client connected!
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:01] "POST /socket.io/?EIO=4&transport=polling&t=Pjj6H-c&sid=Hr65bMCZ9A8WqWNnAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:01] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6H-f&sid=Hr65bMCZ9A8WqWNnAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:01] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6H_n&sid=Hr65bMCZ9A8WqWNnAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:01] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6I0o&sid=Hr65bMCZ9A8WqWNnAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:07] "POST /sync_screen HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:08] "GET /event_stream?session=d79b9aaa-e989-471b-93d7-0026e4a385fc HTTP/1.1" 200 -
+[SOCKETIO] Client disconnected!
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:12] "GET /socket.io/?EIO=4&transport=websocket&sid=Hr65bMCZ9A8WqWNnAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /recorder?session=d79b9aaa-e989-471b-93d7-0026e4a385fc HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /static/js/socket_io.js HTTP/1.1" 304 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /static/js/streaming_transcribe.js HTTP/1.1" 304 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /static/js/tab_utils.js HTTP/1.1" 304 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6Lfs HTTP/1.1" 200 -
+[SOCKETIO] Client connected!
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "POST /socket.io/?EIO=4&transport=polling&t=Pjj6Lgq&sid=4Ny-XjbttevoBbMmAAAC HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6Lgs&sid=4Ny-XjbttevoBbMmAAAC HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6Lhz&sid=4Ny-XjbttevoBbMmAAAC HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:16] "GET /socket.io/?EIO=4&transport=polling&t=Pjj6Li-&sid=4Ny-XjbttevoBbMmAAAC HTTP/1.1" 200 -
+[HTTP] start_listening for session=d79b9aaa-e989-471b-93d7-0026e4a385fc, mime=audio/webm
+[FILE] Opening audio file: /root/Documents/Alejandro/Recordings/raw_recording_20251230_023217.webm
+[WLK] Starting async processing thread for session d79b9aaa-e989-471b-93d7-0026e4a385fc
+[WLK] _run_async_processor: Starting...
+[WLK] _run_async_processor: Event loop created
+[WLK] _async_process_audio: Starting...
+[WLK] About to call get_transcription_engine...
+[WLK] get_transcription_engine: start, _transcription_engine=False, WLK_AVAILABLE=True
+[WLK] Creating global TranscriptionEngine (model=large-v3, diarization=True, language=en)
+SimulStreaming will use Faster Whisper for the encoder.
+[WLK] AudioProcessor thread started successfully
+[START] Recording started, is_recording=True
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:18] "POST /start_listening HTTP/1.1" 200 -
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-base/revision/main "HTTP/1.1 200 OK"
+[AUDIO] HTTP received audio chunk, session=d79b9aaa-e989-471b-93d7-0026e4a385fc, size=32509
+[WLK] Queued 32509 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:20] "POST /audio_chunk HTTP/1.1" 200 -
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model dimensions: ModelDimensions(n_mels=80, n_audio_ctx=1500, n_audio_state=512, n_audio_head=8, n_audio_layer=6, n_vocab=51865, n_text_ctx=448, n_text_state=512, n_text_head=8, n_text_layer=6)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Using beam decoder
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+[AUDIO] HTTP received audio chunk, session=d79b9aaa-e989-471b-93d7-0026e4a385fc, size=33124
+[WLK] Queued 33124 bytes for processing (queue size: 2)
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:22] "POST /audio_chunk HTTP/1.1" 200 -
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model warmed up successfully
+INFO:whisperlivekit.core:Using SimulStreaming policy with faster-whisper backend
+[WLK] _run_async_processor: Cleaning up event loop...
+[WLK] _run_async_processor: Thread exiting
+[AUDIO] HTTP received audio chunk, session=d79b9aaa-e989-471b-93d7-0026e4a385fc, size=32976
+[WLK] Not processing: processing thread died
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:24] "POST /audio_chunk HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=d79b9aaa-e989-471b-93d7-0026e4a385fc, size=32852
+[WLK] Not processing: processing thread died
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:26] "POST /audio_chunk HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=d79b9aaa-e989-471b-93d7-0026e4a385fc, size=33134
+[WLK] Not processing: processing thread died
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:28] "POST /audio_chunk HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=d79b9aaa-e989-471b-93d7-0026e4a385fc, size=31139
+[WLK] Not processing: processing thread died
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:30] "POST /audio_chunk HTTP/1.1" 200 -
+[HTTP] stop_listening for session=d79b9aaa-e989-471b-93d7-0026e4a385fc
+[STOP] Stopping recording...
+[FILE] Closed audio file
+[WLK] Closing AudioProcessor for session d79b9aaa-e989-471b-93d7-0026e4a385fc
+[WLK] AudioProcessor closed
+[FILE] Renamed recording to: /root/Documents/Alejandro/Recordings/recording_20251230_023217__20251230_023231.webm
+[STOP] Recording stopped
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:31] "POST /stop_listening HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:32:43] "GET /health.ico?t=1767061962804 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:33:43] "GET /health.ico?t=1767062022803 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:34:43] "GET /health.ico?t=1767062082799 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:35:43] "GET /health.ico?t=1767062142800 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:36:43] "GET /health.ico?t=1767062202805 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:37:43] "GET /health.ico?t=1767062262799 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:38:43] "GET /health.ico?t=1767062322799 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:39:43] "GET /health.ico?t=1767062382801 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:40:43] "GET /health.ico?t=1767062442799 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:41:43] "GET /health.ico?t=1767062502804 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:42:43] "GET /health.ico?t=1767062562799 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:43:43] "GET /health.ico?t=1767062622804 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:44:43] "GET /health.ico?t=1767062682799 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [30/Dec/2025 02:45:43] "GET /health.ico?t=1767062742799 HTTP/1.1" 404 -
+
+
+
+and.... here is the code for wlk:
+
 /home/charlie/Projects/WhisperLiveKit/CONTRIBUTING.md
 ```markdown
 # Contributing
