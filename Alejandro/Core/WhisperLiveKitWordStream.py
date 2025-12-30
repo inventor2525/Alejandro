@@ -90,6 +90,7 @@ class WhisperLiveKitWordStream(WordStream):
 
 		# For tracking WLK transcription results (deduplication and logging)
 		self.last_seen_text = None  # Track last transcription text to avoid duplicates
+		self.last_processed_words = []  # Track already-processed words (tokenized)
 		self.wlk_log_file = os.path.expanduser("~/wlk_debug.log")
 
 	@staticmethod
@@ -328,6 +329,11 @@ class WhisperLiveKitWordStream(WordStream):
 			print(f"[FILE] Renamed recording to: {new_raw}")
 
 		self.is_recording = False
+
+		# Reset cumulative transcription tracking for next session
+		self.last_seen_text = None
+		self.last_processed_words = []
+
 		print(f"[STOP] Recording stopped")
 
 	def _handle_audio_chunk(self, data: bytes):
@@ -353,6 +359,62 @@ class WhisperLiveKitWordStream(WordStream):
 				print(f"[WLK] Not processing: processing thread died")
 			elif not self.is_recording:
 				print(f"[WLK] Not processing: is_recording={self.is_recording}")
+
+	def _extract_new_words(self, new_text: str) -> List[WordNode]:
+		'''
+		Extract only NEW words from cumulative transcription text.
+
+		WLK sends cumulative text that grows over time:
+		  "Hey" → "Hey Alejandro" → "Hey Alejandro conversations"
+
+		This method compares with previously processed words and returns
+		only the new WordNodes that haven't been processed yet.
+		'''
+		import nltk
+
+		# Tokenize new text the same way process_text does
+		new_tokens = nltk.word_tokenize(new_text.lower())
+		new_tokens = [token for token in new_tokens if token.isalnum()]
+
+		if not new_tokens:
+			return []
+
+		# Find how many tokens match the previously processed words
+		common_prefix_length = 0
+		for i, token in enumerate(new_tokens):
+			if i < len(self.last_processed_words) and token == self.last_processed_words[i]:
+				common_prefix_length += 1
+			else:
+				break
+
+		# Extract only the new tokens
+		new_only_tokens = new_tokens[common_prefix_length:]
+
+		if not new_only_tokens:
+			return []
+
+		# Create WordNodes for new tokens only
+		nodes = []
+		current_time = datetime.now()
+		for token in new_only_tokens:
+			node = WordNode(
+				word=token,
+				start_time=current_time,
+				end_time=current_time
+			)
+			nodes.append(node)
+
+		# Link nodes
+		for i in range(len(nodes)-1):
+			nodes[i].next = nodes[i+1]
+			nodes[i+1].prev = nodes[i]
+
+		# Update tracking
+		self.last_processed_words = new_tokens
+
+		print(f"[WLK] Extracted {len(new_only_tokens)} NEW words from cumulative text (was {len(self.last_processed_words)-len(new_only_tokens)}, now {len(new_tokens)})")
+
+		return nodes
 
 	def _process_wlk_transcription(self, front_data):
 		'''
@@ -428,8 +490,10 @@ class WhisperLiveKitWordStream(WordStream):
 			self.last_seen_text = current_text
 			with self.transcription_lock:
 				print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
-				word_nodes = self.process_text(current_text)
-				self.add_words_to_queue(word_nodes)
+				# Extract only NEW words from cumulative text (prevents reprocessing)
+				word_nodes = self._extract_new_words(current_text)
+				if word_nodes:
+					self.add_words_to_queue(word_nodes)
 
 		# Process buffer (in-progress/real-time transcription chunks)
 		# This gives us the "Hey, Alej" → "andro" behavior
