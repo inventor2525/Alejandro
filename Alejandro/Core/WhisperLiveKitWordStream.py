@@ -361,32 +361,40 @@ class WhisperLiveKitWordStream(WordStream):
 		- buffer_translation: str - translation (we don't use)
 		- error: str - error message if any
 		'''
-		# Convert FrontData to dict for inspection
-		import json
-		try:
-			# Try to convert to dict if it has a to_dict method
-			if hasattr(front_data, 'to_dict'):
-				data_dict = front_data.to_dict()
-			elif hasattr(front_data, '__dict__'):
-				# Fallback: manually extract attributes
-				data_dict = {}
-				for key, value in front_data.__dict__.items():
-					if isinstance(value, list):
-						# Convert segments to dicts
-						data_dict[key] = [
-							seg.__dict__ if hasattr(seg, '__dict__') else str(seg)
-							for seg in value
-						]
-					else:
-						data_dict[key] = value
-			else:
-				data_dict = str(front_data)
+		# Only print detailed JSON when there's actual content (not just silence updates)
+		has_text_content = any(
+			hasattr(s, 'text') and s.text and s.text.strip()
+			for s in (front_data.lines if front_data.lines else [])
+		)
+		has_buffer = front_data.buffer_transcription and front_data.buffer_transcription.strip()
+		has_error = front_data.error and front_data.error.strip()
 
-			print(f"[WLK] FrontData received:")
-			print(json.dumps(data_dict, indent=4, default=str))
-		except Exception as e:
-			print(f"[WLK] Could not serialize FrontData: {e}")
-			print(f"[WLK] FrontData type: {type(front_data)}, dir: {dir(front_data)}")
+		if has_text_content or has_buffer or has_error:
+			import json
+			try:
+				# Try to convert to dict if it has a to_dict method
+				if hasattr(front_data, 'to_dict'):
+					data_dict = front_data.to_dict()
+				elif hasattr(front_data, '__dict__'):
+					# Fallback: manually extract attributes
+					data_dict = {}
+					for key, value in front_data.__dict__.items():
+						if isinstance(value, list):
+							# Convert segments to dicts
+							data_dict[key] = [
+								seg.__dict__ if hasattr(seg, '__dict__') else str(seg)
+								for seg in value
+							]
+						else:
+							data_dict[key] = value
+				else:
+					data_dict = str(front_data)
+
+				print(f"[WLK] FrontData received:")
+				print(json.dumps(data_dict, indent=4, default=str))
+			except Exception as e:
+				print(f"[WLK] Could not serialize FrontData: {e}")
+				print(f"[WLK] FrontData type: {type(front_data)}, dir: {dir(front_data)}")
 
 		# Process committed lines (final transcriptions)
 		if front_data.lines:
