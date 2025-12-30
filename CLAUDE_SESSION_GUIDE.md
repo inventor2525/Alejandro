@@ -89,8 +89,11 @@ git push origin claude/{YOUR-BRANCH-NAME}
 4. **`README.md`** - Install instructions (MUST update branch reference)
 
 ### Reference Documentation
-5. **`dear_claude.md`** - Contains WhisperLiveKit API documentation
+5. **`dear_claude.md`** - Contains WhisperLiveKit source code and API documentation
+   - **CRITICAL:** You cannot `pip install whisperlivekit` to inspect it - the source is in this file
+   - Contains full WhisperLiveKit implementation from the upstream project
    - Example usage from official WLK docs
+   - Look for "TECHNICAL_INTEGRATION.md" section for integration patterns
    - Shows proper async pattern:
      ```python
      audio_processor = AudioProcessor(transcription_engine=engine)

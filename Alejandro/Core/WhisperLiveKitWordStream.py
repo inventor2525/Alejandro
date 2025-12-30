@@ -24,27 +24,8 @@ except ImportError:
 	TranscriptionEngine = None
 	AudioProcessor = None
 
-# Global TranscriptionEngine (heavy - create once)
-# This will be initialized on first use
+# Global TranscriptionEngine (heavy - create once at startup)
 _transcription_engine: Optional['TranscriptionEngine'] = None
-
-def get_transcription_engine(model: str = "large-v3", diarization: bool = True, language: str = "en"):
-	"""Get or create the global TranscriptionEngine"""
-	global _transcription_engine
-	try:
-		print(f"[WLK] get_transcription_engine: start, _transcription_engine={_transcription_engine is not None}, WLK_AVAILABLE={WLK_AVAILABLE}", flush=True)
-		if _transcription_engine is None and WLK_AVAILABLE:
-			print(f"[WLK] Creating global TranscriptionEngine (model={model}, diarization={diarization}, language={language})", flush=True)
-			_transcription_engine = TranscriptionEngine(model=model, diarization=diarization, lan=language)
-			print(f"[WLK] TranscriptionEngine constructor returned: {_transcription_engine}", flush=True)
-			print("[WLK] TranscriptionEngine created successfully", flush=True)
-		print(f"[WLK] get_transcription_engine: returning {_transcription_engine}", flush=True)
-		return _transcription_engine
-	except Exception as e:
-		print(f"[WLK] EXCEPTION in get_transcription_engine: {e}", flush=True)
-		import traceback
-		traceback.print_exc()
-		raise
 
 mime_to_config = {
 	"audio/webm": ("webm", "opus"),
@@ -126,6 +107,24 @@ class WhisperLiveKitWordStream(WordStream):
 		app.register_blueprint(WhisperLiveKitWordStream.bp)
 		print(f"[INIT] SocketIO instance: {WhisperLiveKitWordStream.socketio}")
 		print(f"[INIT] Registered handlers: {WhisperLiveKitWordStream.socketio.server.handlers}")
+
+	@staticmethod
+	def preload_transcription_engine(model: str = "large-v3", diarization: bool = True, language: str = "en"):
+		"""
+		Pre-load the TranscriptionEngine at app startup to avoid delays on first recording.
+		This is a blocking operation and should be called during app initialization.
+		"""
+		global _transcription_engine
+		if not WLK_AVAILABLE:
+			print("[WLK] WhisperLiveKit not available - skipping preload")
+			return
+
+		if _transcription_engine is None:
+			print(f"[WLK] Creating TranscriptionEngine (model={model}, diarization={diarization}, language={language})")
+			_transcription_engine = TranscriptionEngine(model=model, diarization=diarization, lan=language)
+			print(f"[WLK] TranscriptionEngine created and ready")
+		else:
+			print("[WLK] TranscriptionEngine already loaded")
 
 	def words(self) -> Iterator[WordNode]:
 		'''
@@ -215,45 +214,20 @@ class WhisperLiveKitWordStream(WordStream):
 		try:
 			print("[WLK] _async_process_audio: Starting...", flush=True)
 
-			# Get or create the global transcription engine
-			try:
-				print("[WLK] About to call get_transcription_engine...", flush=True)
-				# Run in thread pool since constructor may block
-				# Add timeout to see if it's truly hanging
-				try:
-					engine = await asyncio.wait_for(
-						asyncio.to_thread(
-							get_transcription_engine,
-							model=self.model,
-							diarization=self.diarization,
-							language=self.language
-						),
-						timeout=60.0  # 60 second timeout
-					)
-					print(f"[WLK] AFTER asyncio.to_thread - engine={engine}, type={type(engine)}", flush=True)
-					print(f"[WLK] get_transcription_engine returned successfully", flush=True)
-				except asyncio.TimeoutError:
-					print(f"[WLK] TIMEOUT waiting for get_transcription_engine after 60 seconds!", flush=True)
-					print(f"[WLK] This means the TranscriptionEngine constructor is hanging", flush=True)
-					return
-			except Exception as e:
-				print(f"[WLK] Exception in get_transcription_engine: {e}", flush=True)
-				import traceback
-				traceback.print_exc()
+			# Use the pre-loaded global transcription engine
+			global _transcription_engine
+			if _transcription_engine is None:
+				print("[WLK] ERROR: TranscriptionEngine not pre-loaded! Call preload_transcription_engine() at startup.", flush=True)
 				return
 
-			print(f"[WLK] Engine is: {engine} (type: {type(engine)})", flush=True)
-
-			if engine is None:
-				print("[WLK] Failed to create TranscriptionEngine", flush=True)
-				return
+			print(f"[WLK] Using pre-loaded TranscriptionEngine", flush=True)
 
 			# Create AudioProcessor for this session
 			print(f"[WLK] Creating AudioProcessor for session {self.session_id}", flush=True)
 			# Run in thread pool since constructor may block
 			self.audio_processor = await asyncio.to_thread(
 				AudioProcessor,
-				transcription_engine=engine
+				transcription_engine=_transcription_engine
 			)
 			print(f"[WLK] AudioProcessor created successfully", flush=True)
 
