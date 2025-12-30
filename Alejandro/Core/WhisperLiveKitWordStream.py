@@ -90,7 +90,7 @@ class WhisperLiveKitWordStream(WordStream):
 
 		# For tracking WLK transcription results (deduplication and logging)
 		self.last_seen_text = None  # Track last transcription text to avoid duplicates
-		self.wlk_log_file = os.path.join(save_directory, "wlk_debug.log") if save_directory else "/tmp/wlk_debug.log"
+		self.wlk_log_file = os.path.expanduser("~/wlk_debug.log")
 
 	@staticmethod
 	def init_app(app: Flask):
@@ -241,7 +241,7 @@ class WhisperLiveKitWordStream(WordStream):
 		'''
 		try:
 			async for result in results_generator:
-				print(f"[WLK] Received transcription result: {result}")
+				# Process results silently - detailed logging happens in _process_wlk_transcription
 				if result:
 					self._process_wlk_transcription(result)
 		except Exception as e:
