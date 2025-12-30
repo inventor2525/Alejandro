@@ -88,6 +88,10 @@ class WhisperLiveKitWordStream(WordStream):
 		self.last_node: WordNode = None
 		self.transcription_lock = threading.Lock()
 
+		# For tracking WLK transcription results (deduplication and logging)
+		self.last_seen_text = None  # Track last transcription text to avoid duplicates
+		self.wlk_log_file = os.path.join(save_directory, "wlk_debug.log") if save_directory else "/tmp/wlk_debug.log"
+
 	@staticmethod
 	def init_app(app: Flask):
 		print("[INIT] Initializing WhisperLiveKitWordStream with Flask app")
@@ -290,6 +294,7 @@ class WhisperLiveKitWordStream(WordStream):
 		# Set is_recording BEFORE starting processor thread to avoid race condition
 		self.is_recording = True
 		print(f"[START] Setting is_recording={self.is_recording} before initializing processor")
+		print(f"[START] WLK debug log will be written to: {self.wlk_log_file}")
 
 		# Initialize WhisperLiveKit AudioProcessor
 		self._init_audio_processor()
@@ -361,16 +366,24 @@ class WhisperLiveKitWordStream(WordStream):
 		- buffer_translation: str - translation (we don't use)
 		- error: str - error message if any
 		'''
-		# Only print detailed JSON when there's actual content (not just silence updates)
-		has_text_content = any(
-			hasattr(s, 'text') and s.text and s.text.strip()
-			for s in (front_data.lines if front_data.lines else [])
+		# Extract actual text content from lines (ignoring silence segments)
+		current_text = " ".join(
+			segment.text.strip()
+			for segment in (front_data.lines if front_data.lines else [])
+			if hasattr(segment, 'text') and segment.text and segment.text.strip()
 		)
+
 		has_buffer = front_data.buffer_transcription and front_data.buffer_transcription.strip()
 		has_error = front_data.error and front_data.error.strip()
 
-		if has_text_content or has_buffer or has_error:
+		# Only log when content changes OR there's a buffer/error
+		is_new_content = current_text and current_text != self.last_seen_text
+		should_log = is_new_content or has_buffer or has_error
+
+		if should_log:
 			import json
+			from datetime import datetime
+
 			try:
 				# Try to convert to dict if it has a to_dict method
 				if hasattr(front_data, 'to_dict'):
@@ -390,26 +403,38 @@ class WhisperLiveKitWordStream(WordStream):
 				else:
 					data_dict = str(front_data)
 
-				print(f"[WLK] FrontData received:")
-				print(json.dumps(data_dict, indent=4, default=str))
+				# Write to log file
+				with open(self.wlk_log_file, 'a') as f:
+					timestamp = datetime.now().isoformat()
+					f.write(f"\n{'='*80}\n")
+					f.write(f"[{timestamp}] FrontData received:\n")
+					f.write(json.dumps(data_dict, indent=4, default=str))
+					f.write("\n")
+
+					if is_new_content:
+						f.write(f"NEW TEXT: '{current_text}'\n")
+					if has_buffer:
+						f.write(f"BUFFER: '{front_data.buffer_transcription}'\n")
+					if has_error:
+						f.write(f"ERROR: '{front_data.error}'\n")
+
 			except Exception as e:
-				print(f"[WLK] Could not serialize FrontData: {e}")
-				print(f"[WLK] FrontData type: {type(front_data)}, dir: {dir(front_data)}")
+				with open(self.wlk_log_file, 'a') as f:
+					f.write(f"[ERROR] Could not serialize FrontData: {e}\n")
+					f.write(f"Type: {type(front_data)}, dir: {dir(front_data)}\n")
 
 		# Process committed lines (final transcriptions)
-		if front_data.lines:
+		if current_text and is_new_content:
+			self.last_seen_text = current_text
 			with self.transcription_lock:
-				for segment in front_data.lines:
-					# Segments have a .text attribute
-					if hasattr(segment, 'text') and segment.text and segment.text.strip():
-						print(f"[WLK] FINAL: '{segment.text}'")
-						word_nodes = self.process_text(segment.text)
-						self.add_words_to_queue(word_nodes)
+				print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
+				word_nodes = self.process_text(current_text)
+				self.add_words_to_queue(word_nodes)
 
 		# Process buffer (in-progress/real-time transcription chunks)
 		# This gives us the "Hey, Alej" → "andro" behavior
-		if front_data.buffer_transcription and front_data.buffer_transcription.strip():
-			print(f"[WLK] BUFFER (real-time chunk): '{front_data.buffer_transcription}'")
+		if has_buffer:
+			print(f"[WLK] BUFFER: '{front_data.buffer_transcription}'")
 
 	def _process_word_level_transcription(self, words_data: List[dict]):
 		'''
