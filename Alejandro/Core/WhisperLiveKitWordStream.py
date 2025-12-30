@@ -218,7 +218,9 @@ class WhisperLiveKitWordStream(WordStream):
 			# Get or create the global transcription engine
 			try:
 				print("[WLK] About to call get_transcription_engine...", flush=True)
-				engine = get_transcription_engine(
+				# Run in thread pool since constructor may block
+				engine = await asyncio.to_thread(
+					get_transcription_engine,
 					model=self.model,
 					diarization=self.diarization,
 					language=self.language
@@ -238,7 +240,11 @@ class WhisperLiveKitWordStream(WordStream):
 
 			# Create AudioProcessor for this session
 			print(f"[WLK] Creating AudioProcessor for session {self.session_id}", flush=True)
-			self.audio_processor = AudioProcessor(transcription_engine=engine)
+			# Run in thread pool since constructor may block
+			self.audio_processor = await asyncio.to_thread(
+				AudioProcessor,
+				transcription_engine=engine
+			)
 			print(f"[WLK] AudioProcessor created successfully", flush=True)
 
 			# Create tasks and get results generator
