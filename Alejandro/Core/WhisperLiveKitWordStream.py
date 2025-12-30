@@ -363,11 +363,14 @@ class WhisperLiveKitWordStream(WordStream):
 		print(f"[FILE] Opening audio file: {self.current_audio_path}")
 		self.current_audio_file = open(self.current_audio_path, "wb")
 
+		# Set is_recording BEFORE starting processor thread to avoid race condition
+		self.is_recording = True
+		print(f"[START] Setting is_recording={self.is_recording} before initializing processor")
+
 		# Initialize WhisperLiveKit AudioProcessor
 		self._init_audio_processor()
 
-		self.is_recording = True
-		print(f"[START] Recording started, is_recording={self.is_recording}")
+		print(f"[START] Recording started successfully")
 
 	def _stop_listening(self) -> None:
 		'''
