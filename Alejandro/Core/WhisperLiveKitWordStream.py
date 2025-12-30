@@ -18,8 +18,8 @@ from whisperlivekit import TranscriptionEngine, AudioProcessor
 
 # Global TranscriptionEngine (heavy - created once at module import)
 # Shared across all WhisperLiveKitWordStream instances
-print("[WLK] Initializing global TranscriptionEngine (model=large-v3, diarization=True, language=en)")
-_transcription_engine = TranscriptionEngine(model="large-v3", diarization=True, lan="en")
+print("[WLK] Initializing global TranscriptionEngine (model=large-v3, diarization=False, language=en)")
+_transcription_engine = TranscriptionEngine(model="large-v3", diarization=False, lan="en")
 print("[WLK] TranscriptionEngine ready")
 
 mime_to_config = {
