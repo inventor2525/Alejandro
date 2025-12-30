@@ -42,19 +42,15 @@ class WhisperLiveKitWordStream(WordStream):
 	def __init__(
 		self,
 		save_directory: Optional[str],
-		session_id: Optional[str] = None,
-		model: str = "large-v3",
-		diarization: bool = True,
-		language: str = "en"
+		session_id: Optional[str] = None
 	):
 		'''
 		save_directory should be the folder that all
 		recordings and their transcriptions will be
 		stored in.
 
-		model: Whisper model to use (tiny, base, small, medium, large, large-v3)
-		diarization: Enable speaker diarization
-		language: Language code for transcription
+		Note: TranscriptionEngine settings (model, diarization, language) are
+		configured at module import time and shared across all instances.
 		'''
 		# Setup a word stream for each session:
 		self.session_id = session_id
@@ -65,10 +61,7 @@ class WhisperLiveKitWordStream(WordStream):
 		if save_directory:
 			os.makedirs(save_directory, exist_ok=True)
 
-		# WhisperLiveKit settings:
-		self.model = model
-		self.diarization = diarization
-		self.language = language
+		# AudioProcessor (created per-session, uses shared TranscriptionEngine)
 		self.audio_processor: Optional['AudioProcessor'] = None
 
 		# Async processing:
