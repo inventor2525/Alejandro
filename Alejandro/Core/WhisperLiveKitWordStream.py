@@ -219,13 +219,23 @@ class WhisperLiveKitWordStream(WordStream):
 			try:
 				print("[WLK] About to call get_transcription_engine...", flush=True)
 				# Run in thread pool since constructor may block
-				engine = await asyncio.to_thread(
-					get_transcription_engine,
-					model=self.model,
-					diarization=self.diarization,
-					language=self.language
-				)
-				print(f"[WLK] get_transcription_engine returned successfully", flush=True)
+				# Add timeout to see if it's truly hanging
+				try:
+					engine = await asyncio.wait_for(
+						asyncio.to_thread(
+							get_transcription_engine,
+							model=self.model,
+							diarization=self.diarization,
+							language=self.language
+						),
+						timeout=60.0  # 60 second timeout
+					)
+					print(f"[WLK] AFTER asyncio.to_thread - engine={engine}, type={type(engine)}", flush=True)
+					print(f"[WLK] get_transcription_engine returned successfully", flush=True)
+				except asyncio.TimeoutError:
+					print(f"[WLK] TIMEOUT waiting for get_transcription_engine after 60 seconds!", flush=True)
+					print(f"[WLK] This means the TranscriptionEngine constructor is hanging", flush=True)
+					return
 			except Exception as e:
 				print(f"[WLK] Exception in get_transcription_engine: {e}", flush=True)
 				import traceback
