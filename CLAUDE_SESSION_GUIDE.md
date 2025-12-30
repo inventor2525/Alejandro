@@ -93,7 +93,10 @@ git push origin claude/{YOUR-BRANCH-NAME}
    - **CRITICAL:** You cannot `pip install whisperlivekit` to inspect it - the source is in this file
    - Contains full WhisperLiveKit implementation from the upstream project
    - Example usage from official WLK docs
-   - Look for "TECHNICAL_INTEGRATION.md" section for integration patterns
+   - **Technical Integration Guide (line ~1381):** Key integration patterns:
+     - Create global TranscriptionEngine (expensive - reuse it)
+     - Instantiate AudioProcessor per connection
+     - Call create_tasks() for async generator, process_audio() for bytes
    - Shows proper async pattern:
      ```python
      audio_processor = AudioProcessor(transcription_engine=engine)
