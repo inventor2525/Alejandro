@@ -11,6 +11,7 @@ import time
 import threading
 import string
 import base64
+import asyncio
 
 # Try to import WhisperLiveKit components
 try:
@@ -85,6 +86,12 @@ class WhisperLiveKitWordStream(WordStream):
 		self.language = language
 		self.audio_processor: Optional['AudioProcessor'] = None
 
+		# Async processing:
+		self.audio_chunk_queue: Queue = Queue()  # Queue for audio chunks to process
+		self.processing_loop: Optional[asyncio.AbstractEventLoop] = None
+		self.processing_thread: Optional[threading.Thread] = None
+		self.results_task: Optional[asyncio.Task] = None
+
 		# State:
 		self._running = True
 		'''Used only once to close the client session.'''
@@ -139,11 +146,58 @@ class WhisperLiveKitWordStream(WordStream):
 		'''
 		Initialize the AudioProcessor for this session.
 		Uses the global TranscriptionEngine.
+		Starts async processing thread.
 		'''
 		if not WLK_AVAILABLE:
 			print("[WLK] WhisperLiveKit not available - cannot initialize AudioProcessor")
 			return
 
+		try:
+			print(f"[WLK] Starting async processing thread for session {self.session_id}")
+
+			# Start the async processing thread
+			self.processing_thread = threading.Thread(
+				target=self._run_async_processor,
+				daemon=True
+			)
+			self.processing_thread.start()
+
+			# Give it a moment to initialize
+			time.sleep(0.5)
+			print("[WLK] AudioProcessor thread started successfully")
+
+		except Exception as e:
+			print(f"[WLK] Failed to initialize AudioProcessor: {e}")
+			import traceback
+			traceback.print_exc()
+			self.audio_processor = None
+
+	def _run_async_processor(self):
+		'''
+		Run the async AudioProcessor in a separate thread with its own event loop.
+		This method runs in a separate thread.
+		'''
+		try:
+			# Create new event loop for this thread
+			self.processing_loop = asyncio.new_event_loop()
+			asyncio.set_event_loop(self.processing_loop)
+
+			# Run the async processing
+			self.processing_loop.run_until_complete(self._async_process_audio())
+
+		except Exception as e:
+			print(f"[WLK] Error in async processor thread: {e}")
+			import traceback
+			traceback.print_exc()
+		finally:
+			if self.processing_loop:
+				self.processing_loop.close()
+
+	async def _async_process_audio(self):
+		'''
+		Async method that processes audio chunks.
+		This is the main async processing loop.
+		'''
 		try:
 			# Get or create the global transcription engine
 			engine = get_transcription_engine(
@@ -160,27 +214,88 @@ class WhisperLiveKitWordStream(WordStream):
 			print(f"[WLK] Creating AudioProcessor for session {self.session_id}")
 			self.audio_processor = AudioProcessor(transcription_engine=engine)
 
-			# Set up callback for transcription results
-			# Note: The actual API might differ - this is based on typical patterns
-			# We'll need to check the actual WLK documentation for the exact callback mechanism
-			print("[WLK] AudioProcessor initialized successfully")
+			# Create tasks and get results generator
+			print("[WLK] Creating AudioProcessor tasks...")
+			results_generator = await self.audio_processor.create_tasks()
+
+			# Start results handler task
+			self.results_task = asyncio.create_task(
+				self._handle_transcription_results(results_generator)
+			)
+
+			print("[WLK] AudioProcessor initialized, processing audio chunks...")
+
+			# Process audio chunks from queue
+			while self.is_recording or not self.audio_chunk_queue.empty():
+				try:
+					# Get audio chunk from queue (non-blocking with timeout)
+					if not self.audio_chunk_queue.empty():
+						audio_chunk = self.audio_chunk_queue.get_nowait()
+
+						# Process the audio chunk
+						await self.audio_processor.process_audio(audio_chunk)
+						print(f"[WLK] Processed {len(audio_chunk)} bytes")
+					else:
+						# Small sleep to avoid busy waiting
+						await asyncio.sleep(0.01)
+
+				except Empty:
+					await asyncio.sleep(0.01)
+				except Exception as e:
+					print(f"[WLK] Error processing audio chunk: {e}")
+					import traceback
+					traceback.print_exc()
+
+			print("[WLK] Audio processing loop finished")
+
+			# Wait for results handler to finish
+			if self.results_task:
+				await self.results_task
 
 		except Exception as e:
-			print(f"[WLK] Failed to initialize AudioProcessor: {e}")
+			print(f"[WLK] Error in async audio processing: {e}")
 			import traceback
 			traceback.print_exc()
-			self.audio_processor = None
+
+	async def _handle_transcription_results(self, results_generator):
+		'''
+		Async method that handles transcription results from the generator.
+		'''
+		try:
+			async for result in results_generator:
+				print(f"[WLK] Received transcription result: {result}")
+				if result:
+					self._process_wlk_transcription(result)
+		except Exception as e:
+			print(f"[WLK] Error handling transcription results: {e}")
+			import traceback
+			traceback.print_exc()
 
 	def _close_audio_processor(self):
 		'''Close the AudioProcessor for this session'''
-		if self.audio_processor:
-			try:
-				# Clean up the audio processor
-				# The actual cleanup method will depend on WLK's API
-				print(f"[WLK] Closing AudioProcessor for session {self.session_id}")
-				self.audio_processor = None
-			except Exception as e:
-				print(f"[WLK] Error closing AudioProcessor: {e}")
+		try:
+			print(f"[WLK] Closing AudioProcessor for session {self.session_id}")
+
+			# Stop is_recording to signal the async loop to finish
+			# (already done in _stop_listening, but just in case)
+
+			# Wait for processing thread to finish
+			if self.processing_thread and self.processing_thread.is_alive():
+				print("[WLK] Waiting for processing thread to finish...")
+				self.processing_thread.join(timeout=2.0)
+
+			# Clean up
+			self.audio_processor = None
+			self.processing_loop = None
+			self.processing_thread = None
+			self.results_task = None
+
+			print("[WLK] AudioProcessor closed")
+
+		except Exception as e:
+			print(f"[WLK] Error closing AudioProcessor: {e}")
+			import traceback
+			traceback.print_exc()
 
 	def _start_listening(self, mime_type: str) -> None:
 		'''
@@ -235,46 +350,25 @@ class WhisperLiveKitWordStream(WordStream):
 
 	def _handle_audio_chunk(self, data: bytes):
 		"""
-		Record audio chunk to file and process with WhisperLiveKit.
+		Record audio chunk to file and queue for WhisperLiveKit processing.
 		"""
 		# Write to disk (CRITICAL: preserve this functionality!)
 		if self.current_audio_file and not self.current_audio_file.closed:
 			self.current_audio_file.write(data)
 			self.current_audio_file.flush()
 
-		# Process audio with WhisperLiveKit AudioProcessor
-		if self.audio_processor and self.is_recording:
+		# Queue audio chunk for async processing
+		if self.is_recording and self.processing_thread and self.processing_thread.is_alive():
 			try:
-				print(f"[WLK] Processing {len(data)} bytes with AudioProcessor")
-
-				# Process the audio chunk
-				# Note: The actual API method name might differ - common names are:
-				# - process_audio(audio_bytes)
-				# - feed_audio(audio_bytes)
-				# - add_audio(audio_bytes)
-				# We'll need to check the actual WLK source for the correct method
-
-				# Attempt to process audio and get transcription results
-				# This is a placeholder - the actual implementation depends on WLK's API
-				if hasattr(self.audio_processor, 'process_audio'):
-					result = self.audio_processor.process_audio(data)
-					if result:
-						self._process_wlk_transcription(result)
-				elif hasattr(self.audio_processor, 'feed_audio'):
-					result = self.audio_processor.feed_audio(data)
-					if result:
-						self._process_wlk_transcription(result)
-				else:
-					print("[WLK] WARNING: AudioProcessor API method not found")
-					print("[WLK] Available methods:", dir(self.audio_processor))
-
+				self.audio_chunk_queue.put(data)
+				print(f"[WLK] Queued {len(data)} bytes for processing (queue size: {self.audio_chunk_queue.qsize()})")
 			except Exception as e:
-				print(f"[WLK] Error processing audio: {e}")
-				import traceback
-				traceback.print_exc()
+				print(f"[WLK] Error queuing audio chunk: {e}")
 		else:
-			if not self.audio_processor:
-				print(f"[WLK] Not processing: audio_processor not initialized")
+			if not self.processing_thread:
+				print(f"[WLK] Not processing: processing thread not started")
+			elif not self.processing_thread.is_alive():
+				print(f"[WLK] Not processing: processing thread died")
 			elif not self.is_recording:
 				print(f"[WLK] Not processing: is_recording={self.is_recording}")
 
