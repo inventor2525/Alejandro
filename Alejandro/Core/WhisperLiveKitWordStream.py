@@ -205,14 +205,23 @@ class WhisperLiveKitWordStream(WordStream):
 		'''
 		try:
 			print("[WLK] _async_process_audio: Starting...", flush=True)
-			# Get or create the global transcription engine
-			engine = get_transcription_engine(
-				model=self.model,
-				diarization=self.diarization,
-				language=self.language
-			)
 
-			print(f"[WLK] get_transcription_engine returned: {engine} (type: {type(engine)})", flush=True)
+			# Get or create the global transcription engine
+			try:
+				print("[WLK] About to call get_transcription_engine...", flush=True)
+				engine = get_transcription_engine(
+					model=self.model,
+					diarization=self.diarization,
+					language=self.language
+				)
+				print(f"[WLK] get_transcription_engine returned successfully", flush=True)
+			except Exception as e:
+				print(f"[WLK] Exception in get_transcription_engine: {e}", flush=True)
+				import traceback
+				traceback.print_exc()
+				return
+
+			print(f"[WLK] Engine is: {engine} (type: {type(engine)})", flush=True)
 
 			if engine is None:
 				print("[WLK] Failed to create TranscriptionEngine", flush=True)
