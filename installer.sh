@@ -22,5 +22,6 @@ pip install -e ./
 cd ~/Projects/Alejandro_dev
 
 cd Alejandro
+git checkout claude/add-wlk-word-stream-iKKKo
 pip install -e ./
 cd ~/Projects/Alejandro_dev
