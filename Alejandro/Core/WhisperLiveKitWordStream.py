@@ -355,27 +355,53 @@ class WhisperLiveKitWordStream(WordStream):
 
 		front_data is a FrontData object with fields:
 		- status: str (e.g., 'active_transcription', 'no_audio_detected')
-		- lines: List[str] - committed/final transcription lines
+		- lines: List[Segment] - committed/final transcription segments (may include SilentSegment)
 		- buffer_transcription: str - in-progress/buffered text
 		- buffer_diarization: str - speaker info (we don't use)
 		- buffer_translation: str - translation (we don't use)
 		- error: str - error message if any
 		'''
-		print(f"[WLK] FrontData: status={front_data.status}, lines={front_data.lines}, buffer='{front_data.buffer_transcription}'")
+		# Convert FrontData to dict for inspection
+		import json
+		try:
+			# Try to convert to dict if it has a to_dict method
+			if hasattr(front_data, 'to_dict'):
+				data_dict = front_data.to_dict()
+			elif hasattr(front_data, '__dict__'):
+				# Fallback: manually extract attributes
+				data_dict = {}
+				for key, value in front_data.__dict__.items():
+					if isinstance(value, list):
+						# Convert segments to dicts
+						data_dict[key] = [
+							seg.__dict__ if hasattr(seg, '__dict__') else str(seg)
+							for seg in value
+						]
+					else:
+						data_dict[key] = value
+			else:
+				data_dict = str(front_data)
+
+			print(f"[WLK] FrontData received:")
+			print(json.dumps(data_dict, indent=4, default=str))
+		except Exception as e:
+			print(f"[WLK] Could not serialize FrontData: {e}")
+			print(f"[WLK] FrontData type: {type(front_data)}, dir: {dir(front_data)}")
 
 		# Process committed lines (final transcriptions)
 		if front_data.lines:
 			with self.transcription_lock:
-				for line in front_data.lines:
-					if line.strip():
-						print(f"[WLK] Processing committed line: '{line}'")
-						# Process as text (no word-level timestamps from WLK)
-						word_nodes = self.process_text(line)
+				for segment in front_data.lines:
+					# Segments have a .text attribute
+					if hasattr(segment, 'text') and segment.text and segment.text.strip():
+						print(f"[WLK] FINAL: '{segment.text}'")
+						word_nodes = self.process_text(segment.text)
 						self.add_words_to_queue(word_nodes)
 
-		# Process buffer (in-progress transcription)
+		# Process buffer (in-progress/real-time transcription chunks)
+		# This gives us the "Hey, Alej" → "andro" behavior
 		if front_data.buffer_transcription and front_data.buffer_transcription.strip():
-			print(f"[WLK] In-progress: '{front_data.buffer_transcription}'")
+			print(f"[WLK] BUFFER (real-time chunk): '{front_data.buffer_transcription}'")
 
 	def _process_word_level_transcription(self, words_data: List[dict]):
 		'''
