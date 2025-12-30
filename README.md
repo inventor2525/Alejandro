@@ -14,7 +14,7 @@ A voice-controlled interface framework that enables natural language interaction
 ## Installation
 
 ```bash
-wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/claude%2Fadd-wlk-word-stream-iKKKo/installer.sh | bash
+wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/claude%2Ffix-whisper-livekit-stream-rlz6k/installer.sh | bash
 ```
 
 ## Development

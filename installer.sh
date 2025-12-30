@@ -22,6 +22,6 @@ pip install -e ./
 cd ~/Projects/Alejandro_dev
 
 cd Alejandro
-git checkout claude/add-wlk-word-stream-iKKKo
+git checkout claude/fix-whisper-livekit-stream-rlz6k
 pip install -e ./
 cd ~/Projects/Alejandro_dev
