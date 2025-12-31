@@ -387,8 +387,23 @@ class WhisperLiveKitWordStream(WordStream):
 			else:
 				break
 
-		# Extract only the new tokens
-		new_only_tokens = new_tokens[common_prefix_length:]
+		# Check for partial word refinement
+		# e.g., "alej" → "alejandro" (refinement, already in stream)
+		# If the first "new" word starts with the last "old" word at the breakpoint,
+		# it's a refinement that's already been added as a partial
+		refinement_offset = 0
+		if (common_prefix_length < len(self.last_processed_words) and
+		    common_prefix_length < len(new_tokens)):
+			last_old_word = self.last_processed_words[common_prefix_length]
+			first_new_word = new_tokens[common_prefix_length]
+
+			# If new word starts with old word, it's a refinement - skip it
+			if first_new_word.startswith(last_old_word) and first_new_word != last_old_word:
+				refinement_offset = 1
+				print(f"[WLK] Detected word refinement: '{last_old_word}' → '{first_new_word}' (skipping refined word)")
+
+		# Extract only the new tokens (skipping refined words)
+		new_only_tokens = new_tokens[common_prefix_length + refinement_offset:]
 
 		if not new_only_tokens:
 			return []
