@@ -91,6 +91,7 @@ class WhisperLiveKitWordStream(WordStream):
 		# For tracking WLK transcription results (deduplication and logging)
 		self.last_seen_text = None  # Track last transcription text to avoid duplicates
 		self.last_processed_words = []  # Track already-processed words (tokenized)
+		self.buffered_word: Optional[WordNode] = None  # Buffer last word to detect refinements
 		self.wlk_log_file = os.path.expanduser("~/wlk_debug.log")
 
 	@staticmethod
@@ -360,7 +361,7 @@ class WhisperLiveKitWordStream(WordStream):
 			elif not self.is_recording:
 				print(f"[WLK] Not processing: is_recording={self.is_recording}")
 
-	def _extract_new_words(self, new_text: str) -> List[WordNode]:
+	def _extract_new_words(self, new_text: str, is_final: bool = True) -> List[WordNode]:
 		'''
 		Extract only NEW words from cumulative transcription text.
 
@@ -369,6 +370,11 @@ class WhisperLiveKitWordStream(WordStream):
 
 		This method compares with previously processed words and returns
 		only the new WordNodes that haven't been processed yet.
+
+		Args:
+			new_text: The cumulative transcription text
+			is_final: If True (committed text), flush buffered word. If False (in-progress buffer),
+			          hold last word for potential refinement.
 		'''
 		import nltk
 
@@ -387,55 +393,73 @@ class WhisperLiveKitWordStream(WordStream):
 			else:
 				break
 
-		# Check for partial word refinement
-		# e.g., "alej" → "alejandro" (refinement, already in stream)
-		# If the first "new" word starts with the last "old" word at the breakpoint,
-		# it's a refinement that's already been added as a partial
-		refinement_offset = 0
-		if (common_prefix_length < len(self.last_processed_words) and
-		    common_prefix_length < len(new_tokens)):
-			last_old_word = self.last_processed_words[common_prefix_length]
+		# Check if buffered word was refined
+		buffered_was_refined = False
+		if (self.buffered_word and
+		    common_prefix_length < len(new_tokens) and
+		    common_prefix_length == len(self.last_processed_words)):
+			# The last word from previous processing might have been refined
 			first_new_word = new_tokens[common_prefix_length]
+			buffered_word_text = self.buffered_word.word
 
-			# If new word starts with old word, it's a refinement
-			if first_new_word.startswith(last_old_word) and first_new_word != last_old_word:
-				refinement_offset = 1
-				print(f"[WLK] Detected word refinement: '{last_old_word}' → '{first_new_word}' (updating existing word)")
+			if first_new_word.startswith(buffered_word_text) and first_new_word != buffered_word_text:
+				# Refinement detected! Update the buffered word in-place
+				buffered_was_refined = True
+				self.buffered_word.word = first_new_word
+				print(f"[WLK] Refined buffered word: '{buffered_word_text}' → '{first_new_word}'")
+				common_prefix_length += 1
 
-				# UPDATE the existing word node in the stream (critical for phrase matching!)
-				# We need to walk back through the stream to find the word to update
-				# since it's at position common_prefix_length in our word list
-				if self.last_node:
-					# Count back from last_node to find the word at common_prefix_length
-					steps_back = len(self.last_processed_words) - common_prefix_length - 1
-					node_to_update = self.last_node
-					for _ in range(steps_back):
-						if node_to_update and node_to_update.prev:
-							node_to_update = node_to_update.prev
-						else:
-							break
-
-					# Update the word if we found the right node
-					if node_to_update and node_to_update.word == last_old_word:
-						node_to_update.word = first_new_word
-						print(f"[WLK] Updated word node from '{last_old_word}' to '{first_new_word}'")
-
-		# Extract only the new tokens (skipping refined words)
-		new_only_tokens = new_tokens[common_prefix_length + refinement_offset:]
+		# Extract only the new tokens
+		new_only_tokens = new_tokens[common_prefix_length:]
 
 		if not new_only_tokens:
+			# No new words, but if this is final text, flush any buffered word
+			if is_final and self.buffered_word and not buffered_was_refined:
+				result = [self.buffered_word]
+				self.buffered_word = None
+				print(f"[WLK] Flushed buffered word (final transcription, no new words)")
+				return result
 			return []
 
-		# Create WordNodes for new tokens only
+		# Create WordNodes
 		nodes = []
 		current_time = datetime.now()
-		for token in new_only_tokens:
+
+		# First, add previously buffered word if it wasn't refined
+		if self.buffered_word and not buffered_was_refined:
+			nodes.append(self.buffered_word)
+			print(f"[WLK] Flushing previously buffered word: '{self.buffered_word.word}'")
+
+		# Determine how many tokens to add immediately
+		if is_final:
+			# Final/committed text: add ALL new tokens (no buffering)
+			tokens_to_add = new_only_tokens
+			self.buffered_word = None
+		else:
+			# In-progress buffer: add all but last token, buffer the last one
+			if len(new_only_tokens) > 1:
+				tokens_to_add = new_only_tokens[:-1]
+			else:
+				tokens_to_add = []
+
+		# Create nodes for tokens we're adding now
+		for token in tokens_to_add:
 			node = WordNode(
 				word=token,
 				start_time=current_time,
 				end_time=current_time
 			)
 			nodes.append(node)
+
+		# Buffer the last token if this is in-progress text
+		if not is_final and new_only_tokens:
+			last_token = new_only_tokens[-1]
+			self.buffered_word = WordNode(
+				word=last_token,
+				start_time=current_time,
+				end_time=current_time
+			)
+			print(f"[WLK] Buffering last word for potential refinement: '{last_token}'")
 
 		# Link nodes
 		for i in range(len(nodes)-1):
@@ -445,7 +469,7 @@ class WhisperLiveKitWordStream(WordStream):
 		# Update tracking
 		self.last_processed_words = new_tokens
 
-		print(f"[WLK] Extracted {len(new_only_tokens)} NEW words from cumulative text (was {len(self.last_processed_words)-len(new_only_tokens)}, now {len(new_tokens)})")
+		print(f"[WLK] Extracted {len(nodes)} words (buffered: {self.buffered_word.word if self.buffered_word else 'none'})")
 
 		return nodes
 
@@ -524,7 +548,8 @@ class WhisperLiveKitWordStream(WordStream):
 			with self.transcription_lock:
 				print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
 				# Extract only NEW words from cumulative text (prevents reprocessing)
-				word_nodes = self._extract_new_words(current_text)
+				# is_final=True flushes any buffered word since this is committed text
+				word_nodes = self._extract_new_words(current_text, is_final=True)
 				if word_nodes:
 					self.add_words_to_queue(word_nodes)
 
