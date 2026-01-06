@@ -310,6 +310,13 @@ class WhisperLiveKitWordStream(WordStream):
 		print(f"[STOP] Stopping recording...")
 		self.end_time = datetime.now()
 
+		# Flush any buffered word before closing
+		with self.transcription_lock:
+			if self.buffered_word:
+				print(f"[WLK] Flushing buffered word on stop: '{self.buffered_word.word}'")
+				self.add_words_to_queue([self.buffered_word])
+				self.buffered_word = None
+
 		# Close audio file
 		if self.current_audio_file:
 			self.current_audio_file.close()
@@ -548,8 +555,8 @@ class WhisperLiveKitWordStream(WordStream):
 			with self.transcription_lock:
 				print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
 				# Extract only NEW words from cumulative text (prevents reprocessing)
-				# is_final=True flushes any buffered word since this is committed text
-				word_nodes = self._extract_new_words(current_text, is_final=True)
+				# Always buffer last word to catch refinements (even in "final" text)
+				word_nodes = self._extract_new_words(current_text, is_final=False)
 				if word_nodes:
 					self.add_words_to_queue(word_nodes)
 
