@@ -397,10 +397,28 @@ class WhisperLiveKitWordStream(WordStream):
 			last_old_word = self.last_processed_words[common_prefix_length]
 			first_new_word = new_tokens[common_prefix_length]
 
-			# If new word starts with old word, it's a refinement - skip it
+			# If new word starts with old word, it's a refinement
 			if first_new_word.startswith(last_old_word) and first_new_word != last_old_word:
 				refinement_offset = 1
-				print(f"[WLK] Detected word refinement: '{last_old_word}' → '{first_new_word}' (skipping refined word)")
+				print(f"[WLK] Detected word refinement: '{last_old_word}' → '{first_new_word}' (updating existing word)")
+
+				# UPDATE the existing word node in the stream (critical for phrase matching!)
+				# We need to walk back through the stream to find the word to update
+				# since it's at position common_prefix_length in our word list
+				if self.last_node:
+					# Count back from last_node to find the word at common_prefix_length
+					steps_back = len(self.last_processed_words) - common_prefix_length - 1
+					node_to_update = self.last_node
+					for _ in range(steps_back):
+						if node_to_update and node_to_update.prev:
+							node_to_update = node_to_update.prev
+						else:
+							break
+
+					# Update the word if we found the right node
+					if node_to_update and node_to_update.word == last_old_word:
+						node_to_update.word = first_new_word
+						print(f"[WLK] Updated word node from '{last_old_word}' to '{first_new_word}'")
 
 		# Extract only the new tokens (skipping refined words)
 		new_only_tokens = new_tokens[common_prefix_length + refinement_offset:]
