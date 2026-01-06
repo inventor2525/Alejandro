@@ -22,6 +22,7 @@ pip install -e ./
 cd ~/Projects/Alejandro_dev
 
 cd Alejandro
-git checkout claude/fix-whisper-livekit-stream-rlz6k
+git fetch origin claude/fix-whisper-livekit-stream-rlz6k
+git checkout -b local-fix-wlk origin/claude/fix-whisper-livekit-stream-rlz6k
 pip install -e ./
 cd ~/Projects/Alejandro_dev
