@@ -13,11 +13,7 @@ A voice-controlled interface framework that enables natural language interaction
 
 ## Installation
 
-```bash
-wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/main/installer.sh | bash
-```
-
-Or with ngrok token:
+Optionally provide your ngrok token:
 ```bash
 wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/main/installer.sh | bash -s YOUR_NGROK_TOKEN
 ```

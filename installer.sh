@@ -53,10 +53,37 @@ echo ""
 echo "Configuring ngrok..."
 ngrok config add-authtoken "$NGROK_TOKEN"
 
+# Start ngrok tunnel
+echo ""
+echo "Starting ngrok tunnel..."
+ngrok http http://localhost:5000 > ~/ngrok.log 2>&1 &
+NGROK_PID=$!
+
+# Wait for ngrok to initialize
+sleep 2
+
+# Extract ngrok URL
+NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"https://[^"]*' | head -1 | cut -d'"' -f4)
+
 echo ""
 echo "======================================================================"
 echo "Installation complete!"
 echo "======================================================================"
+echo ""
+echo ""
+echo ""
+echo "**********************************************************************"
+echo "**********************************************************************"
+echo "**********************************************************************"
+echo ""
+echo "                    Alejandro Web Interface URL:"
+echo ""
+echo "  $NGROK_URL"
+echo ""
+echo "**********************************************************************"
+echo "**********************************************************************"
+echo "**********************************************************************"
+echo ""
 echo ""
 echo "To start Alejandro, run:"
 echo "  cd ~/Projects/Alejandro_dev/Alejandro"
