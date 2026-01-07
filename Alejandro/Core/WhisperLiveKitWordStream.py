@@ -404,8 +404,8 @@ class WhisperLiveKitWordStream(WordStream):
 		buffered_was_refined = False
 		if (self.buffered_word and
 		    common_prefix_length < len(new_tokens) and
-		    common_prefix_length == len(self.last_processed_words)):
-			# The last word from previous processing might have been refined
+		    common_prefix_length == len(self.last_processed_words) - 1):
+			# The buffered word (last in last_processed_words) might have been refined
 			first_new_word = new_tokens[common_prefix_length]
 			buffered_word_text = self.buffered_word.word
 
