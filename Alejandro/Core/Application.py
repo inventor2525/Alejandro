@@ -25,15 +25,20 @@ class Application:
 	
 	def run(self) -> None:
 		try:
+			print(f"[APP] Application.run() started, waiting for words...", flush=True)
 			for word in self.word_stream.words():
 				# Notify global handlers
 				for handler in self.global_word_handlers:
 					handler(word.word)
-					
+
 				# Process through current screen's controls
+				screen_name = type(self.screen_stack.current).__name__
+				used_control = None
+
 				if self._modal_control:
 					result = self._modal_control.validate_word(word)
 					if result in (ControlResult.USED, ControlResult.HOLD):
+						used_control = self._modal_control.text
 						self.call_control(self._modal_control)
 					if result == ControlResult.USED:
 						self._modal_control = None
@@ -43,9 +48,16 @@ class Application:
 						if result == ControlResult.HOLD:
 							self._modal_control = control
 						if result in (ControlResult.USED, ControlResult.HOLD):
+							used_control = control.text
 							self.call_control(control)
 							break
-				
+
+				# Consolidated logging: only log control if it was used
+				if used_control:
+					print(f"[APP] Processed '{word.word}' on {screen_name} - {used_control}: USED", flush=True)
+				else:
+					print(f"[APP] Processed '{word.word}' on {screen_name}", flush=True)
+
 				# Block if waiting for controls
 				while self.waiting_controls:
 					time.sleep(0.01)

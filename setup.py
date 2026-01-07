@@ -31,10 +31,13 @@ setup(
 	python_requires=">=3.10.12",
 	install_requires=[
 		"flask",
+		"flask-socketio",
 		"python-socketio",
 		"groq",
 		"dataclasses-json",
 		"nltk",
+		"websocket-client",
+		"whisperlivekit",
 		my_dependency("RequiredAI"),
 		my_dependency("assistant_merger"),
 		my_dependency("assistant_interaction"),

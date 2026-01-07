@@ -14,35 +14,67 @@ async function startRecording() {
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-    mediaRecorder.ondataavailable = (event) => {
+    mediaRecorder.ondataavailable = async (event) => {
         if (event.data.size > 0) {
-            socket.emit("audio_chunk", {
-                session_id:localStorage.getItem('sessionId'),
-                audio_data:event.data
-            });
+            // Send audio via HTTP POST instead of SocketIO to avoid payload limits
+            const formData = new FormData();
+            formData.append('session_id', localStorage.getItem('sessionId'));
+            formData.append('audio_data', event.data);
+
+            try {
+                await fetch('/audio_chunk', {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (error) {
+                console.error("Failed to send audio chunk:", error);
+            }
         }
     };
     mediaRecorder.onstop = () => {
         toggleButtons(false);
     };
-    mediaRecorder.start(500); // Send chunks every 500ms
-    socket.emit("start_listening", {
-        session_id:localStorage.getItem('sessionId'),
-        mime_type: mediaRecorder.mimeType
-    });
-    console.log("startRecording sent");
+    mediaRecorder.start(2000); // Send chunks every 2000ms
+
+    // Send start_listening via HTTP instead of SocketIO to avoid rate limits
+    try {
+        await fetch('/start_listening', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: localStorage.getItem('sessionId'),
+                mime_type: mediaRecorder.mimeType
+            })
+        });
+        console.log("startRecording sent via HTTP");
+    } catch (error) {
+        console.error("Failed to start listening:", error);
+    }
+
     toggleButtons(true);
 }
 
-function stopRecording() {
+async function stopRecording() {
     console.log("stopRecording clicked");
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
         mediaRecorder.stream.getTracks().forEach(track => track.stop());
-        setTimeout(() => {
-            socket.emit("stop_listening", { session_id: localStorage.getItem('sessionId') });
-        }, 1000); // Wait 1000ms for final chunk to be sent
-        console.log("stopRecording sent");
+
+        // Wait for final chunk to be sent, then send stop via HTTP
+        setTimeout(async () => {
+            try {
+                await fetch('/stop_listening', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: localStorage.getItem('sessionId')
+                    })
+                });
+                console.log("stopRecording sent via HTTP");
+            } catch (error) {
+                console.error("Failed to stop listening:", error);
+            }
+        }, 1000);
     }
 }
 

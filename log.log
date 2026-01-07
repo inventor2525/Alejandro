@@ -1,0 +1,1522 @@
+
+================================================================================
+[2026-01-07T04:27:28.901071] App started
+================================================================================
+
+================================================================================
+[2026-01-07T04:27:28.901125] App started
+================================================================================
+[APP] Global logging enabled: /root/alejandro_app.log
+Traceback (most recent call last):
+  File "/root/Projects/Alejandro_dev/Alejandro/Alejandro/web/app.py", line 36, in <module>
+    from Alejandro.web.blueprints import blueprints
+ModuleNotFoundError: No module named 'Alejandro'
+
+================================================================================
+[2026-01-07T04:39:38.139382] App started
+================================================================================
+
+================================================================================
+[2026-01-07T04:39:38.139426] App started
+================================================================================
+[APP] Global logging enabled: /root/alejandro_app.log
+[nltk_data] Downloading package punkt to /root/nltk_data...
+[nltk_data]   Unzipping tokenizers/punkt.zip.
+[nltk_data] Downloading package punkt_tab to /root/nltk_data...
+[nltk_data]   Unzipping tokenizers/punkt_tab.zip.
+[WLK] Initializing global TranscriptionEngine (model=large-v3, diarization=False, language=en)
+SimulStreaming will use Faster Whisper for the encoder.
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-base/revision/main "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/Systran/faster-whisper-base/resolve/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/config.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-base/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-base/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/config.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/Systran/faster-whisper-base/resolve/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin "HTTP/1.1 302 Found"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/Systran/faster-whisper-base/resolve/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/tokenizer.json "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/Systran/faster-whisper-base/resolve/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/vocabulary.txt "HTTP/1.1 307 Temporary Redirect"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-base/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/tokenizer.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-base/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/vocabulary.txt "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-base/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/tokenizer.json "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Systran/faster-whisper-base/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/vocabulary.txt "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-base/xet-read-token/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66 "HTTP/1.1 200 OK"
+
+  0%|                                               | 0.00/139M [00:00<?, ?iB/s]
+  0%|                                       | 48.0k/139M [00:00<05:11, 466kiB/s]
+  0%|                                       | 208k/139M [00:00<02:10, 1.11MiB/s]
+  1%|1                                      | 720k/139M [00:00<00:49, 2.94MiB/s]
+  2%|5                                     | 2.17M/139M [00:00<00:18, 7.77MiB/s]
+  5%|#7                                    | 6.31M/139M [00:00<00:06, 20.3MiB/s]
+  8%|###1                                  | 11.6M/139M [00:00<00:04, 31.8MiB/s]
+ 12%|####4                                 | 16.4M/139M [00:00<00:03, 37.7MiB/s]
+ 15%|#####6                                | 20.4M/139M [00:00<00:03, 34.6MiB/s]
+ 18%|######8                               | 25.0M/139M [00:00<00:03, 38.4MiB/s]
+ 21%|########1                             | 29.6M/139M [00:01<00:02, 41.2MiB/s]
+ 25%|#########4                            | 34.4M/139M [00:01<00:02, 43.7MiB/s]
+ 29%|##########8                           | 39.6M/139M [00:01<00:02, 46.6MiB/s]
+ 32%|############1                         | 44.3M/139M [00:01<00:02, 47.6MiB/s]
+ 35%|#############4                        | 49.1M/139M [00:01<00:01, 47.7MiB/s]
+ 39%|##############7                       | 53.8M/139M [00:01<00:01, 48.2MiB/s]
+ 42%|################                      | 58.7M/139M [00:01<00:01, 49.1MiB/s]
+ 46%|#################4                    | 63.7M/139M [00:01<00:01, 50.0MiB/s]
+ 49%|##################7                   | 68.4M/139M [00:01<00:01, 49.6MiB/s]
+ 53%|####################1                 | 73.4M/139M [00:01<00:01, 50.3MiB/s]
+ 57%|#####################4                | 78.3M/139M [00:02<00:01, 50.6MiB/s]
+ 60%|######################8               | 83.3M/139M [00:02<00:01, 51.0MiB/s]
+ 64%|########################2             | 88.5M/139M [00:02<00:01, 52.2MiB/s]
+ 67%|#########################6            | 93.5M/139M [00:02<00:00, 51.3MiB/s]
+ 71%|##########################9           | 98.4M/139M [00:02<00:00, 51.0MiB/s]
+ 75%|#############################1         | 104M/139M [00:02<00:00, 51.9MiB/s]
+ 78%|##############################5        | 109M/139M [00:02<00:00, 50.7MiB/s]
+ 82%|###############################9       | 113M/139M [00:02<00:00, 50.4MiB/s]
+ 86%|#################################4     | 119M/139M [00:02<00:00, 52.2MiB/s]
+ 89%|##################################8    | 124M/139M [00:02<00:00, 51.4MiB/s]
+ 93%|####################################2  | 129M/139M [00:03<00:00, 51.7MiB/s]
+ 97%|#####################################6 | 134M/139M [00:03<00:00, 51.4MiB/s]
+100%|#######################################| 139M/139M [00:03<00:00, 44.1MiB/s]
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model dimensions: ModelDimensions(n_mels=80, n_audio_ctx=1500, n_audio_state=512, n_audio_head=8, n_audio_layer=6, n_vocab=51865, n_text_ctx=448, n_text_state=512, n_text_head=8, n_text_layer=6)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Using beam decoder
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model warmed up successfully
+INFO:whisperlivekit.core:Using SimulStreaming policy with faster-whisper backend
+[WLK] TranscriptionEngine ready
+[INIT] Initializing WhisperLiveKitWordStream with Flask app
+[INIT] SocketIO instance: <flask_socketio.SocketIO object at 0x7ff2a1a31250>
+[INIT] Registered handlers: {'/': {'connect': <function handle_connect at 0x7ff2a0691c60>, 'disconnect': <function handle_disconnect at 0x7ff2a0691d00>, 'start_listening': <function _start_listening at 0x7ff2a06919e0>, 'stop_listening': <function _stop_listening at 0x7ff2a0691a80>, 'audio_chunk': <function _handle_audio_chunk at 0x7ff2a0691760>, 'manual_text_entry': <function handle_manual_text_entry at 0x7ff2a0691800>}}
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.17.0.4:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+
+================================================================================
+[2026-01-07T04:40:05.841139] App started
+================================================================================
+
+================================================================================
+[2026-01-07T04:40:05.841177] App started
+================================================================================
+[APP] Global logging enabled: /root/alejandro_app.log
+[WLK] Initializing global TranscriptionEngine (model=large-v3, diarization=False, language=en)
+SimulStreaming will use Faster Whisper for the encoder.
+INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/Systran/faster-whisper-base/revision/main "HTTP/1.1 200 OK"
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model dimensions: ModelDimensions(n_mels=80, n_audio_ctx=1500, n_audio_state=512, n_audio_head=8, n_audio_layer=6, n_vocab=51865, n_text_ctx=448, n_text_state=512, n_text_head=8, n_text_layer=6)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Using beam decoder
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model warmed up successfully
+INFO:whisperlivekit.core:Using SimulStreaming policy with faster-whisper backend
+[WLK] TranscriptionEngine ready
+[INIT] Initializing WhisperLiveKitWordStream with Flask app
+[INIT] SocketIO instance: <flask_socketio.SocketIO object at 0x7fecd58c1550>
+[INIT] Registered handlers: {'/': {'connect': <function handle_connect at 0x7fecd5669300>, 'disconnect': <function handle_disconnect at 0x7fecd5669440>, 'start_listening': <function _start_listening at 0x7fecd5669580>, 'stop_listening': <function _stop_listening at 0x7fecd56696c0>, 'audio_chunk': <function _handle_audio_chunk at 0x7fecd5669800>, 'manual_text_entry': <function handle_manual_text_entry at 0x7fecd5669940>}}
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 126-720-630
+[APP] Application.run() started, waiting for words...
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "GET /static/css/core.css HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "GET /static/js/tab_utils.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "GET /static/js/core.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "POST /sync_screen HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:23] "GET /event_stream?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /recorder?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "[36mGET /static/js/tab_utils.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /static/js/streaming_transcribe.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /static/js/socket_io.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /socket.io/?EIO=4&transport=polling&t=PkMmOnt HTTP/1.1" 200 -
+[SOCKETIO] Client connected!
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "POST /socket.io/?EIO=4&transport=polling&t=PkMmOou&sid=67mBj9uTFcBclWRwAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /socket.io/?EIO=4&transport=polling&t=PkMmOov&sid=67mBj9uTFcBclWRwAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /socket.io/?EIO=4&transport=polling&t=PkMmOps&sid=67mBj9uTFcBclWRwAAAA HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:25] "GET /socket.io/?EIO=4&transport=polling&t=PkMmOqn&sid=67mBj9uTFcBclWRwAAAA HTTP/1.1" 200 -
+[HTTP] start_listening for session=abd40677-2311-4999-b362-add9c66c4695, mime=audio/webm
+[FILE] Opening audio file: /root/Documents/Alejandro/Recordings/raw_recording_20260107_044031.webm
+[START] Setting is_recording=True before initializing processor
+[START] WLK debug log will be written to: /root/wlk_debug.log
+[WLK] Starting async processing thread for session abd40677-2311-4999-b362-add9c66c4695
+[WLK] _run_async_processor: Starting...
+[WLK] _run_async_processor: Event loop created
+[WLK] _async_process_audio: Starting...
+[WLK] Creating AudioProcessor for session abd40677-2311-4999-b362-add9c66c4695
+INFO:whisperlivekit.simul_whisper.simul_whisper:Model dimensions: ModelDimensions(n_mels=80, n_audio_ctx=1500, n_audio_state=512, n_audio_head=8, n_audio_layer=6, n_vocab=51865, n_text_ctx=448, n_text_state=512, n_text_head=8, n_text_layer=6)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Using beam decoder
+[WLK] AudioProcessor created successfully
+[WLK] Calling create_tasks()...
+INFO:whisperlivekit.ffmpeg_manager:FFmpeg started.
+[WLK] create_tasks() returned: <class 'async_generator'>
+[WLK] Starting results handler task...
+[WLK] Results handler task started
+[WLK] AudioProcessor initialized, processing audio chunks...
+[WLK] Initial state: is_recording=True, queue_size=0
+[WLK] AudioProcessor thread started successfully
+[START] Recording started successfully
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:31] "POST /start_listening HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32159
+[WLK] Queued 32159 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:33] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32159 bytes...
+[WLK] Processed 32159 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32974
+[WLK] Queued 32974 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:35] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32974 bytes...
+[WLK] Processed 32974 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33065
+[WLK] Queued 33065 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:37] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33065 bytes...
+[WLK] Processed 33065 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=4.10s | + Silence of = 4.09s
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.01s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  A 100
+[WLK] NEW TRANSCRIPTION: 'A 100'
+[WLK] Buffering last word for potential refinement: '100'
+[WLK] Extracted 1 words (buffered: 100)
+[WLK] Adding 1 words to queue: ['a']
+[APP] Processing word: 'a'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 6)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: .
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 4.38 |
+[WLK] NEW TRANSCRIPTION: 'A 100.'
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33204
+[WLK] Queued 33204 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:39] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33204 bytes...
+[WLK] Processed 33204 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33201
+[WLK] Queued 33201 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:41] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33201 bytes...
+[WLK] Processed 33201 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32742
+[WLK] Queued 32742 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:43] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32742 bytes...
+[WLK] Processed 32742 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33066
+[WLK] Queued 33066 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:45] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33066 bytes...
+[WLK] Processed 33066 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=7.14s | + Silence of = 8.15s | last_end = 4.94 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:no speech, stop
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  testing 1, 2
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2'
+[WLK] Flushing previously buffered word: '100'
+[WLK] Buffering last word for potential refinement: '2'
+[WLK] Extracted 3 words (buffered: 2)
+[WLK] Adding 3 words to queue: ['100', 'testing', '1']
+[APP] Processing word: '100'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'testing'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: '1'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 8)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: , 3
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 13.794092073440552 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3'
+[WLK] Flushing previously buffered word: '2'
+[WLK] Buffering last word for potential refinement: '3'
+[WLK] Extracted 1 words (buffered: 3)
+[WLK] Adding 1 words to queue: ['2']
+[APP] Processing word: '2'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33030
+[WLK] Queued 33030 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:47] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33030 bytes...
+[WLK] Processed 33030 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32982
+[WLK] Queued 32982 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:49] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32982 bytes...
+[WLK] Processed 32982 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33054
+[WLK] Queued 33054 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:51] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33054 bytes...
+[WLK] Processed 33054 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=3.93s | + Silence of = 6.10s | last_end = 14.114092073440553 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:no speech, stop
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 14.114092073440553 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 14.114092073440553 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  Hey, Alej
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 7)
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alej'
+[WLK] Flushing previously buffered word: '3'
+[WLK] Buffering last word for potential refinement: 'alej'
+[WLK] Extracted 2 words (buffered: alej)
+[WLK] Adding 2 words to queue: ['3', 'hey']
+[APP] Processing word: '3'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'hey'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: andro
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 20.738687019348145 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro'
+[WLK] Refined buffered word: 'alej' → 'alejandro'
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33103
+[WLK] Queued 33103 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:53] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33103 bytes...
+[WLK] Processed 33103 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33003
+[WLK] Queued 33003 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:55] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33003 bytes...
+[WLK] Processed 33003 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32967
+[WLK] Queued 32967 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:57] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32967 bytes...
+[WLK] Processed 32967 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33019
+[WLK] Queued 33019 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:40:59] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33019 bytes...
+[WLK] Processed 33019 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=4.86s | + Silence of = 8.13s | last_end = 21.118687019348144 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:no speech, stop
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  still not navigating
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating'
+[WLK] Flushing previously buffered word: 'alejandro'
+[WLK] Buffering last word for potential refinement: 'navigating'
+[WLK] Extracted 4 words (buffered: navigating)
+[WLK] Adding 4 words to queue: ['alejandro', 'alejandro', 'still', 'not']
+[APP] Processing word: 'alejandro'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.USED
+[APP] Calling control 'Hey Alejandro'
+Pushing navigation event for screen: MainScreen with session: abd40677-2311-4999-b362-add9c66c4695
+Pushing event: NavigationEvent ({"type": "NavigationEvent", "timestamp": "2026-01-07T04:41:00.061330", "session_id": "abd40677-2311-4999-b362-add9c66c4695", "__id__": "2799eba1-aa99-461d-b47c-b750b7e5150a", "screen": "main", "extra_url_params": {}}) for session abd40677-2311-4999-b362-add9c66c4695
+[APP] Processing word: 'alejandro'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'still'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'not'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 7)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 29.748961791992187 |
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:00] "GET /main?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:00] "[36mGET /static/js/tab_utils.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:00] "[36mGET /static/js/core.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:00] "[36mGET /static/css/core.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:00] "POST /sync_screen HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:00] "GET /event_stream?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33082
+[WLK] Queued 33082 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:01] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33082 bytes...
+[WLK] Processed 33082 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32990
+[WLK] Queued 32990 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:03] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32990 bytes...
+[WLK] Processed 32990 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33293
+[WLK] Queued 33293 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:05] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33293 bytes...
+[WLK] Processed 33293 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32823
+[WLK] Queued 32823 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:07] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32823 bytes...
+[WLK] Processed 32823 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=3.86s | + Silence of = 8.14s | last_end = 29.748961791992187 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:no speech, stop
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  Alright, I'm gonna
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna'
+[WLK] Flushing previously buffered word: 'navigating'
+[WLK] Buffering last word for potential refinement: 'na'
+[WLK] Extracted 4 words (buffered: na)
+[WLK] Adding 4 words to queue: ['navigating', 'alright', 'i', 'gon']
+[APP] Processing word: 'navigating'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'alright'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'i'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'gon'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 9)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  shut it off
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 38.313388137817384 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off'
+[WLK] Flushing previously buffered word: 'na'
+[WLK] Buffering last word for potential refinement: 'off'
+[WLK] Extracted 3 words (buffered: off)
+[WLK] Adding 3 words to queue: ['na', 'shut', 'it']
+[APP] Processing word: 'na'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'shut'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'it'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33070
+[WLK] Queued 33070 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:09] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33070 bytes...
+[WLK] Processed 33070 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 2.02s | last_end = 38.71338813781738 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 12)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: .
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off.'
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 13)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  After maybe one
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one'
+[WLK] Flushing previously buffered word: 'off'
+[WLK] Buffering last word for potential refinement: 'one'
+[WLK] Extracted 3 words (buffered: one)
+[WLK] Adding 3 words to queue: ['off', 'after', 'maybe']
+[APP] Processing word: 'off'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'after'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'maybe'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 16)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  more try.
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 41.61338813781738 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try.'
+[WLK] Flushing previously buffered word: 'one'
+[WLK] Buffering last word for potential refinement: 'try'
+[WLK] Extracted 2 words (buffered: try)
+[WLK] Adding 2 words to queue: ['one', 'more']
+[APP] Processing word: 'one'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'more'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33039
+[WLK] Queued 33039 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:12] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33039 bytes...
+[WLK] Processed 33039 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33124
+[WLK] Queued 33124 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:14] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33124 bytes...
+[WLK] Processed 33124 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33123
+[WLK] Queued 33123 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:16] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33123 bytes...
+[WLK] Processed 33123 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 6.12s | last_end = 42.133388137817384 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:no speech, stop
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33178
+[WLK] Queued 33178 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:18] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33178 bytes...
+[WLK] Processed 33178 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  Oh, for some reason you navig
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 49.458014297485356 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 49.458014297485356 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 11)
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navig'
+[WLK] Flushing previously buffered word: 'try'
+[WLK] Buffering last word for potential refinement: 'navig'
+[WLK] Extracted 6 words (buffered: navig)
+[WLK] Adding 6 words to queue: ['try', 'oh', 'for', 'some', 'reason', 'you']
+[APP] Processing word: 'try'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'oh'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'for'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'some'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'reason'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'you'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: ated now
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now'
+[WLK] Refined buffered word: 'navig' → 'navigated'
+[WLK] Buffering last word for potential refinement: 'now'
+[WLK] Extracted 0 words (buffered: now)
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32766
+[WLK] Queued 32766 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:20] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32766 bytes...
+[WLK] Processed 32766 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 13)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 13)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: . Okay
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 49.93801429748535 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay'
+[WLK] Flushing previously buffered word: 'now'
+[WLK] Buffering last word for potential refinement: 'okay'
+[WLK] Extracted 1 words (buffered: okay)
+[WLK] Adding 1 words to queue: ['now']
+[APP] Processing word: 'now'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33014
+[WLK] Queued 33014 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:22] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33014 bytes...
+[WLK] Processed 33014 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33042
+[WLK] Queued 33042 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:24] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33042 bytes...
+[WLK] Processed 33042 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 4.08s | last_end = 50.33801429748535 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 15)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: .
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay.'
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 16)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  Back
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 54.958014297485356 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back'
+[WLK] Flushing previously buffered word: 'okay'
+[WLK] Buffering last word for potential refinement: 'back'
+[WLK] Extracted 1 words (buffered: back)
+[WLK] Adding 1 words to queue: ['okay']
+[APP] Processing word: 'okay'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33014
+[WLK] Queued 33014 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:26] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33014 bytes...
+[WLK] Processed 33014 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33034
+[WLK] Queued 33034 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:28] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33034 bytes...
+[WLK] Processed 33034 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33054
+[WLK] Queued 33054 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:30] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33054 bytes...
+[WLK] Processed 33054 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33062
+[WLK] Queued 33062 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:32] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33062 bytes...
+[WLK] Processed 33062 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33108
+[WLK] Queued 33108 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:34] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33108 bytes...
+[WLK] Processed 33108 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=4.67s | + Silence of = 10.19s | last_end = 55.19801429748535 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 4)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  No
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No'
+[WLK] Flushing previously buffered word: 'back'
+[WLK] Buffering last word for potential refinement: 'no'
+[WLK] Extracted 1 words (buffered: no)
+[WLK] Adding 1 words to queue: ['back']
+[APP] Processing word: 'back'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.USED
+[APP] Calling control 'Back'
+Pushing event: NavigationEvent ({"type": "NavigationEvent", "timestamp": "2026-01-07T04:41:34.663153", "session_id": "abd40677-2311-4999-b362-add9c66c4695", "__id__": "c9e1cd6d-8ea9-4001-a911-7a35993476c0", "screen": "welcome", "extra_url_params": {}}) for session abd40677-2311-4999-b362-add9c66c4695
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 5)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:34] "GET /welcome?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: , nothing
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 65.54780573844909 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing'
+[WLK] Flushing previously buffered word: 'no'
+[WLK] Buffering last word for potential refinement: 'nothing'
+[WLK] Extracted 1 words (buffered: nothing)
+[WLK] Adding 1 words to queue: ['no']
+[APP] Processing word: 'no'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:34] "[36mGET /static/js/tab_utils.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:34] "[36mGET /static/css/core.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:34] "[36mGET /static/js/core.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:35] "POST /sync_screen HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:35] "GET /event_stream?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32963
+[WLK] Queued 32963 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:36] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32963 bytes...
+[WLK] Processed 32963 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33155
+[WLK] Queued 33155 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:38] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33155 bytes...
+[WLK] Processed 33155 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 4.10s | last_end = 66.0078057384491 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 7)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33191
+[WLK] Queued 33191 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:40] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33191 bytes...
+[WLK] Processed 33191 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 7)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 7)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: . You know it navigated after I set
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set'
+[WLK] Flushing previously buffered word: 'nothing'
+[WLK] Buffering last word for potential refinement: 'set'
+[WLK] Extracted 7 words (buffered: set)
+[WLK] Adding 7 words to queue: ['nothing', 'you', 'know', 'it', 'navigated', 'after', 'i']
+[APP] Processing word: 'nothing'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'you'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'know'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'it'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'navigated'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'after'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'i'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33157
+[WLK] Queued 33157 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:42] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33157 bytes...
+[WLK] Processed 33157 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 16)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  another
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another'
+[WLK] Flushing previously buffered word: 'set'
+[WLK] Buffering last word for potential refinement: 'another'
+[WLK] Extracted 1 words (buffered: another)
+[WLK] Adding 1 words to queue: ['set']
+[APP] Processing word: 'set'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 17)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  word. That's where we were going to
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to'
+[WLK] Flushing previously buffered word: 'another'
+[WLK] Buffering last word for potential refinement: 'to'
+[WLK] Extracted 7 words (buffered: to)
+[WLK] Adding 7 words to queue: ['another', 'word', 'that', 'where', 'we', 'were', 'going']
+[APP] Processing word: 'another'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'word'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'that'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'where'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'we'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'were'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'going'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32937
+[WLK] Queued 32937 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:44] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32937 bytes...
+[WLK] Processed 32937 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 26)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  do
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do'
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+[WLK] Flushing previously buffered word: 'to'
+[WLK] Buffering last word for potential refinement: 'do'
+[WLK] Extracted 1 words (buffered: do)
+[WLK] Adding 1 words to queue: ['to']
+[APP] Processing word: 'to'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 27)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  to not do remember
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember'
+[WLK] Flushing previously buffered word: 'do'
+[WLK] Buffering last word for potential refinement: 'remember'
+[WLK] Extracted 4 words (buffered: remember)
+[WLK] Adding 4 words to queue: ['do', 'to', 'not', 'do']
+[APP] Processing word: 'do'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'to'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'not'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'do'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32872
+[WLK] Queued 32872 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:46] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32872 bytes...
+[WLK] Processed 32872 bytes successfully
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 31)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting + Silence of = 0.04s | last_end = 76.1478057384491 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.04s | last_end = 76.1478057384491 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 31)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 31)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: .
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 76.1478057384491 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember.'
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33069
+[WLK] Queued 33069 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:48] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33069 bytes...
+[WLK] Processed 33069 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 2.00s | last_end = 77.04780573844909 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 32)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 32)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  Right. Hey Alej
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alej'
+[WLK] Flushing previously buffered word: 'remember'
+[WLK] Buffering last word for potential refinement: 'alej'
+[WLK] Extracted 3 words (buffered: alej)
+[WLK] Adding 3 words to queue: ['remember', 'right', 'hey']
+[APP] Processing word: 'remember'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'right'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'hey'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 36)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: andro
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 79.5078057384491 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro'
+[WLK] Refined buffered word: 'alej' → 'alejandro'
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33127
+[WLK] Queued 33127 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:50] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33127 bytes...
+[WLK] Processed 33127 bytes successfully
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33143
+[WLK] Queued 33143 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:52] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33143 bytes...
+[WLK] Processed 33143 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 4.07s | last_end = 79.98780573844908 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  (len: 37)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: .
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro.'
+[WLK] Flushing previously buffered word: 'alejandro'
+[WLK] Buffering last word for potential refinement: 'alejandro'
+[WLK] Extracted 1 words (buffered: alejandro)
+[WLK] Adding 1 words to queue: ['alejandro']
+[APP] Processing word: 'alejandro'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.USED
+[APP] Calling control 'Hey Alejandro'
+Pushing navigation event for screen: MainScreen with session: abd40677-2311-4999-b362-add9c66c4695
+Pushing event: NavigationEvent ({"type": "NavigationEvent", "timestamp": "2026-01-07T04:41:53.063307", "session_id": "abd40677-2311-4999-b362-add9c66c4695", "__id__": "40dbc53c-cb89-4ad0-877e-a6ee2a2785c1", "screen": "main", "extra_url_params": {}}) for session abd40677-2311-4999-b362-add9c66c4695
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text:  No
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  No (len: 38)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:53] "GET /main?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  And just to say another word to
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:53] "[36mGET /static/css/core.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:53] "[36mGET /static/js/core.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:53] "[36mGET /static/js/tab_utils.js HTTP/1.1[0m" 304 -
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro. And just to say another word to'
+[WLK] Flushing previously buffered word: 'alejandro'
+[WLK] Buffering last word for potential refinement: 'to'
+[WLK] Extracted 7 words (buffered: to)
+[WLK] Adding 7 words to queue: ['alejandro', 'and', 'just', 'to', 'say', 'another', 'word']
+[APP] Processing word: 'alejandro'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'and'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'just'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'to'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'say'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'another'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'word'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:53] "POST /sync_screen HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:53] "GET /event_stream?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=33184
+[WLK] Queued 33184 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:54] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 33184 bytes...
+[WLK] Processed 33184 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text:  No
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  No (len: 45)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  see
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro. And just to say another word to see'
+[WLK] Flushing previously buffered word: 'to'
+[WLK] Buffering last word for potential refinement: 'see'
+[WLK] Extracted 1 words (buffered: see)
+[WLK] Adding 1 words to queue: ['to']
+[APP] Processing word: 'to'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text:  No, nothing
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  No, nothing (len: 46)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  if that goes
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.02s | last_end = 86.20780573844908 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.02s | last_end = 86.20780573844908 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro. And just to say another word to see if that goes'
+[WLK] Flushing previously buffered word: 'see'
+[WLK] Buffering last word for potential refinement: 'goes'
+[WLK] Extracted 3 words (buffered: goes)
+[WLK] Adding 3 words to queue: ['see', 'if', 'that']
+[APP] Processing word: 'see'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'if'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'that'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text:  No, nothing
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  No, nothing (len: 49)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  through
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro. And just to say another word to see if that goes through'
+[WLK] Flushing previously buffered word: 'goes'
+[WLK] Buffering last word for potential refinement: 'through'
+[WLK] Extracted 1 words (buffered: through)
+[WLK] Adding 1 words to queue: ['goes']
+[APP] Processing word: 'goes'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=32774
+[WLK] Queued 32774 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:56] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 32774 bytes...
+[WLK] Processed 32774 bytes successfully
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text:  No, nothing
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  No, nothing (len: 50)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output: 
+INFO:whisperlivekit.simul_whisper.simul_whisper:Trimming context
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context text:  No, nothing
+INFO:whisperlivekit.simul_whisper.simul_whisper:Context after trim:  No, nothing (len: 50)
+INFO:whisperlivekit.simul_whisper.simul_whisper:Output:  and it did
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 86.44780573844909 |
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro. And just to say another word to see if that goes through and it did'
+[WLK] Flushing previously buffered word: 'through'
+[WLK] Buffering last word for potential refinement: 'did'
+[WLK] Extracted 3 words (buffered: did)
+[WLK] Adding 3 words to queue: ['through', 'and', 'it']
+[APP] Processing word: 'through'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'and'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'it'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[AUDIO] HTTP received audio chunk, session=abd40677-2311-4999-b362-add9c66c4695, size=24240
+[WLK] Queued 24240 bytes for processing (queue size: 1)
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:41:58] "POST /audio_chunk HTTP/1.1" 200 -
+[WLK] Processing 24240 bytes...
+[WLK] Processed 24240 bytes successfully
+[HTTP] stop_listening for session=abd40677-2311-4999-b362-add9c66c4695
+[STOP] Stopping recording...
+[WLK] Flushing buffered word on stop: 'did'
+[WLK] Adding 1 words to queue: ['did']
+[APP] Processing word: 'did'
+[APP] Checking 4 controls on screen: MainScreen
+[FILE] Closed audio file[APP] Control 'Conversations' returned ControlResult.UNUSED
+[WLK] Closing AudioProcessor for session abd40677-2311-4999-b362-add9c66c4695
+
+[APP] Control 'Terminal' returned ControlResult.UNUSED[WLK] Waiting for processing thread to finish...
+
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[WLK] AudioProcessor closed
+[FILE] Renamed recording to: /root/Documents/Alejandro/Recordings/recording_20260107_044031__20260107_044159.webm
+[STOP] Recording stopped
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "POST /stop_listening HTTP/1.1" 200 -
+[WLK] NEW TRANSCRIPTION: 'A 100. testing 1, 2, 3 Hey, Alejandro still not navigating Alright, I'm gonna shut it off. After maybe one more try. Oh, for some reason you navigated now. Okay. Back No, nothing. You know it navigated after I set another word. That's where we were going to do to not do remember. Right. Hey Alejandro. And just to say another word to see if that goes through and it did'
+[WLK] Buffering last word for potential refinement: 'did'
+[WLK] Extracted 70 words (buffered: did)
+[WLK] Adding 70 words to queue: ['a', 'testing', '1', '2', '3', 'hey', 'alejandro', 'still', 'not', 'navigating', 'alright', 'i', 'gon', 'na', 'shut', 'it', 'off', 'after', 'maybe', 'one', 'more', 'try', 'oh', 'for', 'some', 'reason', 'you', 'navigated', 'now', 'okay', 'back', 'no', 'nothing', 'you', 'know', 'it', 'navigated', 'after', 'i', 'set', 'another', 'word', 'that', 'where', 'we', 'were', 'going', 'to', 'do', 'to', 'not', 'do', 'remember', 'right', 'hey', 'alejandro', 'and', 'just', 'to', 'say', 'another', 'word', 'to', 'see', 'if', 'that', 'goes', 'through', 'and', 'it']
+[WLK] Audio processing loop finished
+[WLK] _run_async_processor: Completed normally
+[APP] Processing word: 'a'[WLK] _run_async_processor: Cleaning up event loop...
+[APP] Checking 4 controls on screen: MainScreen
+[WLK] _run_async_processor: Thread exiting
+
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'testing'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: '1'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: '2'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: '3'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'hey'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'alejandro'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'still'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'not'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'navigating'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'alright'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'i'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'gon'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'na'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'shut'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'it'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'off'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'after'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'maybe'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'one'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'more'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'try'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'oh'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'for'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'some'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'reason'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'you'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'navigated'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'now'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'okay'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'back'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.USED
+[APP] Calling control 'Back'
+Pushing event: NavigationEvent ({"type": "NavigationEvent", "timestamp": "2026-01-07T04:42:01.402831", "session_id": "abd40677-2311-4999-b362-add9c66c4695", "__id__": "b54858ad-b575-4318-a5a5-41478944dc46", "screen": "welcome", "extra_url_params": {}}) for session abd40677-2311-4999-b362-add9c66c4695
+[APP] Processing word: 'no'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'nothing'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'you'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'know'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'it'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'navigated'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'after'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'i'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'set'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'another'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'word'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'that'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'where'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'we'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'were'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'going'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'to'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'do'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'to'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'not'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'do'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'remember'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'right'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'hey'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.UNUSED
+[APP] Processing word: 'alejandro'
+[APP] Checking 1 controls on screen: WelcomeScreen
+[APP] Control 'Hey Alejandro' returned ControlResult.USED
+[APP] Calling control 'Hey Alejandro'
+Pushing navigation event for screen: MainScreen with session: abd40677-2311-4999-b362-add9c66c4695
+Pushing event: NavigationEvent ({"type": "NavigationEvent", "timestamp": "2026-01-07T04:42:01.405866", "session_id": "abd40677-2311-4999-b362-add9c66c4695", "__id__": "c9ed95a1-4d39-4368-8953-b6fced82e937", "screen": "main", "extra_url_params": {}}) for session abd40677-2311-4999-b362-add9c66c4695
+[APP] Processing word: 'and'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'just'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'to'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'say'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'another'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'word'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'to'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'see'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'if'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'that'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'goes'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'through'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'and'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+[APP] Processing word: 'it'
+[APP] Checking 4 controls on screen: MainScreen
+[APP] Control 'Conversations' returned ControlResult.UNUSED
+[APP] Control 'Terminal' returned ControlResult.UNUSED
+[APP] Control 'Notes' returned ControlResult.UNUSED
+[APP] Control 'Back' returned ControlResult.UNUSED
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "GET /welcome?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "[36mGET /static/css/core.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "[36mGET /static/js/tab_utils.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "[36mGET /static/js/core.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "POST /sync_screen HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [07/Jan/2026 04:42:01] "GET /event_stream?session=abd40677-2311-4999-b362-add9c66c4695 HTTP/1.1" 200 -
