@@ -95,9 +95,11 @@ class WhisperLiveKitWordStream(WordStream):
 		self.last_node: WordNode = None
 		self.transcription_lock = threading.Lock()
 
-		# Track pending text segments with timestamps for stability checking
-		self.pending_segments = []  # List of {"text": str, "timestamp": float}
+		# Track pending text segments for stability checking
+		self.pending_segments = []  # List of {"text": str} - no per-segment timestamps
 		self.last_finalized_len = 0  # How many characters of cumulative text we've finalized
+		self.last_change_time = None  # When pending text last changed
+		self.last_seen_transcription = ""  # To skip duplicate transcriptions
 		self.stability_threshold = 0.5  # Seconds to wait before finalizing text
 
 	@staticmethod
@@ -351,6 +353,8 @@ class WhisperLiveKitWordStream(WordStream):
 		# Reset segment tracking for next session
 		self.pending_segments = []
 		self.last_finalized_len = 0
+		self.last_change_time = None
+		self.last_seen_transcription = ""
 
 		print(f"[STOP] Recording stopped")
 
@@ -398,7 +402,12 @@ class WhisperLiveKitWordStream(WordStream):
 			return
 
 		with self.transcription_lock:
+			# Skip duplicate transcriptions
+			if current_text == self.last_seen_transcription:
+				return
+
 			print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
+			self.last_seen_transcription = current_text
 
 			current_time = time.time()
 			new_pending_text = current_text[self.last_finalized_len:]
@@ -409,47 +418,53 @@ class WhisperLiveKitWordStream(WordStream):
 			# Get current pending text from segments
 			old_pending_text = "".join(seg["text"] for seg in self.pending_segments)
 
-			# Find common prefix length between old and new pending text
-			common_len = 0
-			min_len = min(len(old_pending_text), len(new_pending_text))
-			for i in range(min_len):
-				if old_pending_text[i] == new_pending_text[i]:
-					common_len += 1
-				else:
-					break
+			# Check if pending text changed
+			if new_pending_text != old_pending_text:
+				# Text changed - update last_change_time
+				self.last_change_time = current_time
 
-			# Rebuild segments based on what changed
-			new_segments = []
-			kept_len = 0
+				# Find common prefix length between old and new pending text
+				common_len = 0
+				min_len = min(len(old_pending_text), len(new_pending_text))
+				for i in range(min_len):
+					if old_pending_text[i] == new_pending_text[i]:
+						common_len += 1
+					else:
+						break
 
-			# Keep segments that are fully within the common prefix
-			for seg in self.pending_segments:
-				seg_len = len(seg["text"])
-				if kept_len + seg_len <= common_len:
-					new_segments.append(seg)
-					kept_len += seg_len
-				elif kept_len < common_len:
-					# Partially keep this segment (up to common_len)
-					kept_text = seg["text"][:common_len - kept_len]
-					new_segments.append({"text": kept_text, "timestamp": seg["timestamp"]})
-					break
-				else:
-					break
+				# Rebuild segments based on what changed
+				new_segments = []
+				kept_len = 0
 
-			# Add new segment for any changed/added text
-			if len(new_pending_text) > common_len:
-				new_text = new_pending_text[common_len:]
-				new_segments.append({"text": new_text, "timestamp": current_time})
+				# Keep segments that are fully within the common prefix
+				for seg in self.pending_segments:
+					seg_len = len(seg["text"])
+					if kept_len + seg_len <= common_len:
+						new_segments.append(seg)
+						kept_len += seg_len
+					elif kept_len < common_len:
+						# Partially keep this segment (up to common_len)
+						kept_text = seg["text"][:common_len - kept_len]
+						new_segments.append({"text": kept_text})
+						break
+					else:
+						break
 
-			self.pending_segments = new_segments
+				# Add new segment for any changed/added text
+				if len(new_pending_text) > common_len:
+					new_text = new_pending_text[common_len:]
+					new_segments.append({"text": new_text})
 
-			# Try to finalize stable segments
-			while self.pending_segments:
-				first_seg = self.pending_segments[0]
-				if current_time - first_seg["timestamp"] > self.stability_threshold:
-					# Finalize this segment
+				self.pending_segments = new_segments
+
+			# Only finalize if entire pending text has been stable for threshold duration
+			if self.last_change_time and self.pending_segments:
+				time_since_change = current_time - self.last_change_time
+				if time_since_change > self.stability_threshold:
+					# Finalize ALL pending segments at once
 					import nltk
-					tokens = nltk.word_tokenize(first_seg["text"].lower())
+					full_pending = "".join(seg["text"] for seg in self.pending_segments)
+					tokens = nltk.word_tokenize(full_pending.lower())
 					tokens = [t for t in tokens if t.isalnum()]
 
 					for token in tokens:
@@ -460,10 +475,9 @@ class WhisperLiveKitWordStream(WordStream):
 						self.last_node = node
 						self.word_queue.put(node)
 
-					self.last_finalized_len += len(first_seg["text"])
-					self.pending_segments.pop(0)
-				else:
-					break
+					self.last_finalized_len += len(full_pending)
+					self.pending_segments = []
+					self.last_change_time = None
 
 
 def get_stream(session_id: str) -> WhisperLiveKitWordStream:
