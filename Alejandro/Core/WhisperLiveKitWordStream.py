@@ -94,7 +94,11 @@ class WhisperLiveKitWordStream(WordStream):
 
 		self.last_node: WordNode = None
 		self.transcription_lock = threading.Lock()
-		self.last_seen_text = ""
+
+		# Track pending text segments with timestamps for stability checking
+		self.pending_segments = []  # List of {"text": str, "timestamp": float}
+		self.last_finalized_len = 0  # How many characters of cumulative text we've finalized
+		self.stability_threshold = 0.5  # Seconds to wait before finalizing text
 
 	@staticmethod
 	def init_app(app: Flask):
@@ -330,9 +334,23 @@ class WhisperLiveKitWordStream(WordStream):
 
 		self.is_recording = False
 
-		# Reset cumulative transcription tracking for next session
-		self.last_seen_text = None
-		self.last_processed_words = []
+		# Flush any pending segments before resetting
+		with self.transcription_lock:
+			import nltk
+			for seg in self.pending_segments:
+				tokens = nltk.word_tokenize(seg["text"].lower())
+				tokens = [t for t in tokens if t.isalnum()]
+				for token in tokens:
+					node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
+					if self.last_node:
+						self.last_node.next = node
+						node.prev = self.last_node
+					self.last_node = node
+					self.word_queue.put(node)
+
+		# Reset segment tracking for next session
+		self.pending_segments = []
+		self.last_finalized_len = 0
 
 		print(f"[STOP] Recording stopped")
 
@@ -367,8 +385,8 @@ class WhisperLiveKitWordStream(WordStream):
 		)
 
 		if self.wlk_output_dir:
-			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-			output_file = os.path.join(self.wlk_output_dir, f"frontdata_{timestamp}.json")
+			timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+			output_file = os.path.join(self.wlk_output_dir, f"frontdata_{timestamp_str}.json")
 			try:
 				data_dict = front_data.to_dict() if hasattr(front_data, 'to_dict') else front_data.__dict__
 				with open(output_file, 'w') as f:
@@ -376,30 +394,76 @@ class WhisperLiveKitWordStream(WordStream):
 			except Exception as e:
 				print(f"[WLK] Failed to save FrontData: {e}")
 
-		if not current_text or len(current_text) <= len(self.last_seen_text):
+		if not current_text:
 			return
 
 		with self.transcription_lock:
-			new_chars = current_text[len(self.last_seen_text):]
 			print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
 
-			import nltk
-			new_tokens = nltk.word_tokenize(new_chars.lower())
-			new_tokens = [token for token in new_tokens if token.isalnum()]
+			current_time = time.time()
+			new_pending_text = current_text[self.last_finalized_len:]
 
-			if not new_tokens:
+			if not new_pending_text:
 				return
 
-			current_time = datetime.now()
-			for token in new_tokens:
-				node = WordNode(word=token, start_time=current_time, end_time=current_time)
-				if self.last_node:
-					self.last_node.next = node
-					node.prev = self.last_node
-				self.last_node = node
-				self.word_queue.put(node)
+			# Get current pending text from segments
+			old_pending_text = "".join(seg["text"] for seg in self.pending_segments)
 
-			self.last_seen_text = current_text
+			# Find common prefix length between old and new pending text
+			common_len = 0
+			min_len = min(len(old_pending_text), len(new_pending_text))
+			for i in range(min_len):
+				if old_pending_text[i] == new_pending_text[i]:
+					common_len += 1
+				else:
+					break
+
+			# Rebuild segments based on what changed
+			new_segments = []
+			kept_len = 0
+
+			# Keep segments that are fully within the common prefix
+			for seg in self.pending_segments:
+				seg_len = len(seg["text"])
+				if kept_len + seg_len <= common_len:
+					new_segments.append(seg)
+					kept_len += seg_len
+				elif kept_len < common_len:
+					# Partially keep this segment (up to common_len)
+					kept_text = seg["text"][:common_len - kept_len]
+					new_segments.append({"text": kept_text, "timestamp": seg["timestamp"]})
+					break
+				else:
+					break
+
+			# Add new segment for any changed/added text
+			if len(new_pending_text) > common_len:
+				new_text = new_pending_text[common_len:]
+				new_segments.append({"text": new_text, "timestamp": current_time})
+
+			self.pending_segments = new_segments
+
+			# Try to finalize stable segments
+			while self.pending_segments:
+				first_seg = self.pending_segments[0]
+				if current_time - first_seg["timestamp"] > self.stability_threshold:
+					# Finalize this segment
+					import nltk
+					tokens = nltk.word_tokenize(first_seg["text"].lower())
+					tokens = [t for t in tokens if t.isalnum()]
+
+					for token in tokens:
+						node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
+						if self.last_node:
+							self.last_node.next = node
+							node.prev = self.last_node
+						self.last_node = node
+						self.word_queue.put(node)
+
+					self.last_finalized_len += len(first_seg["text"])
+					self.pending_segments.pop(0)
+				else:
+					break
 
 
 def get_stream(session_id: str) -> WhisperLiveKitWordStream:
