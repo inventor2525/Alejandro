@@ -420,12 +420,17 @@ class WhisperLiveKitWordStream(WordStream):
 		new_only_tokens = new_tokens[common_prefix_length:]
 
 		if not new_only_tokens:
-			# No new words, but if this is final text, flush any buffered word
-			if is_final and self.buffered_word and not buffered_was_refined:
-				result = [self.buffered_word]
-				self.buffered_word = None
-				print(f"[WLK] Flushed buffered word (final transcription, no new words)")
-				return result
+			# No new words after processing
+			if self.buffered_word:
+				if is_final or buffered_was_refined:
+					# Flush buffered word if:
+					# 1. This is final text, OR
+					# 2. Word was just refined (partial → complete, ready to validate)
+					result = [self.buffered_word]
+					self.buffered_word = None
+					flush_reason = "refined" if buffered_was_refined else "final transcription"
+					print(f"[WLK] Flushed buffered word ({flush_reason}, no new words): '{result[0].word}'")
+					return result
 			return []
 
 		# Create WordNodes
