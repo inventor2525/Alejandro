@@ -14,18 +14,15 @@ import base64
 import asyncio
 import logging
 
-# Suppress INFO-level logs from WhisperLiveKit and dependencies
+# Suppress INFO-level logs from WhisperLiveKit, werkzeug, and dependencies
 logging.getLogger('whisperlivekit').setLevel(logging.WARNING)
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
 logging.getLogger('httpx').setLevel(logging.WARNING)
 
 # Import WhisperLiveKit components
 from whisperlivekit import TranscriptionEngine, AudioProcessor
 
-# Global TranscriptionEngine (heavy - created once at module import)
-# Shared across all WhisperLiveKitWordStream instances
-print("[WLK] Initializing global TranscriptionEngine (model=large-v3, diarization=False, language=en)")
 _transcription_engine = TranscriptionEngine(model="large-v3", diarization=False, lan="en")
-print("[WLK] TranscriptionEngine ready")
 
 mime_to_config = {
 	"audio/webm": ("webm", "opus"),
@@ -95,14 +92,9 @@ class WhisperLiveKitWordStream(WordStream):
 		self.start_time: datetime = None
 		self.end_time: datetime = None
 
-		# For managing transcription:
 		self.last_node: WordNode = None
 		self.transcription_lock = threading.Lock()
-
-		# For tracking WLK transcription results
-		self.last_seen_text = None
-		self.last_processed_words = []
-		self.buffered_word: Optional[WordNode] = None
+		self.last_seen_text = ""
 
 	@staticmethod
 	def init_app(app: Flask):
@@ -293,7 +285,7 @@ class WhisperLiveKitWordStream(WordStream):
 		self.start_time = datetime.now()
 		timestamp = self.start_time.strftime("%Y%m%d_%H%M%S")
 
-		self.file_ext = mime_to_config.get(mime_type, ("webm", "opus"))[0]
+		self.file_ext = mime_to_config[mime_type][0]
 		self.current_audio_path = os.path.join(
 			self.save_directory,
 			f"raw_recording_{timestamp}.{self.file_ext}"
@@ -316,13 +308,6 @@ class WhisperLiveKitWordStream(WordStream):
 		'''
 		print(f"[STOP] Stopping recording...")
 		self.end_time = datetime.now()
-
-		# Flush any buffered word before closing
-		with self.transcription_lock:
-			if self.buffered_word:
-				print(f"[WLK] Flushing buffered word on stop: '{self.buffered_word.word}'")
-				self.add_words_to_queue([self.buffered_word])
-				self.buffered_word = None
 
 		# Close audio file
 		if self.current_audio_file:
@@ -374,265 +359,47 @@ class WhisperLiveKitWordStream(WordStream):
 			elif not self.is_recording:
 				print(f"[WLK] Not processing: is_recording={self.is_recording}")
 
-	def _extract_new_words(self, new_text: str, is_final: bool = True) -> List[WordNode]:
-		'''
-		Extract only NEW words from cumulative transcription text.
-
-		WLK sends cumulative text that grows over time:
-		  "Hey" → "Hey Alejandro" → "Hey Alejandro conversations"
-
-		This method compares with previously processed words and returns
-		only the new WordNodes that haven't been processed yet.
-
-		Args:
-			new_text: The cumulative transcription text
-			is_final: If True (committed text), flush buffered word. If False (in-progress buffer),
-			          hold last word for potential refinement.
-		'''
-		import nltk
-
-		# Tokenize new text the same way process_text does
-		new_tokens = nltk.word_tokenize(new_text.lower())
-		new_tokens = [token for token in new_tokens if token.isalnum()]
-
-		if not new_tokens:
-			return []
-
-		# Find how many tokens match the previously processed words
-		common_prefix_length = 0
-		for i, token in enumerate(new_tokens):
-			if i < len(self.last_processed_words) and token == self.last_processed_words[i]:
-				common_prefix_length += 1
-			else:
-				break
-
-		# Check if buffered word was refined
-		buffered_was_refined = False
-		if (self.buffered_word and
-		    common_prefix_length < len(new_tokens) and
-		    common_prefix_length == len(self.last_processed_words) - 1):
-			# The buffered word (last in last_processed_words) might have been refined
-			first_new_word = new_tokens[common_prefix_length]
-			buffered_word_text = self.buffered_word.word
-
-			if first_new_word.startswith(buffered_word_text) and first_new_word != buffered_word_text:
-				# Refinement detected! Update the buffered word in-place
-				buffered_was_refined = True
-				self.buffered_word.word = first_new_word
-				print(f"[WLK] Refined buffered word: '{buffered_word_text}' → '{first_new_word}'")
-				common_prefix_length += 1
-
-		# Extract only the new tokens
-		new_only_tokens = new_tokens[common_prefix_length:]
-
-		if not new_only_tokens:
-			# No new words after processing
-			if self.buffered_word:
-				if is_final or buffered_was_refined:
-					# Flush buffered word if:
-					# 1. This is final text, OR
-					# 2. Word was just refined (partial → complete, ready to validate)
-					result = [self.buffered_word]
-					self.buffered_word = None
-					flush_reason = "refined" if buffered_was_refined else "final transcription"
-					print(f"[WLK] Flushed buffered word ({flush_reason}, no new words): '{result[0].word}'")
-					return result
-			return []
-
-		# Create WordNodes
-		nodes = []
-		current_time = datetime.now()
-
-		# First, add previously buffered word if it wasn't refined
-		if self.buffered_word and not buffered_was_refined:
-			nodes.append(self.buffered_word)
-			print(f"[WLK] Flushing previously buffered word: '{self.buffered_word.word}'")
-
-		# Determine how many tokens to add immediately
-		if is_final:
-			# Final/committed text: add ALL new tokens (no buffering)
-			tokens_to_add = new_only_tokens
-			self.buffered_word = None
-		else:
-			# In-progress buffer: add all but last token, buffer the last one
-			if len(new_only_tokens) > 1:
-				tokens_to_add = new_only_tokens[:-1]
-			else:
-				tokens_to_add = []
-
-		# Create nodes for tokens we're adding now
-		for token in tokens_to_add:
-			node = WordNode(
-				word=token,
-				start_time=current_time,
-				end_time=current_time
-			)
-			nodes.append(node)
-
-		# Buffer the last token if this is in-progress text
-		if not is_final and new_only_tokens:
-			last_token = new_only_tokens[-1]
-			self.buffered_word = WordNode(
-				word=last_token,
-				start_time=current_time,
-				end_time=current_time
-			)
-			print(f"[WLK] Buffering last word for potential refinement: '{last_token}'")
-
-		# Link nodes
-		for i in range(len(nodes)-1):
-			nodes[i].next = nodes[i+1]
-			nodes[i+1].prev = nodes[i]
-
-		# Update tracking
-		self.last_processed_words = new_tokens
-
-		print(f"[WLK] Extracted {len(nodes)} words (buffered: {self.buffered_word.word if self.buffered_word else 'none'})")
-
-		return nodes
-
 	def _process_wlk_transcription(self, front_data):
-		'''
-		Process transcription results from WhisperLiveKit.
-
-		front_data is a FrontData object with fields:
-		- status: str (e.g., 'active_transcription', 'no_audio_detected')
-		- lines: List[Segment] - committed/final transcription segments (may include SilentSegment)
-		- buffer_transcription: str - in-progress/buffered text
-		- buffer_diarization: str - speaker info (we don't use)
-		- buffer_translation: str - translation (we don't use)
-		- error: str - error message if any
-		'''
-		# Extract actual text content from lines (ignoring silence segments)
 		current_text = " ".join(
 			segment.text.strip()
 			for segment in (front_data.lines if front_data.lines else [])
 			if hasattr(segment, 'text') and segment.text and segment.text.strip()
 		)
 
-		has_buffer = front_data.buffer_transcription and front_data.buffer_transcription.strip()
-		has_error = front_data.error and front_data.error.strip()
-
-		# Save FrontData object to individual JSON file
 		if self.wlk_output_dir:
 			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 			output_file = os.path.join(self.wlk_output_dir, f"frontdata_{timestamp}.json")
-
 			try:
-				if hasattr(front_data, 'to_dict'):
-					data_dict = front_data.to_dict()
-				elif hasattr(front_data, '__dict__'):
-					data_dict = {}
-					for key, value in front_data.__dict__.items():
-						if isinstance(value, list):
-							data_dict[key] = [
-								seg.__dict__ if hasattr(seg, '__dict__') else str(seg)
-								for seg in value
-							]
-						else:
-							data_dict[key] = value
-				else:
-					data_dict = str(front_data)
-
+				data_dict = front_data.to_dict() if hasattr(front_data, 'to_dict') else front_data.__dict__
 				with open(output_file, 'w') as f:
 					json.dump(data_dict, f, indent=4, default=str)
 			except Exception as e:
 				print(f"[WLK] Failed to save FrontData: {e}")
 
-		is_new_content = current_text and current_text != self.last_seen_text
-
-		# Process committed lines (final transcriptions)
-		if current_text and is_new_content:
-			self.last_seen_text = current_text
-			with self.transcription_lock:
-				print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
-				# Extract only NEW words from cumulative text (prevents reprocessing)
-				# Always buffer last word to catch refinements (even in "final" text)
-				word_nodes = self._extract_new_words(current_text, is_final=False)
-				if word_nodes:
-					self.add_words_to_queue(word_nodes)
-
-		# Process buffer (in-progress/real-time transcription chunks)
-		# This gives us the "Hey, Alej" → "andro" behavior
-		if has_buffer:
-			print(f"[WLK] BUFFER: '{front_data.buffer_transcription}'")
-
-	def _process_word_level_transcription(self, words_data: List[dict]):
-		'''
-		Process word-level transcription data with timestamps.
-		'''
-		for word_info in words_data:
-			word_text = word_info.get('word', '')
-			word_start = word_info.get('start', 0.0)
-			word_end = word_info.get('end', 0.0)
-
-			# Clean the word text (remove punctuation from edges)
-			cleaned_text = word_text.strip()
-			cleaned_text = cleaned_text.rstrip(string.punctuation)
-			cleaned_text = cleaned_text.lstrip(string.punctuation)
-
-			if cleaned_text:  # Only add non-empty words
-				# Create WordNode with absolute timestamps
-				word_node = WordNode(
-					cleaned_text.lower(),
-					self.start_time + timedelta(seconds=word_start),
-					self.start_time + timedelta(seconds=word_end),
-				)
-
-				# Link to previous node
-				self.last_node = WordNode.join_returning_next(
-					prev=self.last_node,
-					next=word_node
-				)
-
-				# Add to queue for consumption
-				self.word_queue.put(self.last_node)
-				print(f"[WLK] Added word to queue: '{cleaned_text}'")
-
-	def _process_text_level_transcription(
-		self,
-		text: str,
-		start_offset: float,
-		end_offset: float
-	):
-		'''
-		Process text-level transcription without word timestamps.
-		Estimates word boundaries using NLTK tokenization.
-		'''
-		print(f"[WLK] Text-level transcription: '{text}'")
-		word_nodes = self.process_text(text)
-
-		if not word_nodes:
-			print(f"[WLK] No words extracted from text")
+		if not current_text or len(current_text) <= len(self.last_seen_text):
 			return
 
-		print(f"[WLK] Extracted {len(word_nodes)} words from text")
+		with self.transcription_lock:
+			new_chars = current_text[len(self.last_seen_text):]
+			print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
 
-		# Estimate timestamps for each word
-		duration = end_offset - start_offset
-		estimated_word_length = timedelta(seconds=duration / len(word_nodes))
+			import nltk
+			new_tokens = nltk.word_tokenize(new_chars.lower())
+			new_tokens = [token for token in new_tokens if token.isalnum()]
 
-		for index, node in enumerate(word_nodes):
-			node.start_time = self.start_time + timedelta(seconds=start_offset) + index * estimated_word_length
-			node.end_time = node.start_time + estimated_word_length
+			if not new_tokens:
+				return
 
-		# Link and queue the words
-		self.add_words_to_queue(word_nodes)
-
-	def add_words_to_queue(self, word_nodes: List[WordNode]):
-		'''Add a list of word nodes to the queue'''
-		if word_nodes:
-			print(f"[WLK] Adding {len(word_nodes)} words to queue: {[n.word for n in word_nodes]}")
-			# Link to previous node
-			if self.last_node:
-				self.last_node.set_next(word_nodes[0])
-
-			# Update last node
-			self.last_node = word_nodes[-1]
-
-			# Add all nodes to queue
-			for node in word_nodes:
+			current_time = datetime.now()
+			for token in new_tokens:
+				node = WordNode(word=token, start_time=current_time, end_time=current_time)
+				if self.last_node:
+					self.last_node.next = node
+					node.prev = self.last_node
+				self.last_node = node
 				self.word_queue.put(node)
+
+			self.last_seen_text = current_text
 
 
 def get_stream(session_id: str) -> WhisperLiveKitWordStream:
