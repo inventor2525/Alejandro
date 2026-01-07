@@ -12,8 +12,13 @@ import threading
 import string
 import base64
 import asyncio
+import logging
 
-# Import WhisperLiveKit components (required - will crash if not installed)
+# Suppress INFO-level logs from WhisperLiveKit and dependencies
+logging.getLogger('whisperlivekit').setLevel(logging.WARNING)
+logging.getLogger('httpx').setLevel(logging.WARNING)
+
+# Import WhisperLiveKit components
 from whisperlivekit import TranscriptionEngine, AudioProcessor
 
 # Global TranscriptionEngine (heavy - created once at module import)
@@ -60,6 +65,12 @@ class WhisperLiveKitWordStream(WordStream):
 		self.save_directory = save_directory
 		if save_directory:
 			os.makedirs(save_directory, exist_ok=True)
+			# Create WhisperLiveKit output directory alongside recordings
+			parent_dir = os.path.dirname(save_directory)
+			self.wlk_output_dir = os.path.join(parent_dir, "WhisperLiveKitOutput")
+			os.makedirs(self.wlk_output_dir, exist_ok=True)
+		else:
+			self.wlk_output_dir = None
 
 		# AudioProcessor (created per-session, uses shared TranscriptionEngine)
 		self.audio_processor: Optional['AudioProcessor'] = None
@@ -88,11 +99,10 @@ class WhisperLiveKitWordStream(WordStream):
 		self.last_node: WordNode = None
 		self.transcription_lock = threading.Lock()
 
-		# For tracking WLK transcription results (deduplication and logging)
-		self.last_seen_text = None  # Track last transcription text to avoid duplicates
-		self.last_processed_words = []  # Track already-processed words (tokenized)
-		self.buffered_word: Optional[WordNode] = None  # Buffer last word to detect refinements
-		self.wlk_log_file = os.path.expanduser("~/wlk_debug.log")
+		# For tracking WLK transcription results
+		self.last_seen_text = None
+		self.last_processed_words = []
+		self.buffered_word: Optional[WordNode] = None
 
 	@staticmethod
 	def init_app(app: Flask):
@@ -210,9 +220,7 @@ class WhisperLiveKitWordStream(WordStream):
 						audio_chunk = self.audio_chunk_queue.get_nowait()
 
 						# Process the audio chunk
-						print(f"[WLK] Processing {len(audio_chunk)} bytes...", flush=True)
 						await self.audio_processor.process_audio(audio_chunk)
-						print(f"[WLK] Processed {len(audio_chunk)} bytes successfully", flush=True)
 					else:
 						# Small sleep to avoid busy waiting
 						await asyncio.sleep(0.01)
@@ -296,7 +304,6 @@ class WhisperLiveKitWordStream(WordStream):
 		# Set is_recording BEFORE starting processor thread to avoid race condition
 		self.is_recording = True
 		print(f"[START] Setting is_recording={self.is_recording} before initializing processor")
-		print(f"[START] WLK debug log will be written to: {self.wlk_log_file}")
 
 		# Initialize WhisperLiveKit AudioProcessor
 		self._init_audio_processor()
@@ -357,7 +364,6 @@ class WhisperLiveKitWordStream(WordStream):
 		if self.is_recording and self.processing_thread and self.processing_thread.is_alive():
 			try:
 				self.audio_chunk_queue.put(data)
-				print(f"[WLK] Queued {len(data)} bytes for processing (queue size: {self.audio_chunk_queue.qsize()})")
 			except Exception as e:
 				print(f"[WLK] Error queuing audio chunk: {e}")
 		else:
@@ -507,24 +513,18 @@ class WhisperLiveKitWordStream(WordStream):
 		has_buffer = front_data.buffer_transcription and front_data.buffer_transcription.strip()
 		has_error = front_data.error and front_data.error.strip()
 
-		# Only log when content changes OR there's a buffer/error
-		is_new_content = current_text and current_text != self.last_seen_text
-		should_log = is_new_content or has_buffer or has_error
-
-		if should_log:
-			import json
-			from datetime import datetime
+		# Save FrontData object to individual JSON file
+		if self.wlk_output_dir:
+			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+			output_file = os.path.join(self.wlk_output_dir, f"frontdata_{timestamp}.json")
 
 			try:
-				# Try to convert to dict if it has a to_dict method
 				if hasattr(front_data, 'to_dict'):
 					data_dict = front_data.to_dict()
 				elif hasattr(front_data, '__dict__'):
-					# Fallback: manually extract attributes
 					data_dict = {}
 					for key, value in front_data.__dict__.items():
 						if isinstance(value, list):
-							# Convert segments to dicts
 							data_dict[key] = [
 								seg.__dict__ if hasattr(seg, '__dict__') else str(seg)
 								for seg in value
@@ -534,25 +534,12 @@ class WhisperLiveKitWordStream(WordStream):
 				else:
 					data_dict = str(front_data)
 
-				# Write to log file
-				with open(self.wlk_log_file, 'a') as f:
-					timestamp = datetime.now().isoformat()
-					f.write(f"\n{'='*80}\n")
-					f.write(f"[{timestamp}] FrontData received:\n")
-					f.write(json.dumps(data_dict, indent=4, default=str))
-					f.write("\n")
-
-					if is_new_content:
-						f.write(f"NEW TEXT: '{current_text}'\n")
-					if has_buffer:
-						f.write(f"BUFFER: '{front_data.buffer_transcription}'\n")
-					if has_error:
-						f.write(f"ERROR: '{front_data.error}'\n")
-
+				with open(output_file, 'w') as f:
+					json.dump(data_dict, f, indent=4, default=str)
 			except Exception as e:
-				with open(self.wlk_log_file, 'a') as f:
-					f.write(f"[ERROR] Could not serialize FrontData: {e}\n")
-					f.write(f"Type: {type(front_data)}, dir: {dir(front_data)}\n")
+				print(f"[WLK] Failed to save FrontData: {e}")
+
+		is_new_content = current_text and current_text != self.last_seen_text
 
 		# Process committed lines (final transcriptions)
 		if current_text and is_new_content:
@@ -777,7 +764,6 @@ def http_audio_chunk():
 
 	try:
 		audio_data = audio_file.read()
-		print(f"[AUDIO] HTTP received audio chunk, session={session_id}, size={len(audio_data)}")
 		get_stream(session_id)._handle_audio_chunk(audio_data)
 		return jsonify({"status": "ok"}), 200
 	except Exception as e:

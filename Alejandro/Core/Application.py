@@ -27,30 +27,37 @@ class Application:
 		try:
 			print(f"[APP] Application.run() started, waiting for words...", flush=True)
 			for word in self.word_stream.words():
-				print(f"[APP] Processing word: '{word.word}'", flush=True)
 				# Notify global handlers
 				for handler in self.global_word_handlers:
 					handler(word.word)
 
 				# Process through current screen's controls
+				screen_name = type(self.screen_stack.current).__name__
+				used_control = None
+
 				if self._modal_control:
 					result = self._modal_control.validate_word(word)
 					if result in (ControlResult.USED, ControlResult.HOLD):
+						used_control = self._modal_control.text
 						self.call_control(self._modal_control)
 					if result == ControlResult.USED:
 						self._modal_control = None
 				else:
-					print(f"[APP] Checking {len(self.screen_stack.current.controls)} controls on screen: {type(self.screen_stack.current).__name__}", flush=True)
 					for control in self.screen_stack.current.controls:
 						result = control.validate_word(word)
-						print(f"[APP] Control '{control.text}' returned {result}", flush=True)
 						if result == ControlResult.HOLD:
 							self._modal_control = control
 						if result in (ControlResult.USED, ControlResult.HOLD):
-							print(f"[APP] Calling control '{control.text}'", flush=True)
+							used_control = control.text
 							self.call_control(control)
 							break
-				
+
+				# Consolidated logging: only log control if it was used
+				if used_control:
+					print(f"[APP] Processed '{word.word}' on {screen_name} - {used_control}: USED", flush=True)
+				else:
+					print(f"[APP] Processed '{word.word}' on {screen_name}", flush=True)
+
 				# Block if waiting for controls
 				while self.waiting_controls:
 					time.sleep(0.01)
