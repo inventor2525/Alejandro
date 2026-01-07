@@ -14,7 +14,12 @@ A voice-controlled interface framework that enables natural language interaction
 ## Installation
 
 ```bash
-wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/claude%2Ffix-whisper-livekit-stream-rlz6k/installer.sh | bash
+wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/main/installer.sh | bash
+```
+
+Or with ngrok token:
+```bash
+wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/main/installer.sh | bash -s YOUR_NGROK_TOKEN
 ```
 
 ## Development

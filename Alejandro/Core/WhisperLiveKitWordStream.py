@@ -447,31 +447,35 @@ class WhisperLiveKitWordStream(WordStream):
 				self.pending_segments.append({"text": new_text, "timestamp": current_time})
 
 			# Finalize segments that are past the threshold
-			num_to_finalize = 0
-			for seg in self.pending_segments:
-				if current_time - seg["timestamp"] > self.stability_threshold:
-					num_to_finalize += 1
-				else:
-					break
-
-			if num_to_finalize > 0:
-				import nltk
-				combined_text = "".join(seg["text"] for seg in self.pending_segments[:num_to_finalize])
-				tokens = nltk.word_tokenize(combined_text.lower())
-				tokens = [t for t in tokens if t.isalnum()]
-
-				for token in tokens:
-					node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
-					if self.last_node:
-						self.last_node.next = node
-						node.prev = self.last_node
-					self.last_node = node
-					self.word_queue.put(node)
-
-				self.last_finalized_len += len(combined_text)
-				self.pending_segments = self.pending_segments[num_to_finalize:]
+			self._finalize_stable_segments(current_time)
 		# Signal to reset the finalization thread timer
 		self.finalization_event.set()
+
+	def _finalize_stable_segments(self, current_time: float):
+		"""Finalize segments that have been stable past the threshold."""
+		num_to_finalize = 0
+		for seg in self.pending_segments:
+			if current_time - seg["timestamp"] > self.stability_threshold:
+				num_to_finalize += 1
+			else:
+				break
+
+		if num_to_finalize > 0:
+			import nltk
+			combined_text = "".join(seg["text"] for seg in self.pending_segments[:num_to_finalize])
+			tokens = nltk.word_tokenize(combined_text.lower())
+			tokens = [t for t in tokens if t.isalnum()]
+
+			for token in tokens:
+				node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
+				if self.last_node:
+					self.last_node.next = node
+					node.prev = self.last_node
+				self.last_node = node
+				self.word_queue.put(node)
+
+			self.last_finalized_len += len(combined_text)
+			self.pending_segments = self.pending_segments[num_to_finalize:]
 
 	def _run_finalization_thread(self):
 		"""Background thread that waits for stability_threshold and finalizes if timeout occurs."""
@@ -481,31 +485,7 @@ class WhisperLiveKitWordStream(WordStream):
 			if timed_out:
 				with self.transcription_lock:
 					current_time = time.time()
-					# Finalize segments that are past the threshold
-					# (copy-pasted from original _process_wlk_transcription finalization block)
-					num_to_finalize = 0
-					for seg in self.pending_segments:
-						if current_time - seg["timestamp"] > self.stability_threshold:
-							num_to_finalize += 1
-						else:
-							break
-
-					if num_to_finalize > 0:
-						import nltk
-						combined_text = "".join(seg["text"] for seg in self.pending_segments[:num_to_finalize])
-						tokens = nltk.word_tokenize(combined_text.lower())
-						tokens = [t for t in tokens if t.isalnum()]
-
-						for token in tokens:
-							node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
-							if self.last_node:
-								self.last_node.next = node
-								node.prev = self.last_node
-							self.last_node = node
-							self.word_queue.put(node)
-
-						self.last_finalized_len += len(combined_text)
-						self.pending_segments = self.pending_segments[num_to_finalize:]
+					self._finalize_stable_segments(current_time)
 						
 def get_stream(session_id: str) -> WhisperLiveKitWordStream:
 	'''
