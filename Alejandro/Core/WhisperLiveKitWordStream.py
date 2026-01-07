@@ -100,6 +100,9 @@ class WhisperLiveKitWordStream(WordStream):
 		self.last_finalized_len = 0  # How many characters of cumulative text we've finalized
 		self.last_seen_transcription = ""  # To skip duplicate transcriptions
 		self.stability_threshold = 0.5  # Seconds to wait before finalizing text
+		
+		self.finalization_event = threading.Event()
+		self.finalization_thread = None
 
 	@staticmethod
 	def init_app(app: Flask):
@@ -301,7 +304,14 @@ class WhisperLiveKitWordStream(WordStream):
 		# Set is_recording BEFORE starting processor thread to avoid race condition
 		self.is_recording = True
 		print(f"[START] Setting is_recording={self.is_recording} before initializing processor")
-
+		
+		# Start finalization thread
+		self.finalization_thread = threading.Thread(
+			target=self._run_finalization_thread,
+			daemon=True
+		)
+		self.finalization_thread.start()
+		
 		# Initialize WhisperLiveKit AudioProcessor
 		self._init_audio_processor()
 
@@ -349,6 +359,11 @@ class WhisperLiveKitWordStream(WordStream):
 					self.last_node = node
 					self.word_queue.put(node)
 
+		# Stop finalization thread
+		if self.finalization_thread and self.finalization_thread.is_alive():
+			self.finalization_event.set()  # Wake thread to exit
+			self.finalization_thread.join(timeout=1.0)
+			
 		# Reset segment tracking for next session
 		self.pending_segments = []
 		self.last_finalized_len = 0
@@ -455,8 +470,43 @@ class WhisperLiveKitWordStream(WordStream):
 
 				self.last_finalized_len += len(combined_text)
 				self.pending_segments = self.pending_segments[num_to_finalize:]
+		# Signal to reset the finalization thread timer
+		self.finalization_event.set()
 
+	def _run_finalization_thread(self):
+		"""Background thread that waits for stability_threshold and finalizes if timeout occurs."""
+		while self.is_recording:
+			self.finalization_event.clear()
+			timed_out = not self.finalization_event.wait(timeout=self.stability_threshold)
+			if timed_out:
+				with self.transcription_lock:
+					current_time = time.time()
+					# Finalize segments that are past the threshold
+					# (copy-pasted from original _process_wlk_transcription finalization block)
+					num_to_finalize = 0
+					for seg in self.pending_segments:
+						if current_time - seg["timestamp"] > self.stability_threshold:
+							num_to_finalize += 1
+						else:
+							break
 
+					if num_to_finalize > 0:
+						import nltk
+						combined_text = "".join(seg["text"] for seg in self.pending_segments[:num_to_finalize])
+						tokens = nltk.word_tokenize(combined_text.lower())
+						tokens = [t for t in tokens if t.isalnum()]
+
+						for token in tokens:
+							node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
+							if self.last_node:
+								self.last_node.next = node
+								node.prev = self.last_node
+							self.last_node = node
+							self.word_queue.put(node)
+
+						self.last_finalized_len += len(combined_text)
+						self.pending_segments = self.pending_segments[num_to_finalize:]
+						
 def get_stream(session_id: str) -> WhisperLiveKitWordStream:
 	'''
 	Gets the word stream for the given session.
