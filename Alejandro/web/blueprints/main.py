@@ -13,6 +13,7 @@ class MainScreen(Screen):
 		from Alejandro.web.blueprints.terminal import TerminalScreen
 		from Alejandro.web.blueprints.notes import NotesScreen
 		from Alejandro.web.blueprints.claudecode import ClaudeCodeScreen
+		from Alejandro.web.blueprints.braindump import BrainDumpScreen
 		super().__init__(
 			session=session,
 			title="Main Menu",
@@ -34,6 +35,12 @@ class MainScreen(Screen):
 					text="Notes",
 					keyphrases=["note", "open notes"],
 					action=session.navigator(NotesScreen)
+				),
+				Control(
+					id="braindump",
+					text="Brain Dump",
+					keyphrases=["brain dump", "quick notes", "dictation"],
+					action=session.navigator(BrainDumpScreen)
 				),
 				Control(
 					id="claudecode",

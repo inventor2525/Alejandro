@@ -15,8 +15,12 @@ A voice-controlled interface framework that enables natural language interaction
 
 Optionally provide your ngrok token:
 ```bash
-wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/main/installer.sh | bash -s YOUR_NGROK_TOKEN
+wget -O - https://raw.githubusercontent.com/inventor2525/Alejandro/claude/review-app-context-4TwcN/installer.sh | bash -s YOUR_NGROK_TOKEN
 ```
+
+**Note:** This README currently points to the `claude/review-app-context-4TwcN` branch which includes:
+- ClaudeCodeScreen: Voice-controlled Claude Code CLI interface
+- BrainDumpScreen: Offline voice-to-file note-taking
 
 ## Development
 

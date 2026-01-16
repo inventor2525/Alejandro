@@ -19,7 +19,7 @@ cd ~/Projects/Alejandro_dev
 git clone https://github.com/inventor2525/assistant_merger.git
 git clone https://github.com/inventor2525/assistant_interaction.git
 git clone https://github.com/inventor2525/RequiredAI.git
-git clone https://github.com/inventor2525/Alejandro.git
+git clone -b claude/review-app-context-4TwcN https://github.com/inventor2525/Alejandro.git
 
 cd assistant_merger
 pip install -e ./
