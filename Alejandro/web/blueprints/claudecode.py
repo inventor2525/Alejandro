@@ -1,5 +1,8 @@
 import subprocess
 import threading
+import shutil
+import random
+from pathlib import Path
 from typing import List, Dict, Optional
 from flask import Blueprint, render_template, request
 from RequiredAI.RequirementTypes import WrittenRequirement
@@ -10,6 +13,28 @@ from Alejandro.Core.Screen import Screen, screen_type, control, ModalControl
 from Alejandro.Core.Control import Control
 
 bp = Blueprint('claudecode', __name__)
+
+# Base directories
+NOTES_DIR = Path.home() / "Documents" / "Alejandro" / "Notes"
+REPOS_DIR = Path.home() / "Documents" / "Alejandro" / "repos"
+REPOS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Speakable UUID word lists
+ADJECTIVES = [
+	"quick", "blue", "red", "green", "bright", "dark", "fast", "slow", "big", "small",
+	"cool", "warm", "old", "new", "long", "short", "high", "low", "deep", "wide"
+]
+NOUNS = [
+	"fox", "wolf", "bear", "hawk", "lion", "tiger", "eagle", "shark", "horse", "whale",
+	"tree", "star", "moon", "sun", "wave", "rock", "cloud", "wind", "fire", "snow"
+]
+
+def generate_speakable_uuid() -> str:
+	"""Generate a short, easily speakable branch name like 'quick-fox-42'"""
+	adj = random.choice(ADJECTIVES)
+	noun = random.choice(NOUNS)
+	num = random.randint(10, 99)
+	return f"{adj}-{noun}-{num}"
 
 @screen_type
 class ClaudeCodeScreen(Screen):
@@ -27,6 +52,8 @@ class ClaudeCodeScreen(Screen):
 		self.dictation_buffer: str = ""
 		self.conversation_history: List[Dict[str, str]] = []
 		self.last_claude_response: Optional[str] = None
+		self.current_repo_path: Optional[Path] = None
+		self.current_branch: Optional[str] = None
 
 		# Define summarizer model inline with requirements
 		self.summarizer = client.model(base_model=gpt_oss_120b, requirements=[
@@ -66,6 +93,126 @@ class ClaudeCodeScreen(Screen):
 				name="Brief Summary"
 			)
 		])
+
+	@control(
+		keyphrases=["new from notes", "create from notes", "new project from notes"],
+		deactivate_phrases=["done", "finished", "end"]
+	)
+	def new_from_notes(self, control: ModalControl):
+		"""Create a new repo from a notes directory"""
+		notes_path = control.collected_words.strip()
+		if not notes_path:
+			print("[CLAUDE CODE] No notes path provided")
+			return
+
+		# Replace spoken "slash" with actual slash
+		notes_path = notes_path.replace(' slash ', '/')
+		notes_path = notes_path.replace('slash ', '/')
+		notes_path = notes_path.replace(' slash', '/')
+		notes_path = notes_path.strip('/')
+
+		# Validate path exists
+		source_dir = NOTES_DIR / notes_path
+		if not source_dir.exists() or not source_dir.is_dir():
+			print(f"[CLAUDE CODE] Notes directory not found: {notes_path}")
+			return
+
+		# Get repo name from last folder in path
+		repo_name = Path(notes_path).name
+		repo_path = REPOS_DIR / repo_name
+
+		# Generate speakable branch name
+		branch_name = generate_speakable_uuid()
+
+		print(f"[CLAUDE CODE] Creating repo '{repo_name}' from notes '{notes_path}'")
+		print(f"[CLAUDE CODE] Branch: {branch_name}")
+
+		# Run in background
+		thread = threading.Thread(target=self._create_repo_from_notes, args=(source_dir, repo_path, repo_name, branch_name))
+		thread.daemon = True
+		thread.start()
+
+	def _create_repo_from_notes(self, source_dir: Path, repo_path: Path, repo_name: str, branch_name: str):
+		"""Create or update repository with notes"""
+		try:
+			if not repo_path.exists():
+				# New repo: create, init, instructions commit, branch, copy notes
+				print(f"[CLAUDE CODE] Creating new repository: {repo_name}")
+				repo_path.mkdir(parents=True, exist_ok=True)
+
+				# Git init
+				subprocess.run(["git", "init"], cwd=repo_path, check=True)
+				subprocess.run(["git", "config", "user.name", "Alejandro Claude Code"], cwd=repo_path, check=True)
+				subprocess.run(["git", "config", "user.email", "claudecode@alejandro.local"], cwd=repo_path, check=True)
+
+				# Create initial README with instructions
+				readme_path = repo_path / "README.md"
+				with open(readme_path, 'w') as f:
+					f.write(f"""# {repo_name}
+
+## Instructions for Claude Code
+
+This repository contains design documents and notes in the `notes/` directory.
+
+### How to Read the Notes
+
+1. Notes are in markdown format with the following structure:
+   - `# Note Content` - Contains the design documentation and requirements
+   - `# Change Log` - CSV log of when content was added (for audio traceability)
+
+2. Each note may contain:
+   - User-defined headers (## level)
+   - Design specifications
+   - Requirements
+   - Implementation ideas
+
+3. Your task is to implement drafts based on these design documents.
+
+4. Each branch represents a separate draft attempt - they are independent explorations.
+
+### Workflow
+
+- Read all notes in the `notes/` directory
+- Understand the requirements and design intent
+- Implement your draft in this repository
+- This branch ({branch_name}) is your workspace for this draft
+""")
+
+				# Initial commit
+				subprocess.run(["git", "add", "README.md"], cwd=repo_path, check=True)
+				subprocess.run(["git", "commit", "-m", "initial commit with instructions"], cwd=repo_path, check=True)
+
+				print(f"[CLAUDE CODE] Created initial commit")
+
+			# Branch from first commit
+			print(f"[CLAUDE CODE] Creating branch: {branch_name}")
+			subprocess.run(["git", "checkout", "-b", branch_name, "HEAD"], cwd=repo_path, check=True)
+
+			# Copy notes to branch
+			notes_dest = repo_path / "notes"
+			if notes_dest.exists():
+				shutil.rmtree(notes_dest)
+
+			shutil.copytree(source_dir, notes_dest)
+
+			# Commit notes
+			subprocess.run(["git", "add", "notes/"], cwd=repo_path, check=True)
+			subprocess.run(["git", "commit", "-m", f"added design notes from {source_dir.name}"], cwd=repo_path, check=True)
+
+			print(f"[CLAUDE CODE] Repository ready: {repo_path}")
+			print(f"[CLAUDE CODE] Branch: {branch_name}")
+			print(f"[CLAUDE CODE] Notes copied and committed")
+
+			# Update state
+			self.current_repo_path = repo_path
+			self.current_branch = branch_name
+
+			# Clear conversation for fresh start
+			self.conversation_history = []
+			self.dictation_buffer = ""
+
+		except Exception as e:
+			print(f"[CLAUDE CODE ERROR] Failed to create repo: {e}")
 
 	@control(
 		keyphrases=["begin dictation", "start dictating", "start input"],
@@ -109,22 +256,25 @@ class ClaudeCodeScreen(Screen):
 		"""Call Claude Code CLI and capture response"""
 		try:
 			# Build conversation context for Claude Code
-			# Format: alternating user/assistant messages
 			conversation_args = []
 			for msg in self.conversation_history[-10:]:  # Last 10 messages for context
 				if msg["role"] == "user":
 					conversation_args.extend(["--message", msg["content"]])
 
-			# Call Claude Code CLI
+			# Build command with working directory if repo is set
 			cmd = ["/opt/node22/bin/claude"] + conversation_args
+			cwd = self.current_repo_path if self.current_repo_path else None
 
+			if cwd:
+				print(f"[CLAUDE CODE] Running in repo: {cwd.name} (branch: {self.current_branch})")
 			print(f"[CLAUDE CODE] Running: {' '.join(cmd[:3])}...")
 
 			result = subprocess.run(
 				cmd,
 				capture_output=True,
 				text=True,
-				timeout=300  # 5 minute timeout
+				timeout=300,  # 5 minute timeout
+				cwd=cwd
 			)
 
 			if result.returncode == 0:
@@ -225,6 +375,16 @@ class ClaudeCodeScreen(Screen):
 		self.last_claude_response = None
 		self.dictation_buffer = ""
 		print("[CLAUDE CODE] Conversation history cleared")
+
+	@control(keyphrases=["repo status", "current repo", "what repo", "where am i working"])
+	def repo_status(self, control: Control):
+		"""Show current repository and branch"""
+		if self.current_repo_path:
+			print(f"[CLAUDE CODE] Repository: {self.current_repo_path.name}")
+			print(f"[CLAUDE CODE] Branch: {self.current_branch}")
+			print(f"[CLAUDE CODE] Path: {self.current_repo_path}")
+		else:
+			print("[CLAUDE CODE] No repository set - working in default mode")
 
 @bp.route(f'/{ClaudeCodeScreen.url()}')
 def show_screen() -> str:
