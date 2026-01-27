@@ -106,11 +106,8 @@ class WhisperLiveKitWordStream(WordStream):
 
 	@staticmethod
 	def init_app(app: Flask):
-		print("[INIT] Initializing WhisperLiveKitWordStream with Flask app")
 		WhisperLiveKitWordStream.socketio.init_app(app)
 		app.register_blueprint(WhisperLiveKitWordStream.bp)
-		print(f"[INIT] SocketIO instance: {WhisperLiveKitWordStream.socketio}")
-		print(f"[INIT] Registered handlers: {WhisperLiveKitWordStream.socketio.server.handlers}")
 
 	def words(self) -> Iterator[WordNode]:
 		'''
@@ -142,7 +139,6 @@ class WhisperLiveKitWordStream(WordStream):
 		Uses the global TranscriptionEngine.
 		Starts async processing thread.
 		'''
-		print(f"[WLK] Starting async processing thread for session {self.session_id}")
 
 		# Start the async processing thread
 		self.processing_thread = threading.Thread(
@@ -153,7 +149,6 @@ class WhisperLiveKitWordStream(WordStream):
 
 		# Give it a moment to initialize
 		time.sleep(0.5)
-		print("[WLK] AudioProcessor thread started successfully")
 
 	def _run_async_processor(self):
 		'''
@@ -161,25 +156,19 @@ class WhisperLiveKitWordStream(WordStream):
 		This method runs in a separate thread.
 		'''
 		try:
-			print("[WLK] _run_async_processor: Starting...", flush=True)
 			# Create new event loop for this thread
 			self.processing_loop = asyncio.new_event_loop()
 			asyncio.set_event_loop(self.processing_loop)
-			print("[WLK] _run_async_processor: Event loop created", flush=True)
 
 			# Run the async processing
 			self.processing_loop.run_until_complete(self._async_process_audio())
-			print("[WLK] _run_async_processor: Completed normally", flush=True)
 
 		except Exception as e:
-			print(f"[WLK] Error in async processor thread: {e}", flush=True)
 			import traceback
 			traceback.print_exc()
 		finally:
-			print("[WLK] _run_async_processor: Cleaning up event loop...", flush=True)
 			if self.processing_loop:
 				self.processing_loop.close()
-			print("[WLK] _run_async_processor: Thread exiting", flush=True)
 
 	async def _async_process_audio(self):
 		'''
@@ -187,30 +176,21 @@ class WhisperLiveKitWordStream(WordStream):
 		This is the main async processing loop.
 		'''
 		try:
-			print("[WLK] _async_process_audio: Starting...", flush=True)
 
 			# Create AudioProcessor for this session using the global TranscriptionEngine
-			print(f"[WLK] Creating AudioProcessor for session {self.session_id}", flush=True)
 			self.audio_processor = await asyncio.to_thread(
 				AudioProcessor,
 				transcription_engine=_transcription_engine
 			)
-			print(f"[WLK] AudioProcessor created successfully", flush=True)
 
 			# Create tasks and get results generator
-			print("[WLK] Calling create_tasks()...", flush=True)
 			results_generator = await self.audio_processor.create_tasks()
-			print(f"[WLK] create_tasks() returned: {type(results_generator)}", flush=True)
 
 			# Start results handler task
-			print("[WLK] Starting results handler task...", flush=True)
 			self.results_task = asyncio.create_task(
 				self._handle_transcription_results(results_generator)
 			)
-			print("[WLK] Results handler task started", flush=True)
 
-			print("[WLK] AudioProcessor initialized, processing audio chunks...", flush=True)
-			print(f"[WLK] Initial state: is_recording={self.is_recording}, queue_size={self.audio_chunk_queue.qsize()}", flush=True)
 
 			# Process audio chunks from queue
 			while self.is_recording or not self.audio_chunk_queue.empty():
@@ -228,20 +208,15 @@ class WhisperLiveKitWordStream(WordStream):
 				except Empty:
 					await asyncio.sleep(0.01)
 				except Exception as e:
-					print(f"[WLK] Error processing audio chunk: {e}", flush=True)
 					import traceback
 					traceback.print_exc()
 
-			print("[WLK] Audio processing loop finished", flush=True)
 
 			# Wait for results handler to finish
 			if self.results_task:
-				print("[WLK] Waiting for results handler to finish...", flush=True)
 				await self.results_task
-				print("[WLK] Results handler finished", flush=True)
 
 		except Exception as e:
-			print(f"[WLK] Error in async audio processing: {e}", flush=True)
 			import traceback
 			traceback.print_exc()
 
@@ -255,21 +230,18 @@ class WhisperLiveKitWordStream(WordStream):
 				if result:
 					self._process_wlk_transcription(result)
 		except Exception as e:
-			print(f"[WLK] Error handling transcription results: {e}")
 			import traceback
 			traceback.print_exc()
 
 	def _close_audio_processor(self):
 		'''Close the AudioProcessor for this session'''
 		try:
-			print(f"[WLK] Closing AudioProcessor for session {self.session_id}")
 
 			# Stop is_recording to signal the async loop to finish
 			# (already done in _stop_listening, but just in case)
 
 			# Wait for processing thread to finish
 			if self.processing_thread and self.processing_thread.is_alive():
-				print("[WLK] Waiting for processing thread to finish...")
 				self.processing_thread.join(timeout=2.0)
 
 			# Clean up
@@ -278,10 +250,8 @@ class WhisperLiveKitWordStream(WordStream):
 			self.processing_thread = None
 			self.results_task = None
 
-			print("[WLK] AudioProcessor closed")
 
 		except Exception as e:
-			print(f"[WLK] Error closing AudioProcessor: {e}")
 			import traceback
 			traceback.print_exc()
 
@@ -298,12 +268,10 @@ class WhisperLiveKitWordStream(WordStream):
 			self.save_directory,
 			f"raw_recording_{timestamp}.{self.file_ext}"
 		)
-		print(f"[FILE] Opening audio file: {self.current_audio_path}")
 		self.current_audio_file = open(self.current_audio_path, "wb")
 
 		# Set is_recording BEFORE starting processor thread to avoid race condition
 		self.is_recording = True
-		print(f"[START] Setting is_recording={self.is_recording} before initializing processor")
 		
 		# Start finalization thread
 		self.finalization_thread = threading.Thread(
@@ -315,19 +283,16 @@ class WhisperLiveKitWordStream(WordStream):
 		# Initialize WhisperLiveKit AudioProcessor
 		self._init_audio_processor()
 
-		print(f"[START] Recording started successfully")
 
 	def _stop_listening(self) -> None:
 		'''
 		Close WhisperLiveKit AudioProcessor and finalize audio recording.
 		'''
-		print(f"[STOP] Stopping recording...")
 		self.end_time = datetime.now()
 
 		# Close audio file
 		if self.current_audio_file:
 			self.current_audio_file.close()
-			print(f"[FILE] Closed audio file")
 
 		# Close WhisperLiveKit AudioProcessor
 		self._close_audio_processor()
@@ -341,7 +306,6 @@ class WhisperLiveKitWordStream(WordStream):
 				f"recording_{start_str}__{end_str}.{self.file_ext}"
 			)
 			os.rename(self.current_audio_path, new_raw)
-			print(f"[FILE] Renamed recording to: {new_raw}")
 
 		self.is_recording = False
 
@@ -358,6 +322,7 @@ class WhisperLiveKitWordStream(WordStream):
 						node.prev = self.last_node
 					self.last_node = node
 					self.word_queue.put(node)
+				print(f"[WORD] '{token}'")
 
 		# Stop finalization thread
 		if self.finalization_thread and self.finalization_thread.is_alive():
@@ -369,7 +334,6 @@ class WhisperLiveKitWordStream(WordStream):
 		self.last_finalized_len = 0
 		self.last_seen_transcription = ""
 
-		print(f"[STOP] Recording stopped")
 
 	def _handle_audio_chunk(self, data: bytes):
 		"""
@@ -385,14 +349,10 @@ class WhisperLiveKitWordStream(WordStream):
 			try:
 				self.audio_chunk_queue.put(data)
 			except Exception as e:
-				print(f"[WLK] Error queuing audio chunk: {e}")
 		else:
 			if not self.processing_thread:
-				print(f"[WLK] Not processing: processing thread not started")
 			elif not self.processing_thread.is_alive():
-				print(f"[WLK] Not processing: processing thread died")
 			elif not self.is_recording:
-				print(f"[WLK] Not processing: is_recording={self.is_recording}")
 
 	def _process_wlk_transcription(self, front_data):
 		def extract_segment_text():
@@ -412,7 +372,6 @@ class WhisperLiveKitWordStream(WordStream):
 				with open(output_file, 'w') as f:
 					json.dump(front_data.to_dict(), f, indent=4, default=str)
 			except Exception as e:
-				print(f"[WLK] Failed to save FrontData: {e}")
 
 		if not current_text:
 			return
@@ -422,7 +381,10 @@ class WhisperLiveKitWordStream(WordStream):
 			if current_text == self.last_seen_transcription:
 				return
 
-			print(f"[WLK] NEW TRANSCRIPTION: '{current_text}'")
+			# DUMP WLK RAW OUTPUT
+			print("[WLK RAW]")
+			print(json.dumps(front_data.to_dict(), indent=4, default=str))
+
 			self.last_seen_transcription = current_text
 
 			current_time = time.time()
@@ -473,6 +435,7 @@ class WhisperLiveKitWordStream(WordStream):
 					node.prev = self.last_node
 				self.last_node = node
 				self.word_queue.put(node)
+				print(f"[WORD] '{token}'")
 
 			self.last_finalized_len += len(combined_text)
 			self.pending_segments = self.pending_segments[num_to_finalize:]
@@ -498,12 +461,10 @@ def get_stream(session_id: str) -> WhisperLiveKitWordStream:
 
 @WhisperLiveKitWordStream.socketio.on('connect')
 def handle_connect():
-	print("[SOCKETIO] Client connected!")
 
 
 @WhisperLiveKitWordStream.socketio.on('disconnect')
 def handle_disconnect():
-	print("[SOCKETIO] Client disconnected!")
 
 
 @WhisperLiveKitWordStream.socketio.on('start_listening')
@@ -514,10 +475,8 @@ def _start_listening(data: dict) -> Response:
 	This will establish a connection to WhisperLiveKit
 	and start streaming audio for transcription.
 	'''
-	print(f"[EVENT] start_listening event received with data: {data}")
 	session_id = data.get('session_id')
 	mime_type = data.get("mime_type", "audio/webm")
-	print(f"[START] Starting listening for session={session_id}, mime_type={mime_type}")
 	get_stream(session_id)._start_listening(mime_type)
 
 
@@ -527,7 +486,6 @@ def _stop_listening(data: dict = None) -> Response:
 	Receive the client command to stop listening.
 	'''
 	session_id = data.get('session_id')
-	print(f"[STOP] Stopping listening for session={session_id}")
 	get_stream(session_id)._stop_listening()
 
 
@@ -539,7 +497,6 @@ def _handle_audio_chunk(data):
 	'''
 	session_id = data.get("session_id")
 	audio_data = data.get("audio_data")
-	print(f"[AUDIO] Received audio chunk from client, session={session_id}, size={len(audio_data) if audio_data else 0}")
 	get_stream(session_id)._handle_audio_chunk(audio_data)
 
 
@@ -573,11 +530,9 @@ def http_start_listening():
 		return jsonify({"error": "Missing session_id"}), 400
 
 	try:
-		print(f"[HTTP] start_listening for session={session_id}, mime={mime_type}")
 		get_stream(session_id)._start_listening(mime_type)
 		return jsonify({"status": "ok"}), 200
 	except Exception as e:
-		print(f"[HTTP] Error starting listening: {e}")
 		return jsonify({"error": str(e)}), 500
 
 
@@ -594,11 +549,9 @@ def http_stop_listening():
 		return jsonify({"error": "Missing session_id"}), 400
 
 	try:
-		print(f"[HTTP] stop_listening for session={session_id}")
 		get_stream(session_id)._stop_listening()
 		return jsonify({"status": "ok"}), 200
 	except Exception as e:
-		print(f"[HTTP] Error stopping listening: {e}")
 		return jsonify({"error": str(e)}), 500
 
 
@@ -619,7 +572,6 @@ def http_audio_chunk():
 		get_stream(session_id)._handle_audio_chunk(audio_data)
 		return jsonify({"status": "ok"}), 200
 	except Exception as e:
-		print(f"[AUDIO] Error processing audio chunk: {e}")
 		return jsonify({"error": str(e)}), 500
 
 

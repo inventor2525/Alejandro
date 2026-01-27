@@ -25,7 +25,6 @@ class Application:
 	
 	def run(self) -> None:
 		try:
-			print(f"[APP] Application.run() started, waiting for words...", flush=True)
 			for word in self.word_stream.words():
 				# Notify global handlers
 				for handler in self.global_word_handlers:
@@ -52,11 +51,9 @@ class Application:
 							self.call_control(control)
 							break
 
-				# Consolidated logging: only log control if it was used
+				# Log only when controls are activated
 				if used_control:
-					print(f"[APP] Processed '{word.word}' on {screen_name} - {used_control}: USED", flush=True)
-				else:
-					print(f"[APP] Processed '{word.word}' on {screen_name}", flush=True)
+					print(f"[CONTROL] {screen_name}.{used_control}", flush=True)
 
 				# Block if waiting for controls
 				while self.waiting_controls:
