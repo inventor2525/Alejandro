@@ -322,7 +322,7 @@ class WhisperLiveKitWordStream(WordStream):
 						node.prev = self.last_node
 					self.last_node = node
 					self.word_queue.put(node)
-				print(f"[WORD] '{token}'")
+					print(f"[WORD] '{token}'")
 
 		# Stop finalization thread
 		if self.finalization_thread and self.finalization_thread.is_alive():
@@ -346,13 +346,7 @@ class WhisperLiveKitWordStream(WordStream):
 
 		# Queue audio chunk for async processing
 		if self.is_recording and self.processing_thread and self.processing_thread.is_alive():
-			try:
-				self.audio_chunk_queue.put(data)
-			except Exception as e:
-		else:
-			if not self.processing_thread:
-			elif not self.processing_thread.is_alive():
-			elif not self.is_recording:
+			self.audio_chunk_queue.put(data)
 
 	def _process_wlk_transcription(self, front_data):
 		def extract_segment_text():
@@ -372,6 +366,7 @@ class WhisperLiveKitWordStream(WordStream):
 				with open(output_file, 'w') as f:
 					json.dump(front_data.to_dict(), f, indent=4, default=str)
 			except Exception as e:
+				pass
 
 		if not current_text:
 			return
@@ -461,10 +456,12 @@ def get_stream(session_id: str) -> WhisperLiveKitWordStream:
 
 @WhisperLiveKitWordStream.socketio.on('connect')
 def handle_connect():
+	pass
 
 
 @WhisperLiveKitWordStream.socketio.on('disconnect')
 def handle_disconnect():
+	pass
 
 
 @WhisperLiveKitWordStream.socketio.on('start_listening')
