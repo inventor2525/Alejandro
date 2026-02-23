@@ -33,6 +33,7 @@ setup(
 		"flask",
 		"flask-socketio",
 		"python-socketio",
+		"pyopenssl",  # For ssl_context='adhoc'
 		"groq",
 		"dataclasses-json",
 		"nltk",

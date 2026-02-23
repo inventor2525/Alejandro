@@ -47,4 +47,11 @@ app.register_blueprint(events_bp)
 WhisperLiveKitWordStream.init_app(app)
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
+	WhisperLiveKitWordStream.socketio.run(
+		app,
+		host='0.0.0.0',
+		port=5000,
+		debug=True,
+		allow_unsafe_werkzeug=True,
+		ssl_context='adhoc'
+	)
