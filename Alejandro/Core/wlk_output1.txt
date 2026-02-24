@@ -1,0 +1,3574 @@
+    raise RuntimeError(f'{self!r} is bound to a different event loop')(venv) inventor2525@spark-7da1:~/Projects/Alejandro_dev/Alejandro$ python Alejandro/web/app.py 
+[APP] Global logging enabled: /home/inventor2525/alejandro_app.log
+SimulStreaming will use Faster Whisper for the encoder.
+ * Serving Flask app 'app'
+ * Debug mode: on
+[APP] Global logging enabled: /home/inventor2525/alejandro_app.log
+SimulStreaming will use Faster Whisper for the encoder.
+WARNING:werkzeug: * Debugger is active!
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.01s | + Silence of = 0.01s
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.35s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.58s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.99s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:03"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 1.4,
+    "remaining_time_diarization": 0
+}
+[WORD] 'rest'
+[WORD] 'in'
+[WORD] '1'
+[WORD] '2'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.36s | + Silence starting | last_end = 1.18 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:03"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 1.9,
+    "remaining_time_diarization": 0
+}
+[WORD] '3'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=12.19s | + Silence of = 11.96s | last_end = 1.6 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.23s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.47s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.94s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.28s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:17"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 1.5,
+    "remaining_time_diarization": 0
+}
+[WORD] 'testing'
+[WORD] 'one'
+[WORD] 'two'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.52s | + Silence starting | last_end = 14.662310552597045 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:17"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 2.1,
+    "remaining_time_diarization": 0
+}
+[WORD] 'three'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=14.47s | + Silence of = 14.00s | last_end = 14.862310552597046 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.48s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.88s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:31"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0.3,
+    "remaining_time_diarization": 0
+}
+[WORD] 'hello'
+[WORD] 'computer'
+[WORD] 'can'
+[WORD] 'you'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.26s | + Silence starting | last_end = 29.71746350288391 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:31"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0.9,
+    "remaining_time_diarization": 0
+}
+[WORD] 'hear'
+[WORD] 'me'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=11.17s | + Silence of = 12.00s | last_end = 29.95746350288391 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually",
+            "start": "0:00:42",
+            "end": "0:00:42",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'yeah'
+[WORD] 'actually'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.46s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.84s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'managed'
+[WORD] 'to'
+[WORD] 'get'
+[WORD] 'that'
+[WORD] 'far'
+[WORD] 'at'
+[WORD] 'least'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.39s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.79s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:47"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0.9,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.91s | + Silence starting | last_end = 44.78117997169495 |
+[WORD] 'that'
+[WORD] 'good'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=11.81s | + Silence of = 12.02s | last_end = 44.78117997169495 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.87s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.29s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care",
+            "start": "0:00:56",
+            "end": "0:00:58",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:00",
+            "end": "0:01:01"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0.6,
+    "remaining_time_diarization": 0
+}
+[WORD] 'i'
+[WORD] 'can'
+[WORD] 'see'
+[WORD] 'me'
+[WORD] 'on'
+[WORD] 'settle'
+[WORD] 'the'
+[WORD] 'care'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.60s | + Silence starting | last_end = 58.636275920867924 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them",
+            "start": "0:00:56",
+            "end": "0:00:59",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:00",
+            "end": "0:01:01"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 1.1,
+    "remaining_time_diarization": 0
+}
+[WORD] 'of'
+[WORD] 'them'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=3.22s | + Silence of = 3.99s | last_end = 59.07627592086792 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them.",
+            "start": "0:00:56",
+            "end": "0:00:59",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:04",
+            "end": "0:01:04"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question",
+            "start": "0:00:56",
+            "end": "0:01:04",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:04",
+            "end": "0:01:05"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 64.27627592086792 |
+[WORD] 'that'
+[WORD] 'is'
+[WORD] 'a'
+[WORD] 'great'
+[WORD] 'question'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.63s | + Silence of = 4.00s | last_end = 64.27627592086792 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question.",
+            "start": "0:00:56",
+            "end": "0:01:09",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (",
+            "start": "0:00:56",
+            "end": "0:01:09",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:10"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs",
+            "start": "0:00:56",
+            "end": "0:01:10",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:11"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 70.49627592086792 |
+[WORD] 'laughs'
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:11"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=4.99s | + Silence of = 7.99s | last_end = 71.51627592086793 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 71.51627592086793 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.75s | + Silence of = 3.99s | last_end = 71.51627592086793 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:24",
+            "end": "0:01:24"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'laughter'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 81.50594619750977 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:24",
+            "end": "0:01:25"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'laughter'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.42s | + Silence of = 4.00s | last_end = 81.54594619750978 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 81.54594619750978 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=7.34s | + Silence of = 12.00s | last_end = 81.54594619750978 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's",
+            "start": "0:01:33",
+            "end": "0:01:33",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'it'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 94.74616935729982 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 94.74616935729982 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the",
+            "start": "0:01:33",
+            "end": "0:01:34",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:42"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'the'
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last.",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:43"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'last'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 95.32616935729982 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:44"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'laughs'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=1.07s | + Silence of = 5.99s | last_end = 95.70616935729981 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 95.70616935729981 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 0.00s | last_end = 95.70616935729981 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:42",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:50",
+            "end": "0:01:51"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'laughing'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting + Silence of = 1.99s | last_end = 102.60066570281984 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 1.99s | last_end = 103.22066570281983 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot.",
+            "start": "0:01:42",
+            "end": "0:01:43",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'so'
+[WORD] 'hot'
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing",
+            "start": "0:01:42",
+            "end": "0:01:46",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'laughing'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 106.16066570281983 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:54",
+            "end": "0:01:55"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 2.00s | last_end = 107.58066570281983 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 107.58066570281983 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.58s | + Silence of = 6.01s | last_end = 107.58066570281983 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad",
+            "start": "0:01:53",
+            "end": "0:01:55",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'we'
+[WORD] 'know'
+[WORD] 'the'
+[WORD] 'transcript'
+[WORD] 'of'
+[WORD] 'models'
+[WORD] 'brad'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad.",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:06"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 116.20829056739808 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:07"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'laughter'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=5.51s | + Silence of = 10.00s | last_end = 116.36829056739808 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 116.36829056739808 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 4.00s | last_end = 116.36829056739808 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_",
+            "start": "0:02:06",
+            "end": "0:02:10",
+            "detected_language": "en"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_AUDIO]",
+            "start": "0:02:06",
+            "end": "0:02:10",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:22",
+            "end": "0:02:22"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'audio'
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_AUDIO] Probably can improve that with a couple of parameters",
+            "start": "0:02:06",
+            "end": "0:02:12",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:22",
+            "end": "0:02:23"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 132.92556520462037 |
+[WORD] 'probably'
+[WORD] 'can'
+[WORD] 'improve'
+[WORD] 'that'
+[WORD] 'with'
+[WORD] 'a'
+[WORD] 'couple'
+[WORD] 'of'
+[WORD] 'parameters'
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 2.01s | last_end = 132.92556520462037 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 132.92556520462037 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_AUDIO] Probably can improve that with a couple of parameters.",
+            "start": "0:02:06",
+            "end": "0:02:15",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:24",
+            "end": "0:02:25"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence of = 2.02s | last_end = 135.72556520462035 |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_AUDIO] Probably can improve that with a couple of parameters. [BLANK",
+            "start": "0:02:06",
+            "end": "0:02:16",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:26",
+            "end": "0:02:26"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'blank'
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_AUDIO] Probably can improve that with a couple of parameters. [BLANK_AUDIO]",
+            "start": "0:02:06",
+            "end": "0:02:17",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:26",
+            "end": "0:02:27"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+INFO:whisperlivekit.audio_processor:internal_buffer=0.00s | lag=0.00s | + Silence starting | last_end = 137.68556520462036 |
+[WLK RAW]
+{
+    "status": "active_transcription",
+    "lines": [
+        {
+            "speaker": 1,
+            "text": " Rest in 1, 2, 3",
+            "start": "0:00:00",
+            "end": "0:00:01",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:02",
+            "end": "0:00:13"
+        },
+        {
+            "speaker": 1,
+            "text": " testing, one, two, three",
+            "start": "0:00:13",
+            "end": "0:00:14",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:16",
+            "end": "0:00:30"
+        },
+        {
+            "speaker": 1,
+            "text": " Hello computer can you hear me",
+            "start": "0:00:28",
+            "end": "0:00:29",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:30",
+            "end": "0:00:42"
+        },
+        {
+            "speaker": 1,
+            "text": " Yeah, actually managed to get that far at least. That's good",
+            "start": "0:00:42",
+            "end": "0:00:44",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:00:46",
+            "end": "0:00:58"
+        },
+        {
+            "speaker": 1,
+            "text": " I can see me on settle the care of them. That is a great question. (laughs)",
+            "start": "0:00:56",
+            "end": "0:01:11",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:10",
+            "end": "0:01:18"
+        },
+        {
+            "speaker": 1,
+            "text": " [laughter] [laughter]",
+            "start": "0:01:19",
+            "end": "0:01:21",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:28",
+            "end": "0:01:40"
+        },
+        {
+            "speaker": 1,
+            "text": " It's the last. (laughs)",
+            "start": "0:01:33",
+            "end": "0:01:35",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:42",
+            "end": "0:01:48"
+        },
+        {
+            "speaker": 1,
+            "text": " (laughing) So hot. (laughing)",
+            "start": "0:01:42",
+            "end": "0:01:47",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:01:56",
+            "end": "0:02:02"
+        },
+        {
+            "speaker": 1,
+            "text": " We know the transcript of models, Brad. [LAUGHTER]",
+            "start": "0:01:53",
+            "end": "0:01:56",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:06",
+            "end": "0:02:16"
+        },
+        {
+            "speaker": 1,
+            "text": " [BLANK_AUDIO] Probably can improve that with a couple of parameters. [BLANK_AUDIO] [BLANK",
+            "start": "0:02:06",
+            "end": "0:02:18",
+            "detected_language": "en"
+        },
+        {
+            "speaker": -2,
+            "text": "",
+            "start": "0:02:26",
+            "end": "0:02:27"
+        }
+    ],
+    "buffer_transcription": "",
+    "buffer_diarization": "",
+    "buffer_translation": "",
+    "remaining_time_transcription": 0,
+    "remaining_time_diarization": 0
+}
+[WORD] 'blank'
