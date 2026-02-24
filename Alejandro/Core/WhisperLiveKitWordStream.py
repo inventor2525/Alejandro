@@ -13,6 +13,7 @@ import string
 import base64
 import asyncio
 import logging
+import re
 
 # Suppress INFO-level logs from WhisperLiveKit, werkzeug, and dependencies
 logging.getLogger('whisperlivekit').setLevel(logging.WARNING)
@@ -31,6 +32,38 @@ mime_to_config = {
 	"audio/mpeg": ("mp3", "mp3"),
 	"audio/aac": ("aac", "aac"),
 }
+
+def clean_transcription_text(text: str) -> str:
+	"""
+	Clean transcription text by removing:
+	- Complete square brackets and their content: [BLANK_AUDIO], [LAUGHTER]
+	- Complete parentheses and their content: (laughing), (laughs)
+	- Incomplete brackets/parentheses at boundaries: [BLANK, (laughing, text], text)
+
+	This must be done BEFORE tokenization to avoid partial words leaking through.
+	"""
+	# Remove complete square brackets and content
+	text = re.sub(r'\[([^\]]*?)\]', ' ', text)
+
+	# Remove complete parentheses and content
+	text = re.sub(r'\(([^\)]*?)\)', ' ', text)
+
+	# Remove incomplete opening brackets at end or anywhere
+	text = re.sub(r'\[([^\]]*?)$', ' ', text)  # [BLANK at end
+	text = re.sub(r'\[([^\]]*?)\s', ' ', text)  # [BLANK in middle
+
+	# Remove incomplete opening parentheses at end or anywhere
+	text = re.sub(r'\(([^\)]*?)$', ' ', text)  # (laughing at end
+	text = re.sub(r'\(([^\)]*?)\s', ' ', text)  # (laughing in middle
+
+	# Remove incomplete closing brackets/parens (rare but possible)
+	text = re.sub(r'([^\[]*?)\]', ' ', text)  # text]
+	text = re.sub(r'([^\(]*?)\)', ' ', text)  # text)
+
+	# Clean up multiple spaces
+	text = re.sub(r'\s+', ' ', text).strip()
+
+	return text
 
 class WhisperLiveKitWordStream(WordStream):
 	bp = Blueprint('WhisperLiveKitWordStream', __name__)
@@ -313,7 +346,8 @@ class WhisperLiveKitWordStream(WordStream):
 		with self.transcription_lock:
 			import nltk
 			for seg in self.pending_segments:
-				tokens = nltk.word_tokenize(seg["text"].lower())
+				cleaned_text = clean_transcription_text(seg["text"])
+				tokens = nltk.word_tokenize(cleaned_text.lower())
 				tokens = [t for t in tokens if t.isalnum()]
 				for token in tokens:
 					node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
@@ -420,7 +454,8 @@ class WhisperLiveKitWordStream(WordStream):
 		if num_to_finalize > 0:
 			import nltk
 			combined_text = "".join(seg["text"] for seg in self.pending_segments[:num_to_finalize])
-			tokens = nltk.word_tokenize(combined_text.lower())
+			cleaned_text = clean_transcription_text(combined_text)
+			tokens = nltk.word_tokenize(cleaned_text.lower())
 			tokens = [t for t in tokens if t.isalnum()]
 
 			for token in tokens:
