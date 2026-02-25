@@ -52,6 +52,38 @@ mime_to_config = {
 	"audio/aac": ("aac", "aac"),
 }
 
+def clean_transcription_text(text: str) -> str:
+	"""
+	Clean transcription text by removing:
+	- Complete square brackets and their content: [BLANK_AUDIO], [LAUGHTER]
+	- Complete parentheses and their content: (laughing), (laughs)
+	- Incomplete brackets/parentheses at boundaries: [BLANK, (laughing, text], text)
+
+	This must be done BEFORE tokenization to avoid partial words leaking through.
+	"""
+	# Remove complete square brackets and content
+	text = re.sub(r'\[([^\]]*?)\]', ' ', text)
+
+	# Remove complete parentheses and content
+	text = re.sub(r'\(([^\)]*?)\)', ' ', text)
+
+	# Remove incomplete opening brackets at end or anywhere
+	text = re.sub(r'\[([^\]]*?)$', ' ', text)  # [BLANK at end
+	text = re.sub(r'\[([^\]]*?)\s', ' ', text)  # [BLANK in middle
+
+	# Remove incomplete opening parentheses at end or anywhere
+	text = re.sub(r'\(([^\)]*?)$', ' ', text)  # (laughing at end
+	text = re.sub(r'\(([^\)]*?)\s', ' ', text)  # (laughing in middle
+
+	# Remove incomplete closing brackets/parens (rare but possible)
+	text = re.sub(r'([^\[]*?)\]', ' ', text)  # text]
+	text = re.sub(r'([^\(]*?)\)', ' ', text)  # text)
+
+	# Clean up multiple spaces
+	text = re.sub(r'\s+', ' ', text).strip()
+
+	return text
+
 class WhisperLiveKitWordStream(WordStream):
 	bp = Blueprint('WhisperLiveKitWordStream', __name__)
 	socketio: SocketIO = SocketIO(
