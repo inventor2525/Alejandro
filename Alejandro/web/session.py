@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from Alejandro.Core.Control import Control
 from Alejandro.Core.Application import Application 
 from Alejandro.Core.ScreenStack import ScreenStack
+import os
 _backend = os.environ.get('ALEJANDRO_BACKEND', 'wlk')
 if _backend == 'voxtral':
 	from Alejandro.Core.VoxtralWordStream import VoxtralWordStream as _WordStreamClass
@@ -15,7 +16,6 @@ from Alejandro.web.events import NavigationEvent, ConversationUpdateEvent, push_
 from Alejandro.Core.Screen import Screen
 from Alejandro.web.terminal import Terminal
 from functools import partial
-import os
 
 sessions: Dict[str, 'Session'] = {}
 
