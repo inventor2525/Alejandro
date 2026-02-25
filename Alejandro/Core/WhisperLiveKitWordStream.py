@@ -34,6 +34,14 @@ _transcription_engine = TranscriptionEngine(
 	# localagreement waits for consecutive-decode agreement before emitting tokens,
 	# eliminating phrase-start mutilation (e.g. "Aleja"/"ndro" splits).
 	backend_policy="localagreement",
+	# Default no_speech_threshold is 0.6 — Whisper will silently drop segments
+	# it classifies as "not speech" above this confidence. On a poor mic the model
+	# can misclassify the beginning of an utterance, cutting off the first word.
+	# 0.35 makes it more aggressive about treating audio as speech.
+	no_speech_threshold=0.35,
+	# Larger beam = better accuracy at slight speed cost.
+	# distil-large-v3 is fast enough to absorb this comfortably.
+	beam_size=8,
 	min_chunk_size=.25,
 	vac_chunk_size=.1,
 )
