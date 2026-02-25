@@ -23,7 +23,15 @@ logging.getLogger('httpx').setLevel(logging.WARNING)
 # Import WhisperLiveKit components
 from whisperlivekit import TranscriptionEngine, AudioProcessor
 
-_transcription_engine = TranscriptionEngine(model="large-v3", diarization=False, lan="en")
+_transcription_engine = TranscriptionEngine(
+	model="large-v3",
+	diarization=False,
+	lan="en",
+	# localagreement waits for agreement between consecutive decodes before emitting tokens.
+	# This significantly reduces phrase-start mutilation compared to default simulstreaming.
+	# Requires: pip install mosestokenizer wtpsplit  (for sentence-level buffer_trimming)
+	backend_policy="localagreement",
+)
 
 def clean_transcription_text(text: str) -> str:
 	"""

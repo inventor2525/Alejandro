@@ -5,7 +5,11 @@ from datetime import datetime, timedelta
 from Alejandro.Core.Control import Control
 from Alejandro.Core.Application import Application 
 from Alejandro.Core.ScreenStack import ScreenStack
-from Alejandro.Core.WhisperLiveKitWordStream import WhisperLiveKitWordStream
+_backend = os.environ.get('ALEJANDRO_BACKEND', 'wlk')
+if _backend == 'voxtral':
+	from Alejandro.Core.VoxtralWordStream import VoxtralWordStream as _WordStreamClass
+else:
+	from Alejandro.Core.WhisperLiveKitWordStream import WhisperLiveKitWordStream as _WordStreamClass
 from Alejandro.Core.Assistant import Assistant,Conversation
 from Alejandro.web.events import NavigationEvent, ConversationUpdateEvent, push_event
 from Alejandro.Core.Screen import Screen
@@ -37,7 +41,7 @@ class Session:
 		self.conversation_manager.screen_should_update.connect(_push_update)
 		
 		# Create session-specific word stream and app
-		self.word_stream = WhisperLiveKitWordStream(
+		self.word_stream = _WordStreamClass(
 			os.path.expanduser("~/Documents/Alejandro/Recordings"),
 			session_id=self.id
 		)
