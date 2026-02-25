@@ -24,13 +24,24 @@ logging.getLogger('httpx').setLevel(logging.WARNING)
 from whisperlivekit import TranscriptionEngine, AudioProcessor
 
 _transcription_engine = TranscriptionEngine(
-	model="large-v3",
+	# distil-large-v3 is 6x faster than large-v3 with <1% WER difference.
+	# Less processing lag means the model starts receiving speech earlier,
+	# which helps with capturing utterance beginnings.
+	# Switch back to "large-v3" if accuracy regresses noticeably.
+	model="distil-large-v3",
 	diarization=False,
 	lan="en",
-	# localagreement waits for agreement between consecutive decodes before emitting tokens.
-	# This significantly reduces phrase-start mutilation compared to default simulstreaming.
-	# Requires: pip install mosestokenizer wtpsplit  (for sentence-level buffer_trimming)
+	# localagreement waits for consecutive-decode agreement before emitting tokens,
+	# eliminating phrase-start mutilation (e.g. "Aleja"/"ndro" splits).
 	backend_policy="localagreement",
+	# Default no_speech_threshold is 0.6 — Whisper will silently drop segments
+	# it classifies as "not speech" above this confidence. On a poor mic the model
+	# can misclassify the beginning of an utterance, cutting off the first word.
+	# 0.35 makes it more aggressive about treating audio as speech.
+	no_speech_threshold=0.35,
+	# Larger beam = better accuracy at slight speed cost.
+	# distil-large-v3 is fast enough to absorb this comfortably.
+	beam_size=8,
 )
 
 def clean_transcription_text(text: str) -> str:
@@ -72,38 +83,6 @@ mime_to_config = {
 	"audio/mpeg": ("mp3", "mp3"),
 	"audio/aac": ("aac", "aac"),
 }
-
-def clean_transcription_text(text: str) -> str:
-	"""
-	Clean transcription text by removing:
-	- Complete square brackets and their content: [BLANK_AUDIO], [LAUGHTER]
-	- Complete parentheses and their content: (laughing), (laughs)
-	- Incomplete brackets/parentheses at boundaries: [BLANK, (laughing, text], text)
-
-	This must be done BEFORE tokenization to avoid partial words leaking through.
-	"""
-	# Remove complete square brackets and content
-	text = re.sub(r'\[([^\]]*?)\]', ' ', text)
-
-	# Remove complete parentheses and content
-	text = re.sub(r'\(([^\)]*?)\)', ' ', text)
-
-	# Remove incomplete opening brackets at end or anywhere
-	text = re.sub(r'\[([^\]]*?)$', ' ', text)  # [BLANK at end
-	text = re.sub(r'\[([^\]]*?)\s', ' ', text)  # [BLANK in middle
-
-	# Remove incomplete opening parentheses at end or anywhere
-	text = re.sub(r'\(([^\)]*?)$', ' ', text)  # (laughing at end
-	text = re.sub(r'\(([^\)]*?)\s', ' ', text)  # (laughing in middle
-
-	# Remove incomplete closing brackets/parens (rare but possible)
-	text = re.sub(r'([^\[]*?)\]', ' ', text)  # text]
-	text = re.sub(r'([^\(]*?)\)', ' ', text)  # text)
-
-	# Clean up multiple spaces
-	text = re.sub(r'\s+', ' ', text).strip()
-
-	return text
 
 class WhisperLiveKitWordStream(WordStream):
 	bp = Blueprint('WhisperLiveKitWordStream', __name__)
@@ -168,14 +147,9 @@ class WhisperLiveKitWordStream(WordStream):
 		self.last_node: WordNode = None
 		self.transcription_lock = threading.Lock()
 
-		# Track pending text segments for stability checking
-		self.pending_segments = []  # List of {"text": str, "timestamp": float}
-		self.last_finalized_len = 0  # How many characters of cumulative text we've finalized
-		self.last_seen_transcription = ""  # To skip duplicate transcriptions
-		self.stability_threshold = 0.5  # Seconds to wait before finalizing text
-		
-		self.finalization_event = threading.Event()
-		self.finalization_thread = None
+		# Cursor into WLK's cumulative text output (text is append-only with localagreement)
+		self.last_finalized_len = 0
+		self.last_seen_transcription = ""
 
 	@staticmethod
 	def init_app(app: Flask):
@@ -346,13 +320,6 @@ class WhisperLiveKitWordStream(WordStream):
 		# Set is_recording BEFORE starting processor thread to avoid race condition
 		self.is_recording = True
 		
-		# Start finalization thread
-		self.finalization_thread = threading.Thread(
-			target=self._run_finalization_thread,
-			daemon=True
-		)
-		self.finalization_thread.start()
-		
 		# Initialize WhisperLiveKit AudioProcessor
 		self._init_audio_processor()
 
@@ -382,29 +349,7 @@ class WhisperLiveKitWordStream(WordStream):
 
 		self.is_recording = False
 
-		# Flush any pending segments before resetting
-		with self.transcription_lock:
-			import nltk
-			for seg in self.pending_segments:
-				cleaned_text = clean_transcription_text(seg["text"])
-				tokens = nltk.word_tokenize(cleaned_text.lower())
-				tokens = [t for t in tokens if t.isalnum()]
-				for token in tokens:
-					node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
-					if self.last_node:
-						self.last_node.next = node
-						node.prev = self.last_node
-					self.last_node = node
-					self.word_queue.put(node)
-					print(f"[WORD] '{token}'")
-
-		# Stop finalization thread
-		if self.finalization_thread and self.finalization_thread.is_alive():
-			self.finalization_event.set()  # Wake thread to exit
-			self.finalization_thread.join(timeout=1.0)
-			
-		# Reset segment tracking for next session
-		self.pending_segments = []
+		# Reset tracking state for next session
 		self.last_finalized_len = 0
 		self.last_seen_transcription = ""
 
@@ -423,81 +368,43 @@ class WhisperLiveKitWordStream(WordStream):
 			self.audio_chunk_queue.put(data)
 
 	def _process_wlk_transcription(self, front_data):
-		def extract_segment_text():
-			for segment in (front_data.lines if front_data.lines else []):
-				if hasattr(segment, 'text') and segment.text:
-					stripped = segment.text.strip()
-					if stripped:
-						yield stripped
+		"""
+		WLK emits the full accumulated text on every callback.
+		With localagreement, text is only ever appended — never revised.
+		We just track a cursor (last_finalized_len) and emit any new words.
+		"""
+		current_text = " ".join(
+			seg.text.strip()
+			for seg in (front_data.lines or [])
+			if hasattr(seg, 'text') and seg.text and seg.text.strip()
+		)
 
-		current_text = " ".join(extract_segment_text())
+		if not current_text or current_text == self.last_seen_transcription:
+			return
+		self.last_seen_transcription = current_text
+
+		print("[WLK RAW]")
+		print(json.dumps(front_data.to_dict(), indent=4, default=str))
 
 		if self.wlk_output_dir:
 			now = datetime.now()
-			timestamp_str = f"{now.year}_{now.month:02d}_{now.day:02d}__{now.hour:02d}_{now.minute:02d}_{now.second:02d}.{now.microsecond // 1000:03d}"
-			output_file = os.path.join(self.wlk_output_dir, f"frontdata_{timestamp_str}.json")
+			ts = f"{now.year}_{now.month:02d}_{now.day:02d}__{now.hour:02d}_{now.minute:02d}_{now.second:02d}.{now.microsecond // 1000:03d}"
 			try:
-				with open(output_file, 'w') as f:
+				with open(os.path.join(self.wlk_output_dir, f"frontdata_{ts}.json"), 'w') as f:
 					json.dump(front_data.to_dict(), f, indent=4, default=str)
-			except Exception as e:
+			except Exception:
 				pass
 
-		if not current_text:
+		new_text = current_text[self.last_finalized_len:]
+		if not new_text:
 			return
+		self.last_finalized_len = len(current_text)
+
+		import nltk
+		tokens = nltk.word_tokenize(clean_transcription_text(new_text).lower())
+		tokens = [t for t in tokens if t.isalnum()]
 
 		with self.transcription_lock:
-			# Skip duplicate transcriptions
-			if current_text == self.last_seen_transcription:
-				return
-
-			# DUMP WLK RAW OUTPUT
-			print("[WLK RAW]")
-			print(json.dumps(front_data.to_dict(), indent=4, default=str))
-
-			self.last_seen_transcription = current_text
-
-			current_time = time.time()
-			current_text_of_interest = current_text[self.last_finalized_len:]
-
-			if not current_text_of_interest:
-				return
-
-			# Check which existing segments still match
-			accumulated = ""
-			for i, seg in enumerate(self.pending_segments):
-				accumulated += seg["text"]
-				if not current_text_of_interest.startswith(accumulated):
-					# Text changed at this segment
-					seg["timestamp"] = current_time
-					self.pending_segments = self.pending_segments[:i+1]
-					break
-
-			# If current text is longer than accumulated segments, add new segment
-			if len(current_text_of_interest) > len(accumulated):
-				new_text = current_text_of_interest[len(accumulated):]
-				self.pending_segments.append({"text": new_text, "timestamp": current_time})
-
-			# Finalize segments that are past the threshold
-			self._finalize_stable_segments(current_time)
-		# Signal to reset the finalization thread timer
-		self.finalization_event.set()
-
-	def _finalize_stable_segments(self, current_time: float):
-		"""Finalize segments that have been stable past the threshold."""
-		num_to_finalize = 0
-		for seg in self.pending_segments:
-			if current_time - seg["timestamp"] > self.stability_threshold:
-				num_to_finalize += 1
-			else:
-				break
-
-		if num_to_finalize > 0:
-			import nltk
-			combined_text = "".join(seg["text"] for seg in self.pending_segments[:num_to_finalize])
-			cleaned_text = clean_transcription_text(combined_text)
-			tokens = nltk.word_tokenize(cleaned_text.lower())
-			tokens = [t for t in tokens if t.isalnum()]
-
 			for token in tokens:
 				node = WordNode(word=token, start_time=datetime.now(), end_time=datetime.now())
 				if self.last_node:
@@ -506,19 +413,6 @@ class WhisperLiveKitWordStream(WordStream):
 				self.last_node = node
 				self.word_queue.put(node)
 				print(f"[WORD] '{token}'")
-
-			self.last_finalized_len += len(combined_text)
-			self.pending_segments = self.pending_segments[num_to_finalize:]
-
-	def _run_finalization_thread(self):
-		"""Background thread that waits for stability_threshold and finalizes if timeout occurs."""
-		while self.is_recording:
-			self.finalization_event.clear()
-			timed_out = not self.finalization_event.wait(timeout=self.stability_threshold)
-			if timed_out:
-				with self.transcription_lock:
-					current_time = time.time()
-					self._finalize_stable_segments(current_time)
 						
 def get_stream(session_id: str) -> WhisperLiveKitWordStream:
 	'''
