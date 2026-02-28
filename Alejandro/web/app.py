@@ -10,7 +10,7 @@ from datetime import datetime
 #   VOXTRAL_HOST  (default: localhost)
 #   VOXTRAL_PORT  (default: 8000)
 #   VOXTRAL_MODEL (default: mistralai/Voxtral-Mini-4B-Realtime-2602)
-_backend = 'wlk'
+_backend = 'voxtral'
 for _i, _arg in enumerate(sys.argv[1:], 1):
 	if _arg == '--backend' and _i + 1 < len(sys.argv):
 		_backend = sys.argv[_i + 1]
