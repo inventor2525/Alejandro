@@ -18,9 +18,17 @@ vLLM endpoint is configured via env vars:
   VOXTRAL_HOST  (default: localhost)
   VOXTRAL_PORT  (default: 8000)
   VOXTRAL_MODEL (default: mistralai/Voxtral-Mini-4B-Realtime-2602)
+
+Why ffmpeg?
+  The browser's MediaRecorder API emits compressed WebM/Opus containers.
+  vLLM's Realtime API input_audio_buffer.append only accepts raw PCM16 at
+  16 kHz mono (base64-encoded) — it does NOT accept WebM or Opus directly.
+  ffmpeg runs as a subprocess reading from stdin and writing raw PCM to
+  stdout, acting as a live demux+decode pipeline with no temp files.
 """
 
 import base64
+import collections
 import json
 import logging
 import os
@@ -30,13 +38,12 @@ import threading
 import time
 from datetime import datetime
 from io import BufferedWriter
-from pathlib import Path
 from queue import Empty, Queue
 from typing import Dict, Iterator, List, Optional
 
 import nltk
 import websocket  # websocket-client
-from flask import Blueprint, Flask, Response, jsonify, render_template, request
+from flask import Blueprint, Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
 
 from .WordNode import WordNode
@@ -56,8 +63,8 @@ VLLM_HOST     = os.environ.get("VOXTRAL_HOST",  "localhost")
 VLLM_PORT     = int(os.environ.get("VOXTRAL_PORT",  "8000"))
 VOXTRAL_MODEL = os.environ.get("VOXTRAL_MODEL", "mistralai/Voxtral-Mini-4B-Realtime-2602")
 
-# Seconds to wait for more tokens before flushing a partial word.
-WORD_EMIT_TIMEOUT_S: float = 1.5
+# 150 wpm ≈ one word every 400 ms — flush partial word if nothing new arrives.
+WORD_EMIT_TIMEOUT_S: float = 0.4
 
 PCM_CHUNK_BYTES = 3200  # 100 ms of PCM16 16 kHz mono
 
@@ -69,8 +76,71 @@ mime_to_ffmpeg_fmt: Dict[str, str] = {
 	"audio/aac":  "aac",
 }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEBUG — Timing & Audio Snapshot
+#
+# DEBUG_TIMING  — prints average inter-chunk intervals every 5 s to console so
+#                 you can spot which pipeline stage is falling behind over time.
+#                 Three probes:
+#                   [TIMING/client]   time between calls to _handle_audio_chunk
+#                   [TIMING/pcm-out]  time between PCM chunks read from ffmpeg
+#                   [TIMING/ws-send]  time between WebSocket sends to vLLM
+#                 Plus pcm_queue depth on every print so you can see if chunks
+#                 are piling up between ffmpeg and the sender.
+#
+# DEBUG_SNAPSHOT — enables the POST /voxtral/snapshot endpoint.
+#                  Keeps a rolling SNAPSHOT_BUFFER_S-second deque of raw client
+#                  chunks (timestamps + bytes) and decoded PCM chunks.  On
+#                  request, dumps both to files so you can verify what's
+#                  actually hitting vLLM is near-realtime.
+#
+# Set either to False to remove all overhead.
+# ═══════════════════════════════════════════════════════════════════════════════
+DEBUG_TIMING      = True
+DEBUG_SNAPSHOT    = True
 
-# ── Text cleaning ──────────────────────────────────────────────────────────────
+TIMING_PRINT_S    = 5.0   # how often to emit timing lines
+SNAPSHOT_BUFFER_S = 30    # seconds of audio kept in rolling snapshot buffer
+
+
+# ── Timing logger ─────────────────────────────────────────────────────────────
+
+class _TimingLogger:
+	"""
+	Tracks wall-clock intervals between successive tick() calls and prints
+	a summary line every TIMING_PRINT_S seconds.
+
+	No-ops entirely when DEBUG_TIMING is False.
+	"""
+	def __init__(self, label: str):
+		self.label       = label
+		self._lock       = threading.Lock()
+		self._last_ts:   Optional[float] = None
+		self._intervals: List[float]     = []
+		self._last_print: float          = time.monotonic()
+
+	def tick(self) -> None:
+		if not DEBUG_TIMING:
+			return
+		now = time.monotonic()
+		with self._lock:
+			if self._last_ts is not None:
+				self._intervals.append(now - self._last_ts)
+			self._last_ts = now
+			elapsed = now - self._last_print
+			if elapsed >= TIMING_PRINT_S and self._intervals:
+				avg_ms = (sum(self._intervals) / len(self._intervals)) * 1000
+				max_ms = max(self._intervals) * 1000
+				print(
+					f"[TIMING/{self.label}] "
+					f"avg={avg_ms:.1f} ms  max={max_ms:.1f} ms  "
+					f"n={len(self._intervals)}  over {elapsed:.1f} s"
+				)
+				self._intervals.clear()
+				self._last_print = now
+
+
+# ── Text cleaning ─────────────────────────────────────────────────────────────
 
 def _clean(text: str) -> str:
 	"""Strip Whisper/Voxtral noise annotations before tokenization."""
@@ -85,7 +155,7 @@ def _clean(text: str) -> str:
 	return re.sub(r'\s+', ' ', text).strip()
 
 
-# ── Token accumulator ──────────────────────────────────────────────────────────
+# ── Token accumulator ─────────────────────────────────────────────────────────
 
 class _TokenAccumulator:
 	"""
@@ -151,7 +221,7 @@ class _TokenAccumulator:
 					self._emit_all()
 
 
-# ── VoxtralWordStream ──────────────────────────────────────────────────────────
+# ── VoxtralWordStream ─────────────────────────────────────────────────────────
 
 class VoxtralWordStream(WordStream):
 	bp       = Blueprint('VoxtralWordStream', __name__)
@@ -188,7 +258,7 @@ class VoxtralWordStream(WordStream):
 		self._word_lock = threading.Lock()
 
 		# ffmpeg: compressed audio → PCM16 16 kHz mono
-		self.ffmpeg_proc: Optional[subprocess.Popen]       = None
+		self.ffmpeg_proc: Optional[subprocess.Popen]          = None
 		self.ffmpeg_reader_thread: Optional[threading.Thread] = None
 		self.pcm_queue: Queue = Queue(maxsize=200)
 
@@ -201,7 +271,21 @@ class VoxtralWordStream(WordStream):
 
 		self._accum = _TokenAccumulator(emit_cb=self._emit_word)
 
-	# ── Alejandro interface ──────────────────────────────────────────────────
+		# ── DEBUG: timing loggers ─────────────────────────────────────────────
+		if DEBUG_TIMING:
+			self._t_client  = _TimingLogger("client")   # chunk arrival from browser
+			self._t_pcm_out = _TimingLogger("pcm-out")  # PCM chunk out of ffmpeg
+			self._t_ws_send = _TimingLogger("ws-send")  # PCM chunk sent to vLLM
+
+		# ── DEBUG: rolling audio snapshot buffers ─────────────────────────────
+		# Each entry: (monotonic_timestamp, bytes)
+		# Pruned to the last SNAPSHOT_BUFFER_S seconds on each append.
+		if DEBUG_SNAPSHOT:
+			self._raw_buf: collections.deque = collections.deque()  # compressed from client
+			self._pcm_buf: collections.deque = collections.deque()  # raw PCM16 post-ffmpeg
+			self._snap_lock = threading.Lock()
+
+	# ── Alejandro interface ───────────────────────────────────────────────────
 
 	@staticmethod
 	def init_app(app: Flask) -> None:
@@ -220,7 +304,7 @@ class VoxtralWordStream(WordStream):
 		self._running = False
 		VoxtralWordStream.streams.pop(self.session_id, None)
 
-	# ── Recording lifecycle ──────────────────────────────────────────────────
+	# ── Recording lifecycle ───────────────────────────────────────────────────
 
 	def _start_listening(self, mime_type: str) -> None:
 		self.start_time = datetime.now()
@@ -325,7 +409,19 @@ class VoxtralWordStream(WordStream):
 			except Exception:
 				pass
 
-	# ── Internal audio threads ───────────────────────────────────────────────
+		# ── DEBUG: timing + snapshot ──────────────────────────────────────────
+		if DEBUG_TIMING:
+			self._t_client.tick()
+
+		if DEBUG_SNAPSHOT:
+			now = time.monotonic()
+			with self._snap_lock:
+				self._raw_buf.append((now, data))
+				cutoff = now - SNAPSHOT_BUFFER_S
+				while self._raw_buf and self._raw_buf[0][0] < cutoff:
+					self._raw_buf.popleft()
+
+	# ── Internal audio threads ────────────────────────────────────────────────
 
 	def _ffmpeg_reader(self) -> None:
 		try:
@@ -337,6 +433,19 @@ class VoxtralWordStream(WordStream):
 					self.pcm_queue.put(chunk, timeout=2.0)
 				except Exception:
 					pass
+
+				# ── DEBUG: timing + snapshot ──────────────────────────────────
+				if DEBUG_TIMING:
+					self._t_pcm_out.tick()
+
+				if DEBUG_SNAPSHOT:
+					now = time.monotonic()
+					with self._snap_lock:
+						self._pcm_buf.append((now, chunk))
+						cutoff = now - SNAPSHOT_BUFFER_S
+						while self._pcm_buf and self._pcm_buf[0][0] < cutoff:
+							self._pcm_buf.popleft()
+
 		except Exception as e:
 			logger.error(f"[VOXTRAL] ffmpeg reader: {e}")
 		finally:
@@ -361,7 +470,17 @@ class VoxtralWordStream(WordStream):
 				except Exception as e:
 					logger.error(f"[VOXTRAL] WS send: {e}")
 
-	# ── WebSocket callbacks ──────────────────────────────────────────────────
+			# ── DEBUG: timing + queue depth ───────────────────────────────────
+			if DEBUG_TIMING:
+				self._t_ws_send.tick()
+				# Piggyback queue depth onto the ws-send print: override last
+				# interval print to also show pcm_queue depth.
+				# We just check here — the _TimingLogger above handles printing.
+				qd = self.pcm_queue.qsize()
+				if qd > 10:
+					print(f"[TIMING/pcm-queue] depth={qd}  (>10 means backpressure)")
+
+	# ── WebSocket callbacks ───────────────────────────────────────────────────
 
 	def _on_ws_open(self, ws) -> None:
 		logger.info("[VOXTRAL] WebSocket connected")
@@ -399,7 +518,7 @@ class VoxtralWordStream(WordStream):
 	def _on_ws_close(self, ws, code, msg) -> None:
 		logger.info(f"[VOXTRAL] WS closed: {code} {msg}")
 
-	# ── Word emission ────────────────────────────────────────────────────────
+	# ── Word emission ─────────────────────────────────────────────────────────
 
 	def _emit_word(self, word: str) -> None:
 		node = WordNode(
@@ -427,8 +546,74 @@ class VoxtralWordStream(WordStream):
 			for n in word_nodes:
 				self.word_queue.put(n)
 
+	# ── DEBUG: snapshot dump ──────────────────────────────────────────────────
 
-# ── Session helper ─────────────────────────────────────────────────────────────
+	def _dump_snapshot(self) -> dict:
+		"""
+		Saves the last SNAPSHOT_BUFFER_S seconds of raw and PCM audio to
+		the save_directory and returns a timing-analysis dict.
+
+		Raw file:  snapshot_raw_<ts>.webm  — compressed stream from client
+		PCM file:  snapshot_pcm_<ts>.raw   — decoded PCM16 16 kHz mono
+		  Play:  ffplay -f s16le -ar 16000 -ac 1 snapshot_pcm_<ts>.raw
+
+		Returns a dict with inter-chunk timing stats for both buffers and
+		the current pcm_queue depth.
+		"""
+		if not DEBUG_SNAPSHOT:
+			return {"error": "DEBUG_SNAPSHOT is disabled"}
+
+		ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+
+		with self._snap_lock:
+			raw_entries = list(self._raw_buf)
+			pcm_entries = list(self._pcm_buf)
+
+		def _interval_stats(entries):
+			if len(entries) < 2:
+				return {"n": len(entries), "note": "not enough data"}
+			intervals = [
+				(entries[i+1][0] - entries[i][0]) * 1000
+				for i in range(len(entries) - 1)
+			]
+			return {
+				"n":       len(entries),
+				"avg_ms":  round(sum(intervals) / len(intervals), 1),
+				"max_ms":  round(max(intervals), 1),
+				"min_ms":  round(min(intervals), 1),
+				"span_s":  round(entries[-1][0] - entries[0][0], 2),
+			}
+
+		result = {
+			"ts":            ts,
+			"raw_chunks":    _interval_stats(raw_entries),
+			"pcm_chunks":    _interval_stats(pcm_entries),
+			"pcm_queue_now": self.pcm_queue.qsize(),
+			"is_recording":  self.is_recording,
+		}
+
+		# Save files
+		if self.save_directory:
+			if raw_entries:
+				raw_path = os.path.join(self.save_directory, f"snapshot_raw_{ts}.{self.file_ext}")
+				with open(raw_path, "wb") as f:
+					for _, chunk in raw_entries:
+						f.write(chunk)
+				result["raw_file"] = raw_path
+
+			if pcm_entries:
+				pcm_path = os.path.join(self.save_directory, f"snapshot_pcm_{ts}.raw")
+				with open(pcm_path, "wb") as f:
+					for _, chunk in pcm_entries:
+						f.write(chunk)
+				result["pcm_file"] = pcm_path
+				result["pcm_play"] = f"ffplay -f s16le -ar 16000 -ac 1 {pcm_path}"
+
+		print(f"[SNAPSHOT] {json.dumps(result, indent=2)}")
+		return result
+
+
+# ── Session helper ────────────────────────────────────────────────────────────
 
 def get_stream(session_id: str) -> VoxtralWordStream:
 	from Alejandro.web.session import get_or_create_session
@@ -436,7 +621,7 @@ def get_stream(session_id: str) -> VoxtralWordStream:
 	return VoxtralWordStream.streams[session_id]
 
 
-# ── SocketIO events ────────────────────────────────────────────────────────────
+# ── SocketIO events ───────────────────────────────────────────────────────────
 
 @VoxtralWordStream.socketio.on('connect')
 def handle_connect(): pass
@@ -472,7 +657,7 @@ def handle_manual_text_entry(data: dict):
 		ws.add_words_to_queue(ws.process_text(text))
 
 
-# ── HTTP endpoints ─────────────────────────────────────────────────────────────
+# ── HTTP endpoints ────────────────────────────────────────────────────────────
 
 @VoxtralWordStream.bp.route('/start_listening', methods=['POST'])
 def http_start_listening():
@@ -519,3 +704,54 @@ def recorder():
 	if not sid:
 		return "No session ID provided", 400
 	return render_template('recorder.html', session_id=sid)
+
+
+@VoxtralWordStream.bp.route('/voxtral/snapshot', methods=['GET', 'POST'])
+def audio_snapshot():
+	"""
+	Trigger an audio pipeline snapshot to diagnose latency buildup.
+
+	Saves the last ~SNAPSHOT_BUFFER_S seconds of both raw incoming audio
+	(from client) and decoded PCM audio (post-ffmpeg, pre-vLLM) to files,
+	and returns inter-chunk timing stats as JSON.
+
+	Usage (any session — picks the first active one):
+	    curl -X POST https://localhost:5000/voxtral/snapshot
+	    wget -qO- --no-check-certificate https://localhost:5000/voxtral/snapshot
+
+	Usage (specific session):
+	    curl -X POST "https://localhost:5000/voxtral/snapshot?session_id=<sid>"
+
+	The returned JSON includes:
+	  raw_chunks.avg_ms  — average gap between client audio chunks arriving
+	  pcm_chunks.avg_ms  — average gap between PCM chunks out of ffmpeg
+	  pcm_queue_now      — how many PCM chunks are queued waiting to send
+	  raw_file / pcm_file — paths to the saved audio files
+
+	To listen to the PCM snapshot and verify it sounds real-time:
+	    ffplay -f s16le -ar 16000 -ac 1 <pcm_file>
+
+	A growing pcm_queue_now or a pcm_chunks.avg_ms much larger than
+	~100 ms indicates backpressure between ffmpeg and the vLLM sender.
+	A raw_chunks.avg_ms growing over time indicates the client is slowing
+	down or the network is buffering.
+	"""
+	if not DEBUG_SNAPSHOT:
+		return jsonify({"error": "DEBUG_SNAPSHOT is disabled in VoxtralWordStream.py"}), 503
+
+	sid = request.args.get('session_id')
+
+	if sid:
+		stream = VoxtralWordStream.streams.get(sid)
+	else:
+		# Pick the first active session
+		stream = next(
+			(s for s in VoxtralWordStream.streams.values() if s.is_recording),
+			next(iter(VoxtralWordStream.streams.values()), None)
+		)
+
+	if not stream:
+		return jsonify({"error": "No active VoxtralWordStream session found"}), 404
+
+	result = stream._dump_snapshot()
+	return jsonify(result), 200
