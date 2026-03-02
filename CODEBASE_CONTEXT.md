@@ -1,6 +1,8 @@
 # Codebase Context — Alejandro + Related Frameworks
 *Reference document for Claude sessions. Update this when you learn something new.*
-*Last updated: 2026-03-01*
+*Last updated: 2026-03-02*
+
+> **Note:** A summary of the RequiredAI framework was produced in a separate branch of the RequiredAI repo during a prior session. If you need deep detail on RequiredAI internals beyond what is in the "Framework Deep Dives" section below, check that branch first before re-researching from source.
 
 ---
 
@@ -21,7 +23,7 @@
     CLAUDE_SESSION_GUIDE.md     ← branch management, WLK race condition fix
     dear_claude.md              ← WhisperLiveKit source + API reference
     CODEBASE_CONTEXT.md         ← THIS FILE
-    STRUCTURED_REVIEW_GOAL.md   ← goal spec for structured code review system
+    ARCHITECTURE.md             ← vision + architecture for the full system (replaces STRUCTURED_REVIEW_GOAL.md)
 
   assistant_interaction/        ← LLM→filesystem command execution layer
     assistant_interaction/utils.py   ← process_commands(), the whole parser
