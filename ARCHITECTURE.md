@@ -164,18 +164,18 @@ The key realization driving this design: if you ask an LLM to "change this file,
 
 ### Stage 1: Exploration
 
-**Given:** Goal + read-only tools (read files, read-only bash)
+**Given:** Goal + read-only syntax (read files, read-only bash)
 **Cannot:** Write files, commit, push, install packages, modify environment
 **Produces:** Summarized understanding of relevant codebase sections
 
-The exploration agent is like a researcher. It finds what it needs, summarizes it, and hands off. It is not given the assistant_interaction scripting syntax. It knows nothing about how to execute changes — only how to read.
+The exploration agent is like a researcher. It finds what it needs, summarizes it, and hands off. It is given only a reduced subset of the assistant_interaction scripting syntax. It knows nothing about how to execute changes — only how to read. Any bash executing ability that it may be given, is validated with requirements that make sure it's not trying to modify the environment or produce un-requested code changes.
 
 ### Stage 2: Planning
 
-**Given:** Goal + exploration summary (not full conversation, not AI script syntax)
+**Given:** Goal + exploration summary containing full files and summaries (full conversation prior, no AI script syntax)
 **Produces:** A plan — which files to modify, what changes are needed, in what order
 
-The planning model sees a reduced context. It does not know how the execution format works. It thinks it's answering a simple question: what needs to change?
+The planning model sees a full context. It does not know how the execution format works, or how files were retrieved for it. It thinks it's answering a simple question: what needs to change? - As though a human had asked it, with all the context it would need.
 
 ### Stage 3: Drafting
 
