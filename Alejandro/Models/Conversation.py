@@ -88,6 +88,16 @@ class Conversation:
 			data = f.read()
 		return cls.from_json(data)
 	
+	def to_messages(self) -> List[Dict[str, Any]]:
+		"""Convert to RequiredAI-compatible message list, forwarding tags when present."""
+		msgs = []
+		for msg in self.messages:
+			d = {"role": msg.role.lower(), "content": msg.content}
+			if msg.tags:
+				d["tags"] = msg.tags
+			msgs.append(d)
+		return msgs
+
 	@property
 	def short_id(self) -> str:
 		def get_short_ids(id:str):
