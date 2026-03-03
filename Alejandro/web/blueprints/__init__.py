@@ -1,4 +1,4 @@
-from . import welcome, main, conversations, conversation, terminal, controls, notes, claudecode, braindump
+from . import welcome, main, conversations, conversation, terminal, controls, notes, claudecode, braindump, coder
 
 blueprints = [
 	welcome.bp,
@@ -9,5 +9,6 @@ blueprints = [
 	controls.bp,
 	notes.bp,
 	claudecode.bp,
-	braindump.bp
+	braindump.bp,
+	coder.bp
 ]

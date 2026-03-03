@@ -14,6 +14,7 @@ class MainScreen(Screen):
 		from Alejandro.web.blueprints.notes import NotesScreen
 		from Alejandro.web.blueprints.claudecode import ClaudeCodeScreen
 		from Alejandro.web.blueprints.braindump import BrainDumpScreen
+		from Alejandro.web.blueprints.coder import CoderScreen
 		super().__init__(
 			session=session,
 			title="Main Menu",
@@ -47,6 +48,12 @@ class MainScreen(Screen):
 					text="Claude Code",
 					keyphrases=["claude code", "code assistant", "talk to claude"],
 					action=session.navigator(ClaudeCodeScreen)
+				),
+				Control(
+					id="coder",
+					text="Coder",
+					keyphrases=["coder", "open coder", "voice coder", "code mode"],
+					action=session.navigator(CoderScreen)
 				),
 				session.make_back_control()
 			]
