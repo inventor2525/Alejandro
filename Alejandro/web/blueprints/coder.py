@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from flask import Blueprint, render_template, request, jsonify
 from threading import Thread
 from Alejandro.web.session import get_or_create_session, Session
@@ -17,8 +18,43 @@ from assistant_interaction.utils import process_commands
 
 bp = Blueprint('coder', __name__)
 
+# ── Syntax documentation ──────────────────────────────────────────────────────
+# Load the README once at import time so it can be injected into model calls.
+
+_README_PATH = Path(__file__).parents[4] / "assistant_interaction" / "README.md"
+_SYNTAX_DOCS = _README_PATH.read_text() if _README_PATH.exists() else ""
+
+_EXPLORE_PROMPT = {
+    "role": "user",
+    "content": (
+        _SYNTAX_DOCS +
+        "\n\nUsing the syntax above, write an AI script that reads the relevant "
+        "files and directories to gather context for the user's request. "
+        "Use AI_READ_FILE and AI_BASH_START only — do not write or modify any files."
+    )
+}
+
+_SCRIPT_PROMPT = {
+    "role": "user",
+    "content": (
+        _SYNTAX_DOCS +
+        "\n\nUsing the syntax above, convert the Q&A draft into an "
+        "assistant_interaction script. Save each changed file using AI_SAVE_START "
+        "and present each diff hunk for review using AI_APPLY_CHOICES."
+    )
+}
+
+_HUNK_PROMPT = {
+    "role": "user",
+    "content": (
+        _SYNTAX_DOCS +
+        "\n\nFor each file with change hunks shown above, write an AI_APPLY_CHOICES "
+        "block accepting or rejecting each hunk. Accept hunks that correctly implement "
+        "the intended change; reject those that introduce errors or unnecessary changes."
+    )
+}
+
 # ── Syntax node requirements ──────────────────────────────────────────────────
-# Locate the bash node in the shared syntax tree and add run-time restrictions.
 
 def _find_node(nodes, start_regex):
 	for node in nodes:
@@ -68,9 +104,23 @@ _script_requirements = [
 	),
 ]
 
+# Talk: sees the full conversation — no filtering. Used for debugging/Q&A
+# about what all the other models did.
+coder_talk = client.model(
+	name="CoderTalk",
+	base_model=llama_70b,
+	requirements=talk.requirements,
+)
+
+# Explore: sees only transcribed user messages + injected syntax docs/prompt.
+# Produces a read-only AI script to gather context.
 explore_model = client.model(
 	name="CoderExplore",
 	base_model=llama_70b,
+	input_config=InputConfig(
+		filter_tags=["transcribed"],
+		messages_to_include=[(0, -1), _EXPLORE_PROMPT]
+	),
 	requirements=_script_requirements + [
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
@@ -83,11 +133,11 @@ explore_model = client.model(
 	output_tags=["explore"]
 )
 
+# Plan: sees transcribed user messages + the actual file contents from exploration.
 plan_model = client.model(
 	name="CoderPlan",
 	base_model=llama_70b,
-	# sees: user messages (untagged) + explore output + explore tool results
-	input_config=InputConfig(filter_tags=["explore", "explore_result", None]),
+	input_config=InputConfig(filter_tags=["transcribed", "explore_result"]),
 	requirements=[
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
@@ -100,11 +150,11 @@ plan_model = client.model(
 	output_tags=["plan"]
 )
 
+# Draft: sees transcribed user messages + the plan.
 draft_model = client.model(
 	name="CoderDraft",
 	base_model=llama_70b,
-	# sees: user messages (untagged) + plan output
-	input_config=InputConfig(filter_tags=["plan", None]),
+	input_config=InputConfig(filter_tags=["transcribed", "plan"]),
 	requirements=[
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
@@ -117,32 +167,40 @@ draft_model = client.model(
 	output_tags=["draft"]
 )
 
+# Script: sees plan + draft + injected syntax docs/prompt.
+# Produces a full assistant_interaction script with AI_SAVE_START + AI_APPLY_CHOICES.
 script_model = client.model(
 	name="CoderScript",
 	base_model=llama_70b,
-	# sees: plan + draft only — sufficient context for script generation
-	input_config=InputConfig(filter_tags=["plan", "draft"]),
+	input_config=InputConfig(
+		filter_tags=["plan", "draft"],
+		messages_to_include=[(0, -1), _SCRIPT_PROMPT]
+	),
 	requirements=_script_requirements + [
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
-			value=["Convert the Q&A pairs into an assistant_interaction script. Use AI_SAVE_START to write file changes and AI_APPLY_CHOICES to present each hunk for review."],
+			value=["Use AI_SAVE_START to write file changes and AI_APPLY_CHOICES to present each diff hunk for review."],
 			positive_examples=[],
 			negative_examples=[],
-			name="Produce assistant_interaction script with hunks"
+			name="Produce script with save and hunk choices"
 		),
 	],
 	output_tags=["script"]
 )
 
+# Hunk validator: sees the script + execution output (diffs + choice blocks)
+# + injected prompt. Produces AI_APPLY_CHOICES decisions.
 hunk_model = client.model(
 	name="CoderHunks",
 	base_model=llama_70b,
-	# sees: the script + the execution output (diffs + choice blocks)
-	input_config=InputConfig(filter_tags=["script", "script_result"]),
+	input_config=InputConfig(
+		filter_tags=["script", "script_result"],
+		messages_to_include=[(0, -1), _HUNK_PROMPT]
+	),
 	requirements=_script_requirements + [
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
-			value=["For each file with hunk choices, produce an AI_APPLY_CHOICES block. Accept hunks that correctly implement the intended change; reject those that do not."],
+			value=["For each file with choice blocks, produce an AI_APPLY_CHOICES block with Yes or No for each numbered hunk."],
 			positive_examples=[],
 			negative_examples=[],
 			name="Apply choices per hunk"
@@ -172,7 +230,9 @@ class CoderScreen(Screen):
 
 	  Start Speaking / Stop Speaking  — append spoken words to the buffer
 	  Clear                           — wipe the buffer
-	  Send                            — conversational reply (Talk model)
+	  Send                            — conversational reply (CoderTalk model,
+	                                    sees full conversation — useful for
+	                                    debugging what all other models did)
 	  Make Code Change                — full exploration → planning → drafting
 	                                    → script generation → hunk validation
 	  Apply                           — same chain but skip exploration
@@ -192,8 +252,8 @@ class CoderScreen(Screen):
 	def buffer_text(self) -> str:
 		return " ".join(self._buffer)
 
-	def _pen_msg(self, response, model) -> None:
-		"""Write a model response into the conversation and push an SSE update."""
+	def _append_msg(self, response, model) -> None:
+		"""Append a model response to the conversation and push an SSE update."""
 		self._conversation.add_message(Message(
 			role=Roles.ASSISTANT,
 			content=get_msg_content(response),
@@ -208,8 +268,8 @@ class CoderScreen(Screen):
 			data=self._conversation.to_dict()
 		))
 
-	def _pen_tool_result(self, content: str, tag: str) -> None:
-		"""Write a tool execution result into the conversation with a tag."""
+	def _append_tool_result(self, content: str, tag: str) -> None:
+		"""Append a tool execution result to the conversation with a tag."""
 		self._conversation.add_message(Message(role=Roles.USER, content=content, tags=[tag]))
 		self._conversation.save()
 		push_event(ConversationUpdateEvent(
@@ -219,10 +279,10 @@ class CoderScreen(Screen):
 		))
 
 	def _take_buffer(self) -> bool:
-		"""Commit buffer to conversation as a user message. Returns False if nothing to do."""
+		"""Commit buffer to conversation as a transcribed user message. Returns False if nothing to do."""
 		if not self.buffer_text.strip() or self._is_processing:
 			return False
-		self._conversation.add_message(Message(role=Roles.USER, content=self.buffer_text))
+		self._conversation.add_message(Message(role=Roles.USER, content=self.buffer_text, tags=["transcribed"]))
 		self._conversation.save()
 		push_event(ConversationUpdateEvent(
 			session_id=self._session.id,
@@ -257,7 +317,7 @@ class CoderScreen(Screen):
 			return
 		def run():
 			try:
-				self._pen_msg(talk(self._conversation.to_messages()), talk)
+				self._append_msg(coder_talk(self._conversation.to_messages()), coder_talk)
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -268,36 +328,36 @@ class CoderScreen(Screen):
 			return
 		def run():
 			try:
-				# Stage 1: Exploration — read files, gather context
+				# Stage 1: Exploration — AI script reads files, gathers context
 				e_resp = explore_model(self._conversation.to_messages())
-				self._pen_msg(e_resp, explore_model)
+				self._append_msg(e_resp, explore_model)
 				e_result = _run_script(get_msg_content(e_resp))
 				if e_result:
-					self._pen_tool_result(e_result, "explore_result")
+					self._append_tool_result(e_result, "explore_result")
 
-				# Stage 2: Plan — prose only, sees explore output
-				self._pen_msg(plan_model(self._conversation.to_messages()), plan_model)
+				# Stage 2: Plan — prose only, sees transcribed + explore results
+				self._append_msg(plan_model(self._conversation.to_messages()), plan_model)
 
-				# Stage 3: Draft — Q&A per change, sees plan
-				self._pen_msg(draft_model(self._conversation.to_messages()), draft_model)
+				# Stage 3: Draft — Q&A per change, sees transcribed + plan
+				self._append_msg(draft_model(self._conversation.to_messages()), draft_model)
 
-				# Stage 4: Script generation — assistant_interaction syntax, sees plan + draft
+				# Stage 4: Script generation — sees plan + draft + syntax docs
 				s_resp = script_model(self._conversation.to_messages())
-				self._pen_msg(s_resp, script_model)
+				self._append_msg(s_resp, script_model)
 
-				# Run the script: saves files, generates diffs + hunk choice blocks
+				# Run the script: saves files, returns diffs + hunk choice blocks
 				s_result = _run_script(get_msg_content(s_resp))
 				if s_result:
-					self._pen_tool_result(s_result, "script_result")
+					self._append_tool_result(s_result, "script_result")
 
 					# Stage 5: Hunk validation — AI accepts/rejects each diff hunk
 					h_resp = hunk_model(self._conversation.to_messages())
-					self._pen_msg(h_resp, hunk_model)
+					self._append_msg(h_resp, hunk_model)
 
 					# Apply the accepted hunks
 					apply_result = _run_script(get_msg_content(h_resp))
 					if apply_result:
-						self._pen_tool_result(apply_result, "apply_result")
+						self._append_tool_result(apply_result, "apply_result")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -309,38 +369,38 @@ class CoderScreen(Screen):
 			return
 		def run():
 			try:
-				self._pen_msg(plan_model(self._conversation.to_messages()), plan_model)
-				self._pen_msg(draft_model(self._conversation.to_messages()), draft_model)
+				self._append_msg(plan_model(self._conversation.to_messages()), plan_model)
+				self._append_msg(draft_model(self._conversation.to_messages()), draft_model)
 
 				s_resp = script_model(self._conversation.to_messages())
-				self._pen_msg(s_resp, script_model)
+				self._append_msg(s_resp, script_model)
 
 				s_result = _run_script(get_msg_content(s_resp))
 				if s_result:
-					self._pen_tool_result(s_result, "script_result")
+					self._append_tool_result(s_result, "script_result")
 
 					h_resp = hunk_model(self._conversation.to_messages())
-					self._pen_msg(h_resp, hunk_model)
+					self._append_msg(h_resp, hunk_model)
 
 					apply_result = _run_script(get_msg_content(h_resp))
 					if apply_result:
-						self._pen_tool_result(apply_result, "apply_result")
+						self._append_tool_result(apply_result, "apply_result")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
 
 	@control(keyphrases=["explore", "load", "load context", "explore codebase", "gather context"])
 	def explore(self, control: Control) -> None:
-		"""Exploration step only — read files and gather context into the conversation."""
+		"""Exploration step only — AI reads files and gathers context into the conversation."""
 		if not self._take_buffer():
 			return
 		def run():
 			try:
 				e_resp = explore_model(self._conversation.to_messages())
-				self._pen_msg(e_resp, explore_model)
+				self._append_msg(e_resp, explore_model)
 				e_result = _run_script(get_msg_content(e_resp))
 				if e_result:
-					self._pen_tool_result(e_result, "explore_result")
+					self._append_tool_result(e_result, "explore_result")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
