@@ -8,10 +8,11 @@ validate()  — asks a model to read the conversation and decide ALLOWED/DENIED
 """
 
 import re
+from RequiredAI.ModelConfig import InputConfig
 from RequiredAI.RequirementTypes import ContainsRequirement
 from RequiredAI.helpers import get_msg_content
 from Alejandro.CodeRequirements.context import ProjectContext, EvalResult
-from Alejandro.Core.Assistant import client, llama_70b, gpt_oss_20b
+from Alejandro.Core.Assistant import client, llama_70b
 
 name = "No unsolicited try/except"
 description = (
@@ -23,9 +24,33 @@ description = (
 _TRY_EXCEPT = re.compile(r'^\s*(try\s*:|except[\s:(])')
 _DENIED = re.compile(r'\bDENIED\b')
 
+_INSTRUCTION = {
+    "role": "user",
+    "content": [
+        {
+            "type": "text",
+            "text": (
+                "You are a code review assistant. Read the conversation above between "
+                "a user and an AI coding assistant. Decide whether the user explicitly "
+                "requested, discussed, or consented to adding try/except exception "
+                "handling in the code.\n\n"
+                "Reply with exactly one word on its own line:\n"
+                "  ALLOWED — if the user asked for, discussed, or clearly expected "
+                "error handling\n"
+                "  DENIED  — if the user never mentioned it and it was added without "
+                "request"
+            ),
+            "cache_control": {"type": "ephemeral"},
+        }
+    ],
+}
+
 _consent_model = client.model(
     name="TryCatchConsentCheck",
     base_model=llama_70b,
+    input_config=InputConfig(
+        messages_to_include=[(0, -1), _INSTRUCTION],
+    ),
     requirements=[
         ContainsRequirement(
             value=["ALLOWED", "DENIED"],
@@ -56,29 +81,7 @@ def validate(context: ProjectContext) -> EvalResult:
             reason="No conversation history in context — cannot verify consent",
         )
 
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are a code review assistant. Read the conversation between a user "
-                "and an AI coding assistant. Decide whether the user explicitly requested, "
-                "discussed, or consented to adding try/except exception handling in the code.\n\n"
-                "Reply with exactly one word on its own line:\n"
-                "  ALLOWED — if the user asked for, discussed, or clearly expected error handling\n"
-                "  DENIED  — if the user never mentioned it and it was added without request"
-            ),
-        },
-        *context.conversation,
-        {
-            "role": "user",
-            "content": (
-                "Based on the conversation above: was try/except exception handling "
-                "explicitly requested or discussed? Reply ALLOWED or DENIED."
-            ),
-        },
-    ]
-
-    response = _consent_model(messages)
+    response = _consent_model(context.conversation)
     content = get_msg_content(response)
 
     denied = bool(_DENIED.search(content))
