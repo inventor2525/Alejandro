@@ -1,93 +1,87 @@
-"""
-Data classes that flow through the code requirements system.
-
-ProjectContext  — built once per check run; passed to every requirement's
-                  pertinent() and validate() functions.
-
-FileDiff        — one changed file's diff, parsed into added/removed lines
-                  with the full new file content attached when readable.
-
-PertinentResult — returned by requirement.pertinent():
-                  tells the checker whether this requirement applies to the
-                  current diff, with optional model context or error info.
-
-ValidateResult  — returned by requirement.validate():
-                  the actual pass/fail decision, same rich return structure.
-
-RequirementResult — aggregates one requirement's pertinent + validate results;
-                    validate is None when the requirement was not pertinent.
-"""
-
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
 @dataclass
 class FileDiff:
     path: str
-    diff_text: str
+    '''Absolute path to the changed file.'''
+
+    raw_diff: str
+    '''Raw unified diff from get_git_diff (header lines stripped).'''
+
+    annotated_diff: str
+    '''Diff annotated with change numbers and interleaved file content with line
+    numbers, from add_change_numbers(add_line_numbers=True). Use this in
+    pertinent() to decide whether a requirement applies.'''
+
+    hunks: list[dict]
+    '''Hunk metadata: [{"number": "Change #1", "header": "@@...@@", "content": "..."}]'''
+
     added_lines: list[str]
+    '''Lines added in this diff (leading + stripped). Use in validate().'''
+
     removed_lines: list[str]
-    new_content: str | None = None
+    '''Lines removed in this diff (leading - stripped). Use in validate().'''
 
 
 @dataclass
 class ProjectContext:
     project_dir: str
-    diffs: list[FileDiff]
+    '''Root directory of the project being checked.'''
 
-    @property
-    def changed_files(self) -> list[str]:
-        return [d.path for d in self.diffs]
+    diffs: list[FileDiff]
+    '''One FileDiff per changed file.'''
+
+    def files_matching(self, suffix: str) -> list[FileDiff]:
+        """Return diffs for files whose path ends with suffix."""
+        return [d for d in self.diffs if d.path.endswith(suffix)]
 
     def diff_for(self, path: str) -> FileDiff | None:
+        """Return the diff for a specific absolute path, or None."""
         for d in self.diffs:
             if d.path == path:
                 return d
         return None
 
-    def diffs_matching(self, suffix: str) -> list[FileDiff]:
-        return [d for d in self.diffs if d.path.endswith(suffix)]
-
 
 @dataclass
-class PertinentResult:
+class EvalResult:
     """
-    Whether a requirement applies to the current diff.
+    Returned by both pertinent() and validate() on a requirement.
 
-    is_pertinent  — False means the checker skips validate() entirely.
-    reason        — human-readable explanation (shown in audit output).
-    model_context — anything the requirement wants to preserve: model messages,
-                    intermediate results, raw LLM response, etc.
-    error         — set if pertinent() itself raised or hit an unexpected state.
+    For pertinent(): passed=True means the requirement applies to this diff.
+    For validate():  passed=True means the code satisfies the requirement.
     """
-    is_pertinent: bool
-    reason: str = ""
-    model_context: Any = None
-    error: str | None = None
 
-
-@dataclass
-class ValidateResult:
-    """
-    Whether the code change satisfies the requirement.
-
-    passed        — the bottom-line pass/fail.
-    reason        — human-readable explanation of why it passed or failed.
-    model_context — same as PertinentResult.model_context: carry anything useful.
-    error         — set if validate() itself raised.
-    """
     passed: bool
+    '''The boolean result of this evaluation.'''
+
     reason: str = ""
+    '''Human-readable explanation shown in audit output.'''
+
     model_context: Any = None
+    '''Anything the requirement wants to carry back — model messages, LLM
+    responses, intermediate results, etc. Not interpreted by the checker.'''
+
     error: str | None = None
+    '''Set when the evaluation function raised or hit an unexpected state.'''
 
 
 @dataclass
 class RequirementResult:
     """Aggregated result for one requirement across both evaluation phases."""
+
     name: str
+    '''Requirement name, from the loaded file.'''
+
     file_path: str
-    pertinent: PertinentResult
-    validate: ValidateResult | None = None   # None ↔ requirement was not pertinent
+    '''Source file this requirement was loaded from.'''
+
+    pertinent: EvalResult
+    '''Result of calling requirement.pertinent(context).'''
+
+    validate: EvalResult | None = None
+    '''Result of calling requirement.validate(context).
+    None when pertinent.passed was False.'''

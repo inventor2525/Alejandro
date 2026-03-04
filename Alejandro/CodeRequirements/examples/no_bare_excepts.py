@@ -1,12 +1,13 @@
 """
-Bare except clauses must not be introduced.
+except clauses must name a specific exception type.
 
-`except:` swallows everything including KeyboardInterrupt and SystemExit.
-Always name at least one exception type: `except Exception:` at minimum.
+Bare `except:` swallows KeyboardInterrupt and SystemExit.
+At minimum use `except Exception:`. Pertinent whenever any Python file
+has added lines in the diff.
 """
 
 import re
-from Alejandro.CodeRequirements.context import ProjectContext, PertinentResult, ValidateResult
+from Alejandro.CodeRequirements.context import ProjectContext, EvalResult
 
 name = "No bare excepts"
 description = "except clauses must name a specific exception type, never bare `except:`."
@@ -14,28 +15,22 @@ description = "except clauses must name a specific exception type, never bare `e
 _BARE_EXCEPT = re.compile(r'^\s*except\s*:\s*$')
 
 
-def pertinent(context: ProjectContext) -> PertinentResult:
-    py_diffs = [d for d in context.diffs_matching('.py') if d.added_lines]
+def pertinent(context: ProjectContext) -> EvalResult:
+    py_diffs = [d for d in context.files_matching('.py') if d.added_lines]
     if not py_diffs:
-        return PertinentResult(
-            is_pertinent=False,
-            reason="No Python files with added lines in diff",
-        )
-    return PertinentResult(
-        is_pertinent=True,
-        reason=f"{len(py_diffs)} Python file(s) have added lines",
-    )
+        return EvalResult(passed=False, reason="No Python files with added lines")
+    return EvalResult(passed=True, reason=f"{len(py_diffs)} Python file(s) with additions")
 
 
-def validate(context: ProjectContext) -> ValidateResult:
+def validate(context: ProjectContext) -> EvalResult:
     violations: list[str] = []
-    for diff in context.diffs_matching('.py'):
+    for diff in context.files_matching('.py'):
         for line in diff.added_lines:
             if _BARE_EXCEPT.match(line):
                 violations.append(f"  {diff.path}: {line.rstrip()}")
     if violations:
-        return ValidateResult(
+        return EvalResult(
             passed=False,
             reason="Bare except clause(s) introduced:\n" + "\n".join(violations),
         )
-    return ValidateResult(passed=True, reason="No bare excepts")
+    return EvalResult(passed=True, reason="No bare excepts")
