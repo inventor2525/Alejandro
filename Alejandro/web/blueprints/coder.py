@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from flask import Blueprint, render_template, request, jsonify
 from threading import Thread
@@ -13,9 +14,11 @@ from RequiredAI.helpers import get_msg_content
 from RequiredAI.ModelConfig import InputConfig
 from RequiredAI.RequirementTypes import WrittenRequirement, ContainsRequirement
 from Alejandro.Core.Assistant import client, llama_70b, gpt_oss_20b, talk
+from Alejandro.CodeRequirements import load_requirements, check, CheckResult
 from assistant_interaction.utils import process_commands
 
 bp = Blueprint('coder', __name__)
+_log = logging.getLogger(__name__)
 
 # ── Shared resources ──────────────────────────────────────────────────────────
 
@@ -194,13 +197,14 @@ class CoderScreen(Screen):
 	  Explore / Load                  — exploration step only (gather context)
 	"""
 
-	def __init__(self, session: 'Session'):
+	def __init__(self, session: 'Session', project_dir: str | None = None):
 		super().__init__(session=session, title="Coder", controls=[session.make_back_control()])
 		self._session = session
 		self._buffer: list[str] = []
 		self._conversation = Conversation(name="Coder Session")
 		self._conversation.save()
 		self._is_processing = False
+		self._project_dir = project_dir  # git repo root for post-apply requirements checking
 
 	@property
 	def buffer_text(self) -> str:
@@ -221,6 +225,52 @@ class CoderScreen(Screen):
 			conversation_id=self._conversation.id,
 			data=self._conversation.to_dict()
 		))
+
+	def _run_requirements_check(self) -> None:
+		"""
+		After code changes are applied, run all CodeRequirements against the
+		project diff and append a summary to the conversation.
+
+		Loads requirements from:
+		  1. ~/.alejandro/code_requirements/  (global user rules)
+		  2. <project_dir>/.code_requirements/  (per-project rules)
+
+		Skipped silently if project_dir is not set.
+		"""
+		if not self._project_dir:
+			return
+
+		requirements = load_requirements(
+			directory=str(Path.home() / ".alejandro" / "code_requirements"),
+		) + load_requirements(
+			directory=str(Path(self._project_dir) / ".code_requirements"),
+		)
+
+		if not requirements:
+			return
+
+		result = check(
+			requirements=requirements,
+			project_dir=self._project_dir,
+			conversation=self._conversation.to_messages(),
+			client=client,
+		)
+
+		lines = [
+			f"**Requirements check**: {'PASSED' if result.all_passed else 'FAILED'}",
+			"",
+		]
+		for r in result.results:
+			if not r.pertinent.passed:
+				lines.append(f"- ⬜ {r.name} — not pertinent ({r.pertinent.reason})")
+			elif r.validate and r.validate.passed:
+				lines.append(f"- ✅ {r.name} — {r.validate.reason}")
+			elif r.validate:
+				lines.append(f"- ❌ {r.name} — {r.validate.reason}")
+			else:
+				lines.append(f"- ⚠️ {r.name} — validate not run")
+
+		self._append_tool_result("\n".join(lines), "requirements_result")
 
 	def _append_tool_result(self, content: str, tag: str) -> None:
 		"""Append a tool execution result to the conversation with a tag."""
@@ -273,7 +323,7 @@ class CoderScreen(Screen):
 			try:
 				self._append_msg(coder_talk(self._conversation.to_messages()), coder_talk)
 			except Exception as e:
-				print(f"[CODER send] {e}")
+				_log.error("[CODER send] %s", e, exc_info=True)
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -310,8 +360,10 @@ class CoderScreen(Screen):
 					apply_result = process_commands(get_msg_content(hunk_response))
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
+						# Stage 6: Requirements check against the resulting diff
+						self._run_requirements_check()
 			except Exception as e:
-				print(f"[CODER make_code_change] {e}")
+				_log.error("[CODER make_code_change] %s", e, exc_info=True)
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -337,8 +389,10 @@ class CoderScreen(Screen):
 					apply_result = process_commands(get_msg_content(hunk_response))
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
+						# Stage 5: Requirements check against the resulting diff
+						self._run_requirements_check()
 			except Exception as e:
-				print(f"[CODER apply] {e}")
+				_log.error("[CODER apply] %s", e, exc_info=True)
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -356,7 +410,7 @@ class CoderScreen(Screen):
 				if explore_result:
 					self._append_tool_result(explore_result, "explore_result")
 			except Exception as e:
-				print(f"[CODER explore] {e}")
+				_log.error("[CODER explore] %s", e, exc_info=True)
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
