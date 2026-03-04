@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 from flask import Blueprint, render_template, request, jsonify
 from threading import Thread
@@ -18,43 +17,23 @@ from assistant_interaction.utils import process_commands
 
 bp = Blueprint('coder', __name__)
 
-# ── Syntax documentation ──────────────────────────────────────────────────────
-# Load the README once at import time so it can be injected into model calls.
+# ── Shared resources ──────────────────────────────────────────────────────────
 
 _README_PATH = Path(__file__).parents[4] / "assistant_interaction" / "README.md"
 _SYNTAX_DOCS = _README_PATH.read_text() if _README_PATH.exists() else ""
 
-_EXPLORE_PROMPT = {
-    "role": "user",
-    "content": (
-        _SYNTAX_DOCS +
-        "\n\nUsing the syntax above, write an AI script that reads the relevant "
-        "files and directories to gather context for the user's request. "
-        "Use AI_READ_FILE and AI_BASH_START only — do not write or modify any files."
-    )
-}
+_script_requirements = [
+	ContainsRequirement(
+		value=["```txt\n<AI_RESPONSE>"],
+		name="Must contain an AI response block"
+	),
+	SyntaxTreeValidatorRequirement(
+		nodes=assistant_interaction_syntax,
+		name="Assistant Interaction Syntax"
+	),
+]
 
-_SCRIPT_PROMPT = {
-    "role": "user",
-    "content": (
-        _SYNTAX_DOCS +
-        "\n\nUsing the syntax above, convert the Q&A draft into an "
-        "assistant_interaction script. Save each changed file using AI_SAVE_START "
-        "and present each diff hunk for review using AI_APPLY_CHOICES."
-    )
-}
-
-_HUNK_PROMPT = {
-    "role": "user",
-    "content": (
-        _SYNTAX_DOCS +
-        "\n\nFor each file with change hunks shown above, write an AI_APPLY_CHOICES "
-        "block accepting or rejecting each hunk. Accept hunks that correctly implement "
-        "the intended change; reject those that introduce errors or unnecessary changes."
-    )
-}
-
-# ── Syntax node requirements ──────────────────────────────────────────────────
+# ── Syntax node restrictions ──────────────────────────────────────────────────
 
 def _find_node(nodes, start_regex):
 	for node in nodes:
@@ -91,35 +70,30 @@ if _bash_node:
 		),
 	]
 
-# ── Stage models ──────────────────────────────────────────────────────────────
+# ── Models ────────────────────────────────────────────────────────────────────
 
-_script_requirements = [
-	ContainsRequirement(
-		value=["```txt\n<AI_RESPONSE>"],
-		name="Must contain an AI response block"
-	),
-	SyntaxTreeValidatorRequirement(
-		nodes=assistant_interaction_syntax,
-		name="Assistant Interaction Syntax"
-	),
-]
-
-# Talk: sees the full conversation — no filtering. Used for debugging/Q&A
-# about what all the other models did.
+# Talk: no input_config — sees the full conversation. Good for debugging
+# what the other models did.
 coder_talk = client.model(
 	name="CoderTalk",
 	base_model=llama_70b,
 	requirements=talk.requirements,
+	output_tags=["talk"]
 )
 
-# Explore: sees only transcribed user messages + injected syntax docs/prompt.
-# Produces a read-only AI script to gather context.
+# Explore: sees all transcribed user messages. Injected prompt gives syntax
+# docs and asks for a read-only script to gather project context.
 explore_model = client.model(
 	name="CoderExplore",
 	base_model=llama_70b,
 	input_config=InputConfig(
 		filter_tags=["transcribed"],
-		messages_to_include=[(0, -1), _EXPLORE_PROMPT]
+		messages_to_include=[(0, -1), {"role": "user", "content": (
+			_SYNTAX_DOCS +
+			"\n\nUsing the syntax above, write an AI script that reads the relevant "
+			"files and directories to gather context for the user's request. "
+			"Use AI_READ_FILE and AI_BASH_START only — do not write or modify any files."
+		)}]
 	),
 	requirements=_script_requirements + [
 		WrittenRequirement(
@@ -133,11 +107,19 @@ explore_model = client.model(
 	output_tags=["explore"]
 )
 
-# Plan: sees transcribed user messages + the actual file contents from exploration.
+# Plan: sees all transcribed user messages + all exploration results.
+# Injected prompt asks for prose-only planning, no code.
 plan_model = client.model(
 	name="CoderPlan",
 	base_model=llama_70b,
-	input_config=InputConfig(filter_tags=["transcribed", "explore_result"]),
+	input_config=InputConfig(
+		filter_tags=["transcribed", "explore_result"],
+		messages_to_include=[(0, -1), {"role": "user", "content": (
+			"Based on the user's request and the exploration results above, write a "
+			"detailed prose plan describing exactly what code changes need to be made "
+			"and why. No code blocks — prose only."
+		)}]
+	),
 	requirements=[
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
@@ -150,15 +132,23 @@ plan_model = client.model(
 	output_tags=["plan"]
 )
 
-# Draft: sees transcribed user messages + the plan.
+# Draft: sees all transcribed user messages + the plan.
+# Injected prompt asks for Q&A pairs per change.
 draft_model = client.model(
 	name="CoderDraft",
 	base_model=llama_70b,
-	input_config=InputConfig(filter_tags=["transcribed", "plan"]),
+	input_config=InputConfig(
+		filter_tags=["transcribed", "plan"],
+		messages_to_include=[(0, -1), {"role": "user", "content": (
+			"Using the plan above, write out each code change as a Q&A pair. "
+			"The question describes what to change; the answer shows the new content "
+			"in a markdown code block labelled with the filename and line range."
+		)}]
+	),
 	requirements=[
 		WrittenRequirement(
 			evaluation_model=gpt_oss_20b.name,
-			value=["For each change, write a Q&A pair: the question states what to change, the answer shows the new content in a markdown code block labelled with filename and line range."],
+			value=["For each change, write a Q&A pair: question states what to change, answer shows the new content in a markdown code block with filename and line range."],
 			positive_examples=[],
 			negative_examples=[],
 			name="Q&A draft format"
@@ -167,14 +157,19 @@ draft_model = client.model(
 	output_tags=["draft"]
 )
 
-# Script: sees plan + draft + injected syntax docs/prompt.
-# Produces a full assistant_interaction script with AI_SAVE_START + AI_APPLY_CHOICES.
+# Script: sees plan + draft. Injected prompt gives syntax docs and asks to
+# produce a full assistant_interaction script with saves and hunk choices.
 script_model = client.model(
 	name="CoderScript",
 	base_model=llama_70b,
 	input_config=InputConfig(
 		filter_tags=["plan", "draft"],
-		messages_to_include=[(0, -1), _SCRIPT_PROMPT]
+		messages_to_include=[(0, -1), {"role": "user", "content": (
+			_SYNTAX_DOCS +
+			"\n\nUsing the syntax above, convert the Q&A draft into an "
+			"assistant_interaction script. Save each changed file using AI_SAVE_START "
+			"and present each diff hunk for review using AI_APPLY_CHOICES."
+		)}]
 	),
 	requirements=_script_requirements + [
 		WrittenRequirement(
@@ -182,20 +177,25 @@ script_model = client.model(
 			value=["Use AI_SAVE_START to write file changes and AI_APPLY_CHOICES to present each diff hunk for review."],
 			positive_examples=[],
 			negative_examples=[],
-			name="Produce script with save and hunk choices"
+			name="Produce script with saves and hunk choices"
 		),
 	],
 	output_tags=["script"]
 )
 
-# Hunk validator: sees the script + execution output (diffs + choice blocks)
-# + injected prompt. Produces AI_APPLY_CHOICES decisions.
+# Hunk validator: sees the script output + execution results (diffs + choices).
+# Injected prompt gives syntax docs and asks for AI_APPLY_CHOICES decisions.
 hunk_model = client.model(
 	name="CoderHunks",
 	base_model=llama_70b,
 	input_config=InputConfig(
 		filter_tags=["script", "script_result"],
-		messages_to_include=[(0, -1), _HUNK_PROMPT]
+		messages_to_include=[(0, -1), {"role": "user", "content": (
+			_SYNTAX_DOCS +
+			"\n\nFor each file with change hunks shown above, write an AI_APPLY_CHOICES "
+			"block accepting or rejecting each hunk. Accept hunks that correctly implement "
+			"the intended change; reject those that introduce errors or unnecessary changes."
+		)}]
 	),
 	requirements=_script_requirements + [
 		WrittenRequirement(
@@ -208,15 +208,6 @@ hunk_model = client.model(
 	],
 	output_tags=["hunks"]
 )
-
-# ── Script execution helper ───────────────────────────────────────────────────
-
-def _run_script(content: str) -> str | None:
-	"""Extract the <AI_RESPONSE>...<END_OF_INPUT> block and run it."""
-	match = re.search(r'(<AI_RESPONSE>.*?<END_OF_INPUT>)', content, re.DOTALL)
-	if not match:
-		return None
-	return process_commands(match.group(1))
 
 # ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -318,6 +309,8 @@ class CoderScreen(Screen):
 		def run():
 			try:
 				self._append_msg(coder_talk(self._conversation.to_messages()), coder_talk)
+			except Exception as e:
+				print(f"[CODER send] {e}")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -328,36 +321,37 @@ class CoderScreen(Screen):
 			return
 		def run():
 			try:
-				# Stage 1: Exploration — AI script reads files, gathers context
+				# Stage 1: Exploration
 				e_resp = explore_model(self._conversation.to_messages())
 				self._append_msg(e_resp, explore_model)
-				e_result = _run_script(get_msg_content(e_resp))
+				e_content = get_msg_content(e_resp)
+				e_result = process_commands(e_content[e_content.index('<AI_RESPONSE>'):])
 				if e_result:
 					self._append_tool_result(e_result, "explore_result")
 
-				# Stage 2: Plan — prose only, sees transcribed + explore results
+				# Stage 2: Plan
 				self._append_msg(plan_model(self._conversation.to_messages()), plan_model)
 
-				# Stage 3: Draft — Q&A per change, sees transcribed + plan
+				# Stage 3: Draft
 				self._append_msg(draft_model(self._conversation.to_messages()), draft_model)
 
-				# Stage 4: Script generation — sees plan + draft + syntax docs
+				# Stage 4: Script generation
 				s_resp = script_model(self._conversation.to_messages())
 				self._append_msg(s_resp, script_model)
-
-				# Run the script: saves files, returns diffs + hunk choice blocks
-				s_result = _run_script(get_msg_content(s_resp))
+				s_content = get_msg_content(s_resp)
+				s_result = process_commands(s_content[s_content.index('<AI_RESPONSE>'):])
 				if s_result:
 					self._append_tool_result(s_result, "script_result")
 
-					# Stage 5: Hunk validation — AI accepts/rejects each diff hunk
+					# Stage 5: Hunk validation
 					h_resp = hunk_model(self._conversation.to_messages())
 					self._append_msg(h_resp, hunk_model)
-
-					# Apply the accepted hunks
-					apply_result = _run_script(get_msg_content(h_resp))
+					h_content = get_msg_content(h_resp)
+					apply_result = process_commands(h_content[h_content.index('<AI_RESPONSE>'):])
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
+			except Exception as e:
+				print(f"[CODER make_code_change] {e}")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -374,17 +368,19 @@ class CoderScreen(Screen):
 
 				s_resp = script_model(self._conversation.to_messages())
 				self._append_msg(s_resp, script_model)
-
-				s_result = _run_script(get_msg_content(s_resp))
+				s_content = get_msg_content(s_resp)
+				s_result = process_commands(s_content[s_content.index('<AI_RESPONSE>'):])
 				if s_result:
 					self._append_tool_result(s_result, "script_result")
 
 					h_resp = hunk_model(self._conversation.to_messages())
 					self._append_msg(h_resp, hunk_model)
-
-					apply_result = _run_script(get_msg_content(h_resp))
+					h_content = get_msg_content(h_resp)
+					apply_result = process_commands(h_content[h_content.index('<AI_RESPONSE>'):])
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
+			except Exception as e:
+				print(f"[CODER apply] {e}")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
@@ -398,9 +394,12 @@ class CoderScreen(Screen):
 			try:
 				e_resp = explore_model(self._conversation.to_messages())
 				self._append_msg(e_resp, explore_model)
-				e_result = _run_script(get_msg_content(e_resp))
+				e_content = get_msg_content(e_resp)
+				e_result = process_commands(e_content[e_content.index('<AI_RESPONSE>'):])
 				if e_result:
 					self._append_tool_result(e_result, "explore_result")
+			except Exception as e:
+				print(f"[CODER explore] {e}")
 			finally:
 				self._is_processing = False
 		Thread(target=run, daemon=True).start()
