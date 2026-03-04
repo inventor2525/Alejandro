@@ -6,7 +6,7 @@ from Alejandro.Core.Screen import Screen, screen_type, control
 from Alejandro.Core.ModalControl import ModalControl
 from Alejandro.Core.Control import Control
 from Alejandro.Models.Conversation import Conversation, Message, Roles
-from Alejandro.Models.assistant_interaction_syntax import assistant_interaction_syntax
+from examples.smart_model import assistant_interaction_syntax
 from Alejandro.Models.syntax_tree_requirement import SyntaxTreeValidatorRequirement
 from Alejandro.web.events import push_event, ConversationUpdateEvent
 from RequiredAI.helpers import get_msg_content
@@ -32,43 +32,6 @@ _script_requirements = [
 		name="Assistant Interaction Syntax"
 	),
 ]
-
-# ── Syntax node restrictions ──────────────────────────────────────────────────
-
-def _find_node(nodes, start_regex):
-	for node in nodes:
-		if node.start_regex == start_regex:
-			return node
-		found = _find_node(node.children, start_regex)
-		if found:
-			return found
-	return None
-
-_bash_node = _find_node(assistant_interaction_syntax, r"^\s*### AI_BASH_START.*$")
-if _bash_node:
-	_bash_node.requirements = [
-		WrittenRequirement(
-			evaluation_model=gpt_oss_20b.name,
-			value=["Do not include git push commands.", "Do not push code to remote repositories in ANY way."],
-			positive_examples=['git commit -m "A commit"'],
-			negative_examples=["git push origin main"],
-			name="Never push to remote"
-		),
-		WrittenRequirement(
-			evaluation_model=gpt_oss_20b.name,
-			value=["Do not source PyEnvironment, pyenv, or run pyenv activate."],
-			positive_examples=["pip install numpy"],
-			negative_examples=["source ~/.pyenv/bin/activate"],
-			name="No PyEnvironment"
-		),
-		WrittenRequirement(
-			evaluation_model=gpt_oss_20b.name,
-			value=["Do not run any python file."],
-			positive_examples=["echo 'Done'"],
-			negative_examples=["python script.py"],
-			name="Do not run python files"
-		),
-	]
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
@@ -324,8 +287,7 @@ class CoderScreen(Screen):
 				# Stage 1: Exploration
 				e_resp = explore_model(self._conversation.to_messages())
 				self._append_msg(e_resp, explore_model)
-				e_content = get_msg_content(e_resp)
-				e_result = process_commands(e_content[e_content.index('<AI_RESPONSE>'):])
+				e_result = process_commands(get_msg_content(e_resp))
 				if e_result:
 					self._append_tool_result(e_result, "explore_result")
 
@@ -338,16 +300,14 @@ class CoderScreen(Screen):
 				# Stage 4: Script generation
 				s_resp = script_model(self._conversation.to_messages())
 				self._append_msg(s_resp, script_model)
-				s_content = get_msg_content(s_resp)
-				s_result = process_commands(s_content[s_content.index('<AI_RESPONSE>'):])
+				s_result = process_commands(get_msg_content(s_resp))
 				if s_result:
 					self._append_tool_result(s_result, "script_result")
 
 					# Stage 5: Hunk validation
 					h_resp = hunk_model(self._conversation.to_messages())
 					self._append_msg(h_resp, hunk_model)
-					h_content = get_msg_content(h_resp)
-					apply_result = process_commands(h_content[h_content.index('<AI_RESPONSE>'):])
+					apply_result = process_commands(get_msg_content(h_resp))
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
 			except Exception as e:
@@ -368,15 +328,13 @@ class CoderScreen(Screen):
 
 				s_resp = script_model(self._conversation.to_messages())
 				self._append_msg(s_resp, script_model)
-				s_content = get_msg_content(s_resp)
-				s_result = process_commands(s_content[s_content.index('<AI_RESPONSE>'):])
+				s_result = process_commands(get_msg_content(s_resp))
 				if s_result:
 					self._append_tool_result(s_result, "script_result")
 
 					h_resp = hunk_model(self._conversation.to_messages())
 					self._append_msg(h_resp, hunk_model)
-					h_content = get_msg_content(h_resp)
-					apply_result = process_commands(h_content[h_content.index('<AI_RESPONSE>'):])
+					apply_result = process_commands(get_msg_content(h_resp))
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
 			except Exception as e:
@@ -394,8 +352,7 @@ class CoderScreen(Screen):
 			try:
 				e_resp = explore_model(self._conversation.to_messages())
 				self._append_msg(e_resp, explore_model)
-				e_content = get_msg_content(e_resp)
-				e_result = process_commands(e_content[e_content.index('<AI_RESPONSE>'):])
+				e_result = process_commands(get_msg_content(e_resp))
 				if e_result:
 					self._append_tool_result(e_result, "explore_result")
 			except Exception as e:
