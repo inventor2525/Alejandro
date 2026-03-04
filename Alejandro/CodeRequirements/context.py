@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -33,6 +33,14 @@ class ProjectContext:
 
     diffs: list[FileDiff]
     '''One FileDiff per changed file.'''
+
+    conversation: list[dict] = field(default_factory=list)
+    '''Full conversation history in RequiredAI message format (role/content dicts).
+    Pass this to model requirements that need to reason about what the user asked for.'''
+
+    client: Any = None
+    '''RequiredAI client. Passed through so requirement files can call models directly
+    without importing from a specific application module.'''
 
     def files_matching(self, suffix: str) -> list[FileDiff]:
         """Return diffs for files whose path ends with suffix."""
