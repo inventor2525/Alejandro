@@ -285,11 +285,11 @@ class CoderScreen(Screen):
 		def run():
 			try:
 				# Stage 1: Exploration
-				e_resp = explore_model(self._conversation.to_messages())
-				self._append_msg(e_resp, explore_model)
-				e_result = process_commands(get_msg_content(e_resp))
-				if e_result:
-					self._append_tool_result(e_result, "explore_result")
+				explore_response = explore_model(self._conversation.to_messages())
+				self._append_msg(explore_response, explore_model)
+				explore_result = process_commands(get_msg_content(explore_response))
+				if explore_result:
+					self._append_tool_result(explore_result, "explore_result")
 
 				# Stage 2: Plan
 				self._append_msg(plan_model(self._conversation.to_messages()), plan_model)
@@ -298,16 +298,16 @@ class CoderScreen(Screen):
 				self._append_msg(draft_model(self._conversation.to_messages()), draft_model)
 
 				# Stage 4: Script generation
-				s_resp = script_model(self._conversation.to_messages())
-				self._append_msg(s_resp, script_model)
-				s_result = process_commands(get_msg_content(s_resp))
-				if s_result:
-					self._append_tool_result(s_result, "script_result")
+				script_response = script_model(self._conversation.to_messages())
+				self._append_msg(script_response, script_model)
+				script_result = process_commands(get_msg_content(script_response))
+				if script_result:
+					self._append_tool_result(script_result, "script_result")
 
 					# Stage 5: Hunk validation
-					h_resp = hunk_model(self._conversation.to_messages())
-					self._append_msg(h_resp, hunk_model)
-					apply_result = process_commands(get_msg_content(h_resp))
+					hunk_response = hunk_model(self._conversation.to_messages())
+					self._append_msg(hunk_response, hunk_model)
+					apply_result = process_commands(get_msg_content(hunk_response))
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
 			except Exception as e:
@@ -326,15 +326,15 @@ class CoderScreen(Screen):
 				self._append_msg(plan_model(self._conversation.to_messages()), plan_model)
 				self._append_msg(draft_model(self._conversation.to_messages()), draft_model)
 
-				s_resp = script_model(self._conversation.to_messages())
-				self._append_msg(s_resp, script_model)
-				s_result = process_commands(get_msg_content(s_resp))
-				if s_result:
-					self._append_tool_result(s_result, "script_result")
+				script_response = script_model(self._conversation.to_messages())
+				self._append_msg(script_response, script_model)
+				script_result = process_commands(get_msg_content(script_response))
+				if script_result:
+					self._append_tool_result(script_result, "script_result")
 
-					h_resp = hunk_model(self._conversation.to_messages())
-					self._append_msg(h_resp, hunk_model)
-					apply_result = process_commands(get_msg_content(h_resp))
+					hunk_response = hunk_model(self._conversation.to_messages())
+					self._append_msg(hunk_response, hunk_model)
+					apply_result = process_commands(get_msg_content(hunk_response))
 					if apply_result:
 						self._append_tool_result(apply_result, "apply_result")
 			except Exception as e:
@@ -350,11 +350,11 @@ class CoderScreen(Screen):
 			return
 		def run():
 			try:
-				e_resp = explore_model(self._conversation.to_messages())
-				self._append_msg(e_resp, explore_model)
-				e_result = process_commands(get_msg_content(e_resp))
-				if e_result:
-					self._append_tool_result(e_result, "explore_result")
+				explore_response = explore_model(self._conversation.to_messages())
+				self._append_msg(explore_response, explore_model)
+				explore_result = process_commands(get_msg_content(explore_response))
+				if explore_result:
+					self._append_tool_result(explore_result, "explore_result")
 			except Exception as e:
 				print(f"[CODER explore] {e}")
 			finally:
