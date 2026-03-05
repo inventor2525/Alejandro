@@ -15,6 +15,15 @@ _TODO = re.compile(r'#\s*(TODO|FIXME)\b', re.IGNORECASE)
 
 
 def pertinent(context: ProjectContext) -> EvalResult:
+    """
+    Check whether any files have added lines.
+
+    Args:
+        context: Project context containing diffs of changed files.
+
+    Returns:
+        EvalResult(passed=True) if any files have added lines.
+    """
     files_with_additions = [d for d in context.diffs if d.added_lines]
     if not files_with_additions:
         return EvalResult(passed=False, reason="No added lines in diff")
@@ -22,6 +31,15 @@ def pertinent(context: ProjectContext) -> EvalResult:
 
 
 def validate(context: ProjectContext) -> EvalResult:
+    """
+    Check added lines for TODO or FIXME comments.
+
+    Args:
+        context: Project context containing diffs of changed files.
+
+    Returns:
+        EvalResult(passed=True) if no TODO/FIXME comments were introduced.
+    """
     violations: list[str] = []
     for diff in context.diffs:
         for line in diff.added_lines:

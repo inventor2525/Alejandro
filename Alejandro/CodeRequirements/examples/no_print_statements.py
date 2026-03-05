@@ -14,6 +14,15 @@ _PRINT = re.compile(r'\bprint\s*\(')
 
 
 def pertinent(context: ProjectContext) -> EvalResult:
+    """
+    Check whether any Python files have added lines.
+
+    Args:
+        context: Project context containing diffs of changed files.
+
+    Returns:
+        EvalResult(passed=True) if any Python files have added lines.
+    """
     py_diffs = [d for d in context.files_matching('.py') if d.added_lines]
     if not py_diffs:
         return EvalResult(passed=False, reason="No Python files with added lines")
@@ -21,6 +30,15 @@ def pertinent(context: ProjectContext) -> EvalResult:
 
 
 def validate(context: ProjectContext) -> EvalResult:
+    """
+    Check added Python lines for raw print() calls.
+
+    Args:
+        context: Project context containing diffs of changed files.
+
+    Returns:
+        EvalResult(passed=True) if no print() calls were introduced.
+    """
     violations: list[str] = []
     for diff in context.files_matching('.py'):
         for line in diff.added_lines:

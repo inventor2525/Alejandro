@@ -24,32 +24,27 @@ description = (
 _TRY_EXCEPT = re.compile(r'^\s*(try\s*:|except[\s:(])')
 _DENIED = re.compile(r'\bDENIED\b')
 
-_INSTRUCTION = {
-    "role": "user",
-    "content": [
-        {
-            "type": "text",
-            "text": (
-                "You are a code review assistant. Read the conversation above between "
-                "a user and an AI coding assistant. Decide whether the user explicitly "
-                "requested, discussed, or consented to adding try/except exception "
-                "handling in the code.\n\n"
-                "Reply with exactly one word on its own line:\n"
-                "  ALLOWED — if the user asked for, discussed, or clearly expected "
-                "error handling\n"
-                "  DENIED  — if the user never mentioned it and it was added without "
-                "request"
-            ),
-            "cache_control": {"type": "ephemeral"},
-        }
-    ],
-}
-
 _consent_model = client.model(
     name="TryCatchConsentCheck",
     base_model=llama_70b,
     input_config=InputConfig(
-        messages_to_include=[(0, -1), _INSTRUCTION],
+        messages_to_include=[(0, -1), {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": (
+                        "Did the conversation above include an explicit request or "
+                        "discussion about adding try/except exception handling?\n\n"
+                        "Reply with exactly one word:\n"
+                        "  ALLOWED — user asked for, discussed, or clearly expected "
+                        "error handling\n"
+                        "  DENIED  — user never mentioned it; it was added without request"
+                    ),
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+        }],
     ),
     requirements=[
         ContainsRequirement(
@@ -61,6 +56,15 @@ _consent_model = client.model(
 
 
 def pertinent(context: ProjectContext) -> EvalResult:
+    """
+    Check whether any try/except blocks appear in the added lines.
+
+    Args:
+        context: Project context containing diffs of changed files.
+
+    Returns:
+        EvalResult(passed=True) if try/except blocks are present in added lines.
+    """
     matches: list[str] = []
     for diff in context.diffs:
         for line in diff.added_lines:
@@ -75,6 +79,16 @@ def pertinent(context: ProjectContext) -> EvalResult:
 
 
 def validate(context: ProjectContext) -> EvalResult:
+    """
+    Ask a model whether the conversation contains explicit consent for the try/except.
+
+    Args:
+        context: Project context; context.conversation must be populated with
+                 the full message history to assess consent.
+
+    Returns:
+        EvalResult(passed=True) if model returns ALLOWED, passed=False if DENIED.
+    """
     if not context.conversation:
         return EvalResult(
             passed=False,
