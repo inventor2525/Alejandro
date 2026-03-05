@@ -5,6 +5,12 @@ from typing import Any
 
 @dataclass
 class FileDiff:
+    """
+    All diff data for a single changed file, pre-parsed into the forms most
+    useful to requirement authors. Passed inside ProjectContext to every
+    pertinent() and validate() call.
+    """
+
     path: str
     '''Absolute path to the changed file.'''
 
@@ -28,6 +34,14 @@ class FileDiff:
 
 @dataclass
 class ProjectContext:
+    """
+    Everything a requirement needs to evaluate a proposed change. Built once
+    per check() call and passed to every pertinent() and validate() call in
+    that run. Requirement files should not import application modules to obtain
+    this data — it is injected here so requirements stay decoupled from the
+    application that runs them.
+    """
+
     project_dir: str
     '''Root directory of the project being checked.'''
 
@@ -43,11 +57,27 @@ class ProjectContext:
     without importing from a specific application module.'''
 
     def files_matching(self, suffix: str) -> list[FileDiff]:
-        """Return diffs for files whose path ends with suffix."""
+        """
+        Return diffs for files whose path ends with suffix.
+
+        Args:
+            suffix: File extension or path suffix to filter by (e.g. '.py').
+
+        Returns:
+            Subset of self.diffs whose path ends with suffix.
+        """
         return [d for d in self.diffs if d.path.endswith(suffix)]
 
     def diff_for(self, path: str) -> FileDiff | None:
-        """Return the diff for a specific absolute path, or None."""
+        """
+        Return the diff for a specific absolute path.
+
+        Args:
+            path: Absolute path to look up.
+
+        Returns:
+            The matching FileDiff, or None if the file is not in the diff set.
+        """
         for d in self.diffs:
             if d.path == path:
                 return d
@@ -57,10 +87,9 @@ class ProjectContext:
 @dataclass
 class EvalResult:
     """
-    Returned by both pertinent() and validate() on a requirement.
-
-    For pertinent(): passed=True means the requirement applies to this diff.
-    For validate():  passed=True means the code satisfies the requirement.
+    The outcome of a single evaluation step — either a pertinent() or
+    validate() call. The same type is used for both so that CheckResult and
+    RequirementResult can hold them uniformly without branching on phase.
     """
 
     passed: bool
@@ -79,7 +108,12 @@ class EvalResult:
 
 @dataclass
 class RequirementResult:
-    """Aggregated result for one requirement across both evaluation phases."""
+    """
+    The full outcome of running one requirement against a diff — both the
+    pertinent decision and, when pertinent passed, the validate decision.
+    Collected into CheckResult.results to form the complete audit trail for
+    a check() call.
+    """
 
     name: str
     '''Requirement name, from the loaded file.'''
