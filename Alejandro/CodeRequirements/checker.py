@@ -34,8 +34,6 @@ def check(
     requirements: list[CodeRequirement],
     project_dir: str,
     diffs: list[FileDiff] | None = None,
-    conversation: list[dict] | None = None,
-    client=None,
 ) -> CheckResult:
     """
     Run all requirements against the project's current uncommitted diff.
@@ -47,20 +45,11 @@ def check(
     diffs may be provided explicitly; if omitted they are generated from
     project_dir using assistant_merger.git_tools (git diff HEAD, or --cached
     fallback). Context is built once before the loop.
-
-    conversation and client are passed through to ProjectContext so that
-    model-evaluated requirements (e.g. no_unsolicited_try_except) can query
-    an LLM about the conversation history.
     """
     if diffs is None:
         diffs = _get_diffs(project_dir)
 
-    context = ProjectContext(
-        project_dir=project_dir,
-        diffs=diffs,
-        conversation=conversation or [],
-        client=client,
-    )
+    context = ProjectContext(project_dir=project_dir, diffs=diffs)
     results: list[RequirementResult] = []
 
     for req in requirements:
